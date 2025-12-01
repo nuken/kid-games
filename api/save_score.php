@@ -3,7 +3,7 @@
 header('Content-Type: application/json');
 require_once '../includes/db.php';
 
-// 1. Get the data from the game (sent via JSON)
+// 1. Get the data from the game
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
@@ -33,7 +33,8 @@ try {
     // --- BADGE LOGIC START ---
     $new_badges = [];
 
-    // A. Check for "First Flight" (Badge ID 1) - Play any game
+    // A. "First Flight" (Badge ID 1) - ONLY AWARD ONCE
+    // We keep the check here because you can't be a "first time" player twice.
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 1");
     $stmt->execute([$user_id]);
     if ($stmt->fetchColumn() == 0) {
@@ -41,18 +42,16 @@ try {
         $new_badges[] = ['name' => 'First Flight', 'icon' => '🚀'];
     }
 
-    // B. Check Game-Specific Badges
+    // B. Check Game-Specific Badges (Stacking Allowed)
     $stmt = $pdo->prepare("SELECT * FROM badges WHERE criteria_game_id = ?");
     $stmt->execute([$game_id]);
     $game_badges = $stmt->fetchAll();
 
     foreach ($game_badges as $badge) {
-        // 1. Check if already earned
-        $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?");
-        $check->execute([$user_id, $badge['id']]);
-        if ($check->fetchColumn() > 0) continue; // Already has it
+        // REMOVED: The check that prevented duplicates.
+        // Now, every time they beat the score, they get another badge.
 
-        // 2. Check Score Criteria
+        // Check Score Criteria
         if ($score >= $badge['criteria_score']) {
             // Award Badge
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")
@@ -65,12 +64,8 @@ try {
         }
     }
 
-    // C. Check "Mission Commander" (Badge ID 5) - All games > 90%
-    // (Logic: Check if user has high scores in all 4 games)
-    // For simplicity, we will skip complex multi-game checks here to prevent errors,
-    // or you can add a simple check if they have 3 stars in 3 games.
-    
     // 4. Return Success
+    // The game JS will see 'new_badges' and show the alert every time.
     echo json_encode([
         'status' => 'success',
         'new_badges' => $new_badges

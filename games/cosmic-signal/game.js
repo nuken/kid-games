@@ -8,10 +8,11 @@ let difficulty = 1;
 let currentCorrectAnswer = "";
 
 const USER_ID = window.gameData ? window.gameData.userId : 1;
-const GAME_ID = 4; // New ID for Cosmic Signal
+const GAME_ID = 4; // Cosmic Signal
 
 // DOM Elements
 const screenText = document.getElementById('question-text');
+const signalScreen = document.getElementById('signal-screen'); // <--- NEW: Select the box
 const controls = document.getElementById('frequency-controls');
 const message = document.getElementById('message');
 const scoreDisplay = document.getElementById('score');
@@ -71,13 +72,14 @@ function spawnQuestion() {
     controls.innerHTML = ""; // Clear buttons
     message.innerText = "";
     screenText.style.color = "var(--hologram-cyan)";
+    
+    // NEW: Show hand cursor so they know it is clickable
+    signalScreen.style.cursor = "pointer"; 
 
     if (difficulty === 1) {
         // LEVEL 1: WORD MATCH
-        // Pick a random word
         currentCorrectAnswer = sightWords[Math.floor(Math.random() * sightWords.length)];
 
-        // Generate distractors
         let options = [currentCorrectAnswer];
         while (options.length < 3) {
             let w = sightWords[Math.floor(Math.random() * sightWords.length)];
@@ -85,10 +87,8 @@ function spawnQuestion() {
         }
         options = shuffleArray(options);
 
-        // Display "SIGNAL RECEIVED" or "LISTEN"
         screenText.innerText = "🔊 LISTEN";
 
-        // Speak the word
         // Speak the word
         setTimeout(() => window.speakText(currentCorrectAnswer), 1000);
 
@@ -121,6 +121,9 @@ function createButtons(options) {
 
 // --- 3. CHECK ANSWER ---
 function checkAnswer(selected, btnElement) {
+    // Disable clicking the screen after answering so they don't replay old audio
+    signalScreen.style.cursor = "default"; 
+    
     if (selected === currentCorrectAnswer) {
         // CORRECT
         score += 10;
@@ -131,9 +134,8 @@ function checkAnswer(selected, btnElement) {
         btnElement.style.borderColor = "#2ecc71";
 
         if (difficulty === 2) {
-            // Fill in the blank visually
             screenText.innerText = screenText.innerText.replace("___", currentCorrectAnswer);
-            window.speakText(screenText.innerText); // Read full sentence
+            window.speakText(screenText.innerText); 
         } else {
             window.speakText("Correct! " + currentCorrectAnswer);
         }
@@ -154,7 +156,34 @@ function checkAnswer(selected, btnElement) {
         btnElement.style.background = "#c0392b";
         btnElement.style.borderColor = "#e74c3c";
         window.speakText("Try again.");
+        
+        // Re-enable cursor
+        signalScreen.style.cursor = "pointer"; 
     }
+}
+
+// --- NEW: REPEAT AUDIO LISTENER ---
+if (signalScreen) {
+    signalScreen.addEventListener('click', () => {
+        // Do nothing if game is over or not started properly
+        if (!currentCorrectAnswer || message.innerText === "SIGNAL LOCKED!") return;
+
+        // Visual Feedback (Flash White)
+        signalScreen.animate([
+            { borderColor: 'var(--hologram-cyan)' },
+            { borderColor: '#ffffff' },
+            { borderColor: 'var(--hologram-cyan)' }
+        ], { duration: 300 });
+
+        if (difficulty === 1) {
+            // Level 1: Repeat the single word
+            window.speakText(currentCorrectAnswer);
+        } else {
+            // Level 2: Repeat the sentence (bonus feature)
+            let text = screenText.innerText.replace("___", "blank");
+            window.speakText(text);
+        }
+    });
 }
 
 // --- UTILS ---

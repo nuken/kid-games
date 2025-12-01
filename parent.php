@@ -1,16 +1,14 @@
 <?php
 require_once 'includes/db.php';
 
-// 1. GET ALL STUDENTS (For the dropdown menu)
+// 1. GET ALL STUDENTS
 $stmt = $pdo->query("SELECT * FROM users ORDER BY username ASC");
 $students = $stmt->fetchAll();
 
 // 2. DETERMINE CURRENT STUDENT
-// If URL has ?student_id=X, use that. Otherwise, default to the first student in the list.
 if (isset($_GET['student_id'])) {
     $student_id = $_GET['student_id'];
 } else {
-    // If no students exist yet, handle gracefully
     if (count($students) > 0) {
         $student_id = $students[0]['id'];
     } else {
@@ -27,7 +25,7 @@ foreach($students as $s) {
     }
 }
 
-// 3. GET OVERALL STATS (Dynamic user_id)
+// 3. GET OVERALL STATS
 $stmt = $pdo->prepare("SELECT 
     COUNT(*) as total_sessions, 
     SUM(duration_seconds) as total_time,
@@ -38,7 +36,7 @@ $stats = $stmt->fetch();
 
 $total_minutes = floor(($stats['total_time'] ? $stats['total_time'] : 0) / 60);
 
-// 4. GET STATS PER GAME (Dynamic user_id)
+// 4. GET STATS PER GAME
 $stmt = $pdo->prepare("SELECT 
     g.title, 
     COUNT(p.id) as times_played, 
@@ -51,7 +49,7 @@ $stmt = $pdo->prepare("SELECT
 $stmt->execute([$student_id]);
 $game_stats = $stmt->fetchAll();
 
-// 5. GET RECENT HISTORY (Dynamic user_id)
+// 5. GET RECENT HISTORY
 $stmt = $pdo->prepare("SELECT p.*, g.title 
     FROM progress p 
     JOIN games g ON p.game_id = g.id 
@@ -71,7 +69,7 @@ $history = $stmt->fetchAll();
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body { background: #f4f6f7; color: #333; background-image: none; }
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         
         /* Header Card */
         .header-card {
@@ -90,7 +88,11 @@ $history = $stmt->fetchAll();
         }
 
         /* Game Performance Cards */
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; color: #333; }
+        .card { 
+            background: white; padding: 20px; border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; color: #333;
+            page-break-inside: avoid; /* Keeps cards intact when printing */
+        }
         h2 { margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; color: var(--space-blue); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -103,7 +105,7 @@ $history = $stmt->fetchAll();
         
         .back-btn { text-decoration: none; color: #3498db; font-weight: bold; }
         
-        /* Simple Chart Bar */
+        /* Chart Bars */
         .chart-bar-container {
             display: flex; align-items: flex-end; height: 150px; gap: 10px; margin-top: 20px;
             border-bottom: 1px solid #ccc; padding-bottom: 5px;
@@ -112,35 +114,68 @@ $history = $stmt->fetchAll();
             width: 40px; background: var(--nebula-green); border-radius: 5px 5px 0 0;
             position: relative; transition: height 0.5s;
         }
-        .chart-bar:hover { opacity: 0.8; }
-        .chart-label {
-            text-align: center; font-size: 12px; margin-top: 5px; color: #777;
+        .chart-label { text-align: center; font-size: 12px; margin-top: 5px; color: #777; }
+
+        /* Badge Counter */
+        .badge-count {
+            position: absolute; bottom: -5px; right: -5px;
+            background: var(--planet-red); color: white; border-radius: 50%;
+            width: 24px; height: 24px; font-size: 12px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            /* Hide interactive elements */
+            .no-print, .back-btn, button, select, form { display: none !important; }
+            
+            /* Ensure background colors (like charts) print correctly */
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
+            
+            .container { width: 100%; max-width: 100%; margin: 0; padding: 0; }
+            .card { border: 1px solid #ddd; box-shadow: none; margin-bottom: 15px; }
+            .header-card { border-bottom: 2px solid #333; box-shadow: none; }
+            
+            /* Add a timestamp for the archive */
+            .header-card::after {
+                content: "Report Generated: " attr(data-date);
+                display: block; font-size: 12px; color: #777; margin-top: 5px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+    <div class="no-print" style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
         <a href="index.php" class="back-btn">← Back to Kid's Dashboard</a>
         
-        <form method="GET" action="parent.php">
-            <select name="student_id" class="student-select" onchange="this.form.submit()">
-                <?php foreach($students as $s): ?>
-                    <option value="<?php echo $s['id']; ?>" <?php if($s['id'] == $student_id) echo 'selected'; ?>>
-                        👤 <?php echo htmlspecialchars($s['username']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </form>
+        <div style="display:flex; gap: 10px;">
+             <button onclick="window.print()" style="
+                background: #3498db; color: white; border: none; padding: 10px 20px; 
+                border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                🖨️ Print / Save Report
+            </button>
+
+            <form method="GET" action="parent.php" style="margin:0;">
+                <select name="student_id" class="student-select" onchange="this.form.submit()">
+                    <?php foreach($students as $s): ?>
+                        <option value="<?php echo $s['id']; ?>" <?php if($s['id'] == $student_id) echo 'selected'; ?>>
+                            👤 <?php echo htmlspecialchars($s['username']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
     </div>
 
-    <div class="header-card">
+    <div class="header-card" data-date="<?php echo date('Y-m-d'); ?>">
         <div>
             <h1 style="margin:0; color: var(--space-blue);">Progress Report</h1>
             <p style="margin:5px 0 0; color:#7f8c8d;">Student: <strong><?php echo htmlspecialchars($current_student_name); ?></strong></p>
             
-            <button onclick="confirmReset(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="
+            <button class="no-print" onclick="confirmReset(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="
                 margin-top: 10px;
                 background: var(--planet-red); color: white; border: none; padding: 8px 15px; 
                 border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;">
@@ -172,7 +207,7 @@ $history = $stmt->fetchAll();
                     <th>Times Played</th>
                     <th>Best Score</th>
                     <th>Average Score</th>
-                    <th>Avg Time (Speed)</th>
+                    <th>Speed</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -202,12 +237,11 @@ $history = $stmt->fetchAll();
         </table>
     </div>
     
-    <!-- New Visual Chart Section -->
     <div class="card">
         <h2>Performance Overview</h2>
         <div style="display:flex; justify-content: space-around; align-items: flex-end;">
              <?php foreach($game_stats as $game): 
-                $height = round($game['avg_score']) * 1.5; // Scale for visual
+                $height = round($game['avg_score']) * 1.5; 
                 $color = ($game['avg_score'] >= 80) ? '#2ecc71' : (($game['avg_score'] >= 50) ? '#f1c40f' : '#e74c3c');
              ?>
              <div style="text-align:center;">
@@ -219,27 +253,21 @@ $history = $stmt->fetchAll();
         </div>
     </div>
 
-    <!-- Recommendations Section -->
     <div class="card">
         <h2>Recommendations</h2>
         <ul style="list-style: none; padding: 0;">
             <?php foreach($game_stats as $game): 
                 $avg = round($game['avg_score']);
-                $msg = "";
-                $icon = "";
-                $style = "";
+                $msg = ""; $icon = ""; $style = "";
 
                 if ($avg >= 80) {
-                    $icon = "🏆";
-                    $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong> is mastered! Challenge " . htmlspecialchars($current_student_name) . " to beat their high score.";
+                    $icon = "🏆"; $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong> is mastered! Challenge accepted.";
                     $style = "color: #27ae60;";
                 } elseif ($avg >= 50) {
-                    $icon = "⭐";
-                    $msg = "Doing well in <strong>" . htmlspecialchars($game['title']) . "</strong>. Keep practicing to reach Master status!";
+                    $icon = "⭐"; $msg = "Doing well in <strong>" . htmlspecialchars($game['title']) . "</strong>. Keep practicing.";
                     $style = "color: #f39c12;";
                 } else {
-                    $icon = "💡";
-                    $msg = "Needs practice with <strong>" . htmlspecialchars($game['title']) . "</strong>. Try playing 3 times this week.";
+                    $icon = "💡"; $msg = "Needs practice with <strong>" . htmlspecialchars($game['title']) . "</strong>.";
                     $style = "color: #c0392b;";
                 }
             ?>
@@ -248,29 +276,24 @@ $history = $stmt->fetchAll();
                 <span style="<?php echo $style; ?>"><?php echo $msg; ?></span>
             </li>
             <?php endforeach; ?>
-            
-            <?php if(count($game_stats) == 0): ?>
-                <li style="padding: 10px; color: #7f8c8d;">No data available yet. Have the student play some games!</li>
-            <?php endif; ?>
-        </ul>
         </ul>
     </div>
 
-    <!-- Badges Section -->
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #ecf0f1; margin-bottom: 10px; padding-bottom: 10px;">
             <h2 style="border:none; margin:0; padding:0;">Mission Patches Earned</h2>
-            <button onclick="confirmResetBadges(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Reset Patches</button>
+            <button class="no-print" onclick="confirmResetBadges(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Reset Patches</button>
         </div>
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
             <?php
-            // Fetch earned badges for this student
+            // UPDATED QUERY: Group by Badge ID to support stacking
             $stmt = $pdo->prepare("
-                SELECT b.name, b.icon, b.description, ub.earned_at 
+                SELECT b.name, b.icon, b.description, MAX(ub.earned_at) as last_earned, COUNT(ub.id) as cnt
                 FROM user_badges ub 
                 JOIN badges b ON ub.badge_id = b.id 
                 WHERE ub.user_id = ?
-                ORDER BY ub.earned_at DESC
+                GROUP BY b.id
+                ORDER BY last_earned DESC
             ");
             $stmt->execute([$student_id]);
             $earned_badges = $stmt->fetchAll();
@@ -278,9 +301,14 @@ $history = $stmt->fetchAll();
             if (count($earned_badges) > 0) {
                 foreach ($earned_badges as $badge) {
                     echo '<div style="text-align:center; width: 100px;">';
-                    echo '<div style="font-size: 40px; background: #f9f9f9; border-radius: 50%; width: 80px; height: 80px; display:flex; align-items:center; justify-content:center; margin: 0 auto; border: 2px solid var(--star-gold);">' . $badge['icon'] . '</div>';
+                    echo '<div style="position: relative; font-size: 40px; background: #f9f9f9; border-radius: 50%; width: 80px; height: 80px; display:flex; align-items:center; justify-content:center; margin: 0 auto; border: 2px solid var(--star-gold);">';
+                    echo $badge['icon'];
+                    if ($badge['cnt'] > 1) {
+                        echo '<div class="badge-count">x' . $badge['cnt'] . '</div>';
+                    }
+                    echo '</div>';
                     echo '<div style="font-weight:bold; margin-top:5px; font-size:12px;">' . htmlspecialchars($badge['name']) . '</div>';
-                    echo '<div style="font-size:10px; color:#7f8c8d;">' . date("M j", strtotime($badge['earned_at'])) . '</div>';
+                    echo '<div style="font-size:10px; color:#7f8c8d;">' . date("M j", strtotime($badge['last_earned'])) . '</div>';
                     echo '</div>';
                 }
             } else {
@@ -302,9 +330,7 @@ $history = $stmt->fetchAll();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach($history as $row): 
-                    $scoreClass = ($row['score'] >= 80) ? 'score-high' : (($row['score'] >= 50) ? 'score-med' : 'score-low');
-                ?>
+                <?php foreach($history as $row): ?>
                 <tr>
                     <td><?php echo date("M j, g:i a", strtotime($row['played_at'])); ?></td>
                     <td><?php echo htmlspecialchars($row['title']); ?></td>
@@ -321,14 +347,12 @@ $history = $stmt->fetchAll();
 </div>
 
 <script>
-// Updated JavaScript to accept Student ID and Name
 function confirmReset(studentId, studentName) {
     if (confirm("WARNING: Are you sure you want to reset stats for " + studentName + "?\n\nThis will delete their high scores and history permanently.")) {
-        
         fetch('api/reset_stats.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: studentId }) // Send dynamic ID
+            body: JSON.stringify({ user_id: studentId }) 
         })
         .then(response => response.json())
         .then(data => {
