@@ -65,7 +65,7 @@ $history = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Dashboard</title>
+    <title>Mission Report: <?php echo htmlspecialchars($current_student_name); ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body { background: #f4f6f7; color: #333; background-image: none; }
@@ -87,11 +87,11 @@ $history = $stmt->fetchAll();
             background: #f9f9f9; font-weight: bold; color: var(--space-blue); cursor: pointer;
         }
 
-        /* Game Performance Cards */
+        /* Cards */
         .card { 
             background: white; padding: 20px; border-radius: 10px; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; color: #333;
-            page-break-inside: avoid; /* Keeps cards intact when printing */
+            page-break-inside: avoid;
         }
         h2 { margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; color: var(--space-blue); }
 
@@ -105,16 +105,23 @@ $history = $stmt->fetchAll();
         
         .back-btn { text-decoration: none; color: #3498db; font-weight: bold; }
         
-        /* Chart Bars */
+        /* Chart Bars Container (Web View) */
         .chart-bar-container {
-            display: flex; align-items: flex-end; height: 150px; gap: 10px; margin-top: 20px;
-            border-bottom: 1px solid #ccc; padding-bottom: 5px;
+            display: flex; 
+            align-items: stretch; 
+            height: 140px; 
+            gap: 10px; 
+            margin-top: 20px;
+            border-bottom: 1px solid #ccc; 
+            padding-bottom: 5px;
         }
+        
         .chart-bar {
-            width: 40px; background: var(--nebula-green); border-radius: 5px 5px 0 0;
-            position: relative; transition: height 0.5s;
+            width: 40px; 
+            border-radius: 5px 5px 0 0;
+            position: relative; 
+            transition: height 0.5s;
         }
-        .chart-label { text-align: center; font-size: 12px; margin-top: 5px; color: #777; }
 
         /* Badge Counter */
         .badge-count {
@@ -125,22 +132,58 @@ $history = $stmt->fetchAll();
             border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10;
         }
 
+        .print-header, .signature-section { display: none; }
+
         /* --- PRINT STYLES --- */
         @media print {
-            /* Hide interactive elements */
-            .no-print, .back-btn, button, select, form { display: none !important; }
+            @page { margin: 0.5cm; size: auto; }
             
-            /* Ensure background colors (like charts) print correctly */
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
+            body { 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                background: white; 
+                font-family: 'Courier New', monospace; 
+                font-size: 11pt;
+            }
+
+            .no-print, .back-btn, button, select, form, .logout-btn { display: none !important; }
             
-            .container { width: 100%; max-width: 100%; margin: 0; padding: 0; }
-            .card { border: 1px solid #ddd; box-shadow: none; margin-bottom: 15px; }
-            .header-card { border-bottom: 2px solid #333; box-shadow: none; }
+            .container { 
+                width: 98%; max-width: 98%; margin: 0 auto; padding: 10px;
+                border: 3px double #2c3e50;
+                border-radius: 8px;
+            }
+
+            .print-header {
+                display: block; text-align: center; margin-bottom: 15px;
+                border-bottom: 2px solid #2c3e50; padding-bottom: 5px;
+            }
+            .print-title { font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+            .print-sub   { font-size: 12px; color: #555; }
+
+            .card, .header-card { 
+                border: 1px solid #aaa; box-shadow: none; 
+                margin-bottom: 10px; padding: 10px; 
+                break-inside: avoid; page-break-inside: avoid;
+            }
+            .header-card { background: #f9f9f9; }
             
-            /* Add a timestamp for the archive */
-            .header-card::after {
-                content: "Report Generated: " attr(data-date);
-                display: block; font-size: 12px; color: #777; margin-top: 5px;
+            h1 { font-size: 18px; margin: 0; }
+            h2 { font-size: 16px; margin: 0 0 5px 0; padding-bottom: 5px; }
+            
+            table th, table td { padding: 4px; font-size: 10pt; }
+            
+            /* Chart Adjustments for Print */
+            .chart-bar-container { height: 100px; margin-top: 10px; }
+            
+            .signature-section {
+                display: flex; justify-content: space-between;
+                margin-top: 25px; padding-top: 10px;
+                page-break-inside: avoid;
+            }
+            .sig-line {
+                width: 40%; border-top: 2px solid #333;
+                text-align: center; padding-top: 5px; font-weight: bold; font-size: 12px;
             }
         }
     </style>
@@ -148,14 +191,21 @@ $history = $stmt->fetchAll();
 <body>
 
 <div class="container">
+    
+    <div class="print-header">
+        <div style="font-size:32px;">🚀</div>
+        <div class="print-title">Official Mission Report</div>
+        <div class="print-sub">Date: <?php echo date('F j, Y'); ?> | Cadet: <?php echo htmlspecialchars($current_student_name); ?></div>
+    </div>
+
     <div class="no-print" style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
         <a href="index.php" class="back-btn">← Back to Kid's Dashboard</a>
         
         <div style="display:flex; gap: 10px;">
-             <button onclick="window.print()" style="
+            <button onclick="window.print()" style="
                 background: #3498db; color: white; border: none; padding: 10px 20px; 
                 border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                🖨️ Print / Save Report
+                🖨️ Print Certificate
             </button>
 
             <form method="GET" action="parent.php" style="margin:0;">
@@ -170,10 +220,10 @@ $history = $stmt->fetchAll();
         </div>
     </div>
 
-    <div class="header-card" data-date="<?php echo date('Y-m-d'); ?>">
+    <div class="header-card">
         <div>
-            <h1 style="margin:0; color: var(--space-blue);">Progress Report</h1>
-            <p style="margin:5px 0 0; color:#7f8c8d;">Student: <strong><?php echo htmlspecialchars($current_student_name); ?></strong></p>
+            <h1 style="margin:0; color: var(--space-blue);">Cadet Performance</h1>
+            <p style="margin:5px 0 0; color:#7f8c8d;">Status: <span style="color:#27ae60; font-weight:bold;">ACTIVE</span></p>
             
             <button class="no-print" onclick="confirmReset(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="
                 margin-top: 10px;
@@ -185,15 +235,15 @@ $history = $stmt->fetchAll();
         <div style="display:flex; gap: 40px;">
             <div class="stat-box">
                 <div class="stat-num"><?php echo $stats['total_sessions']; ?></div>
-                <div class="stat-label">Games Played</div>
+                <div class="stat-label">Missions</div>
             </div>
             <div class="stat-box">
                 <div class="stat-num"><?php echo $total_minutes; ?>m</div>
-                <div class="stat-label">Total Time</div>
+                <div class="stat-label">Time</div>
             </div>
             <div class="stat-box">
                 <div class="stat-num"><?php echo round($stats['global_average']); ?>%</div>
-                <div class="stat-label">Avg Score</div>
+                <div class="stat-label">Avg</div>
             </div>
         </div>
     </div>
@@ -203,10 +253,10 @@ $history = $stmt->fetchAll();
         <table>
             <thead>
                 <tr>
-                    <th>Subject</th>
-                    <th>Times Played</th>
+                    <th>Mission Type</th>
+                    <th>Attempts</th>
                     <th>Best Score</th>
-                    <th>Average Score</th>
+                    <th>Average</th>
                     <th>Speed</th>
                     <th>Status</th>
                 </tr>
@@ -214,6 +264,9 @@ $history = $stmt->fetchAll();
             <tbody>
                 <?php foreach($game_stats as $game): 
                     $avg = round($game['avg_score']);
+                    // CLAMP VISUALS TO 100%
+                    $display_val = ($avg > 100) ? 100 : $avg;
+                    
                     $color = ($avg >= 80) ? '#2ecc71' : (($avg >= 50) ? '#f1c40f' : '#e74c3c');
                     $status = ($avg >= 80) ? 'Mastered' : (($avg >= 50) ? 'Improving' : 'Needs Help');
                 ?>
@@ -222,9 +275,9 @@ $history = $stmt->fetchAll();
                     <td><?php echo $game['times_played']; ?></td>
                     <td><?php echo $game['best_score']; ?>%</td>
                     <td>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div class="progress-bg">
-                                <div class="progress-fill" style="width:<?php echo $avg; ?>%; background:<?php echo $color; ?>;"></div>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <div class="progress-bg" style="width:60px;">
+                                <div class="progress-fill" style="width:<?php echo $display_val; ?>%; background:<?php echo $color; ?>;"></div>
                             </div>
                             <?php echo $avg; ?>%
                         </div>
@@ -236,18 +289,27 @@ $history = $stmt->fetchAll();
             </tbody>
         </table>
     </div>
-    
+
     <div class="card">
         <h2>Performance Overview</h2>
-        <div style="display:flex; justify-content: space-around; align-items: flex-end;">
+        <div class="chart-bar-container" style="justify-content: space-around;">
              <?php foreach($game_stats as $game): 
-                $height = round($game['avg_score']) * 1.5; 
-                $color = ($game['avg_score'] >= 80) ? '#2ecc71' : (($game['avg_score'] >= 50) ? '#f1c40f' : '#e74c3c');
+                $percentage = round($game['avg_score']);
+                // CLAMP VISUALS TO 100%
+                $display_val = ($percentage > 100) ? 100 : $percentage;
+                
+                $color = ($percentage >= 80) ? '#2ecc71' : (($percentage >= 50) ? '#f1c40f' : '#e74c3c');
              ?>
-             <div style="text-align:center;">
-                 <div class="chart-bar" style="height: <?php echo $height; ?>px; background: <?php echo $color; ?>; width: 50px; margin: 0 auto;"></div>
-                 <div class="chart-label" style="margin-top:10px; font-weight:bold;"><?php echo htmlspecialchars($game['title']); ?></div>
-                 <div style="font-size:12px; color:#777;"><?php echo round($game['avg_score']); ?>%</div>
+             <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 100px;">
+                 
+                 <div style="flex-grow: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center;">
+                    <div class="chart-bar" style="height: <?php echo $display_val; ?>%; background: <?php echo $color; ?>;"></div>
+                 </div>
+
+                 <div class="chart-label" style="margin-top:5px; font-weight:bold; font-size:10px; text-align:center; line-height:1.2;">
+                    <?php echo htmlspecialchars($game['title']); ?>
+                 </div>
+                 <div style="font-size:10px; color:#777;"><?php echo $percentage; ?>%</div>
              </div>
              <?php endforeach; ?>
         </div>
@@ -255,40 +317,38 @@ $history = $stmt->fetchAll();
 
     <div class="card">
         <h2>Recommendations</h2>
-        <ul style="list-style: none; padding: 0;">
+        <ul style="list-style: none; padding: 0; margin: 0;">
             <?php foreach($game_stats as $game): 
                 $avg = round($game['avg_score']);
                 $msg = ""; $icon = ""; $style = "";
-
                 if ($avg >= 80) {
-                    $icon = "🏆"; $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong> is mastered! Challenge accepted.";
+                    $icon = "🏆"; $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong>: Mastered!";
                     $style = "color: #27ae60;";
                 } elseif ($avg >= 50) {
-                    $icon = "⭐"; $msg = "Doing well in <strong>" . htmlspecialchars($game['title']) . "</strong>. Keep practicing.";
+                    $icon = "⭐"; $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong>: Good progress.";
                     $style = "color: #f39c12;";
                 } else {
-                    $icon = "💡"; $msg = "Needs practice with <strong>" . htmlspecialchars($game['title']) . "</strong>.";
+                    $icon = "💡"; $msg = "<strong>" . htmlspecialchars($game['title']) . "</strong>: Needs practice.";
                     $style = "color: #c0392b;";
                 }
             ?>
-            <li style="padding: 10px; border-bottom: 1px solid #eee; display: flex; gap: 10px; align-items: center; font-size: 16px;">
-                <span style="font-size: 24px;"><?php echo $icon; ?></span>
+            <li style="padding: 5px 0; border-bottom: 1px solid #eee; display: flex; gap: 10px; align-items: center; font-size: 14px;">
+                <span><?php echo $icon; ?></span>
                 <span style="<?php echo $style; ?>"><?php echo $msg; ?></span>
             </li>
             <?php endforeach; ?>
         </ul>
     </div>
-
+    
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #ecf0f1; margin-bottom: 10px; padding-bottom: 10px;">
-            <h2 style="border:none; margin:0; padding:0;">Mission Patches Earned</h2>
-            <button class="no-print" onclick="confirmResetBadges(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Reset Patches</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #ecf0f1; margin-bottom: 5px; padding-bottom: 5px;">
+            <h2 style="border:none; margin:0; padding:0;">Mission Patches</h2>
+            <button class="no-print" onclick="confirmResetBadges(<?php echo $student_id; ?>, '<?php echo $current_student_name; ?>')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Reset</button>
         </div>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <?php
-            // UPDATED QUERY: Group by Badge ID to support stacking
             $stmt = $pdo->prepare("
-                SELECT b.name, b.icon, b.description, MAX(ub.earned_at) as last_earned, COUNT(ub.id) as cnt
+                SELECT b.name, b.icon, MAX(ub.earned_at) as last_earned, COUNT(ub.id) as cnt
                 FROM user_badges ub 
                 JOIN badges b ON ub.badge_id = b.id 
                 WHERE ub.user_id = ?
@@ -300,33 +360,31 @@ $history = $stmt->fetchAll();
 
             if (count($earned_badges) > 0) {
                 foreach ($earned_badges as $badge) {
-                    echo '<div style="text-align:center; width: 100px;">';
-                    echo '<div style="position: relative; font-size: 40px; background: #f9f9f9; border-radius: 50%; width: 80px; height: 80px; display:flex; align-items:center; justify-content:center; margin: 0 auto; border: 2px solid var(--star-gold);">';
+                    echo '<div style="text-align:center; width: 80px;">';
+                    echo '<div style="position: relative; font-size: 30px; background: #f9f9f9; border-radius: 50%; width: 60px; height: 60px; display:flex; align-items:center; justify-content:center; margin: 0 auto; border: 2px solid var(--star-gold);">';
                     echo $badge['icon'];
                     if ($badge['cnt'] > 1) {
-                        echo '<div class="badge-count">x' . $badge['cnt'] . '</div>';
+                        echo '<div class="badge-count" style="width:20px; height:20px; font-size:10px;">x' . $badge['cnt'] . '</div>';
                     }
                     echo '</div>';
-                    echo '<div style="font-weight:bold; margin-top:5px; font-size:12px;">' . htmlspecialchars($badge['name']) . '</div>';
-                    echo '<div style="font-size:10px; color:#7f8c8d;">' . date("M j", strtotime($badge['last_earned'])) . '</div>';
+                    echo '<div style="font-weight:bold; margin-top:2px; font-size:10px;">' . htmlspecialchars($badge['name']) . '</div>';
                     echo '</div>';
                 }
             } else {
-                echo '<p style="color:#7f8c8d;">No mission patches earned yet.</p>';
+                echo '<p style="color:#7f8c8d; font-size:12px;">No patches yet.</p>';
             }
             ?>
         </div>
     </div>
 
     <div class="card">
-        <h2>Recent Activity Log</h2>
+        <h2>Recent Activity</h2>
         <table>
             <thead>
                 <tr>
                     <th>Date</th>
                     <th>Game</th>
                     <th>Score</th>
-                    <th>Time Spent</th>
                 </tr>
             </thead>
             <tbody>
@@ -337,11 +395,15 @@ $history = $stmt->fetchAll();
                     <td style="<?php echo ($row['score'] >= 80) ? 'color:#27ae60; font-weight:bold;' : (($row['score'] >= 50) ? 'color:#f39c12; font-weight:bold;' : 'color:#c0392b; font-weight:bold;'); ?>">
                         <?php echo $row['score']; ?>%
                     </td>
-                    <td><?php echo $row['duration_seconds']; ?>s</td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+    </div>
+
+    <div class="signature-section">
+        <div class="sig-line">Flight Director</div>
+        <div class="sig-line">Cadet Signature</div>
     </div>
 
 </div>
