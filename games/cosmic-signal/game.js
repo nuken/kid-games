@@ -1,21 +1,9 @@
-/* games/cosmic-signal/game.js */
-
 let score = 0;
 let questionsAnswered = 0;
-let totalQuestions = 10;
+const totalQuestions = 10;
 let startTime = Date.now();
 let difficulty = 1;
 let currentCorrectAnswer = "";
-
-const USER_ID = window.gameData ? window.gameData.userId : 1;
-const GAME_ID = 4; // Cosmic Signal
-
-// DOM Elements
-const screenText = document.getElementById('question-text');
-const signalScreen = document.getElementById('signal-screen');
-const controls = document.getElementById('frequency-controls');
-const message = document.getElementById('message');
-const scoreDisplay = document.getElementById('score');
 
 // --- DATA: EXPANDED 1ST GRADE SIGHT WORDS ---
 const sightWords = [
@@ -94,106 +82,86 @@ const sentences = [
     { text: "___ is lunch?", answer: "When", options: ["When", "Then", "Where", "Who"] }
 ];
 
-// --- LOGIC: Smart Shuffle (No Repeats) ---
 let availableWords = [];
 let availableSentences = [];
 
-// --- 1. GAME INITIALIZATION ---
-function initGame(level = 1) {
-    difficulty = level;
-    document.getElementById('start-overlay').style.display = 'none';
-    if (window.voiceList && window.voiceList.length === 0) window.loadVoices();
-
-    // REMOVED: Automatic "Cadet Mode..." speech. Now starts silently until button press.
-
-    startTime = Date.now();
-    questionsAnswered = 0;
-    score = 0;
-    scoreDisplay.innerText = score;
-
-    // RESET THE DECKS
-    availableWords = [...sightWords];
-    availableSentences = [...sentences];
-
-    spawnQuestion();
-}
-
-function playInstructions() {
-    if (difficulty === 1) {
-        window.speakText("Look at the word on the screen. Remember it. Then click the matching button.");
-    } else {
-        window.speakText("Read the sentence and click the word that fits in the blank.");
+document.addEventListener('DOMContentLoaded', () => {
+    const screen = document.getElementById('signal-screen');
+    if(screen) {
+        screen.onclick = () => {
+            if(currentCorrectAnswer) GameBridge.speak(currentCorrectAnswer);
+        };
     }
-}
 
-// --- 2. SPAWN QUESTION ---
+    GameBridge.setupGame({
+        instructions: "Decode the signal! Listen and match the word.",
+        speakInstruction: "Listen closely and decode the signal.",
+        levels: [
+            { id: 1, label: "Cadet (Sight Words)" },
+            { id: 2, label: "Commander (Sentences)" }
+        ],
+        onStart: (level) => {
+            difficulty = level;
+            // Initialize decks
+            availableWords = [...sightWords];
+            availableSentences = [...sentences];
+            startTime = Date.now();
+            spawnQuestion();
+        }
+    });
+});
+
 function spawnQuestion() {
-    controls.innerHTML = ""; // Clear buttons
-    message.innerText = "";
-    screenText.style.color = "var(--hologram-cyan)";
-    signalScreen.style.cursor = "pointer"; 
+    const controls = document.getElementById('frequency-controls');
+    const screenText = document.getElementById('question-text');
+    controls.innerHTML = "";
+    document.getElementById('message').innerText = "";
 
     if (difficulty === 1) {
-        // --- LEVEL 1 LOGIC ---
-        // 1. Check if deck is empty, if so, reshuffle
-        if (availableWords.length === 0) {
-            availableWords = [...sightWords];
-        }
-
-        // 2. Pick random INDEX from available
-        const randIndex = Math.floor(Math.random() * availableWords.length);
+        // --- LEVEL 1 LOGIC (Sight Words) ---
+        if (availableWords.length === 0) availableWords = [...sightWords];
         
-        // 3. Set answer and REMOVE from deck (Smart Shuffle)
-        currentCorrectAnswer = availableWords[randIndex];
-        availableWords.splice(randIndex, 1);
+        const idx = Math.floor(Math.random() * availableWords.length);
+        currentCorrectAnswer = availableWords[idx];
+        availableWords.splice(idx, 1);
 
-        // A. Show the word BIG
         screenText.innerText = currentCorrectAnswer;
-        
-        // B. Speak it
-        window.speakText(currentCorrectAnswer);
+        GameBridge.speak(currentCorrectAnswer);
 
-        // C. Wait 1.5s, then Hide it and Show Options
+        // Hide word after delay to test memory
         setTimeout(() => {
-            screenText.innerText = "🔍 FIND IT"; // Visual Cue
-            
-            let options = [currentCorrectAnswer];
-            // Fill distractors from the FULL list (okay to repeat distractors)
-            while (options.length < 3) {
-                let w = sightWords[Math.floor(Math.random() * sightWords.length)];
-                if (!options.includes(w)) options.push(w);
+            screenText.innerText = "🔍 SIGNAL LOST";
+            let opts = [currentCorrectAnswer];
+            // Fill distractors
+            while(opts.length < 3) {
+                let w = sightWords[Math.floor(Math.random()*sightWords.length)];
+                if(!opts.includes(w)) opts.push(w);
             }
-            createButtons(shuffleArray(options));
-        }, 3000);
+            createButtons(opts.sort(() => Math.random()-0.5));
+        }, 2000);
 
     } else {
-        // --- LEVEL 2 LOGIC ---
-        // 1. Check if deck is empty, if so, reshuffle
-        if (availableSentences.length === 0) {
-            availableSentences = [...sentences];
-        }
+        // --- LEVEL 2 LOGIC (Sentences) ---
+        if (availableSentences.length === 0) availableSentences = [...sentences];
+        
+        const idx = Math.floor(Math.random() * availableSentences.length);
+        const q = availableSentences[idx];
+        availableSentences.splice(idx, 1);
 
-        // 2. Pick random INDEX
-        const randIndex = Math.floor(Math.random() * availableSentences.length);
-        
-        // 3. Get Question and REMOVE from deck
-        let q = availableSentences[randIndex];
-        availableSentences.splice(randIndex, 1);
-        
         currentCorrectAnswer = q.answer;
         screenText.innerText = q.text;
-
-        // Speak the sentence with "blank"
-        let spokenText = q.text.replace("___", "blank");
-        setTimeout(() => window.speakText(spokenText), 1000);
-
-        createButtons(shuffleArray(q.options));
+        
+        // Speak sentence with "blank"
+        GameBridge.speak(q.text.replace("___", "blank"));
+        
+        createButtons(q.options.sort(() => Math.random()-0.5));
     }
 }
 
-function createButtons(options) {
-    options.forEach(opt => {
-        let btn = document.createElement('button');
+function createButtons(opts) {
+    const controls = document.getElementById('frequency-controls');
+    opts.forEach(opt => {
+        const btn = document.createElement('button');
         btn.className = 'freq-btn';
         btn.innerText = opt;
         btn.onclick = () => checkAnswer(opt, btn);
@@ -201,101 +169,33 @@ function createButtons(options) {
     });
 }
 
-// --- 3. CHECK ANSWER ---
-function checkAnswer(selected, btnElement) {
-    signalScreen.style.cursor = "default"; 
-    
-    if (selected === currentCorrectAnswer) {
-        // CORRECT
+function checkAnswer(ans, btn) {
+    if (ans === currentCorrectAnswer) {
         score += 10;
-        scoreDisplay.innerText = score;
-        message.innerText = "SIGNAL LOCKED!";
-        message.style.color = "#2ecc71";
-        btnElement.style.background = "#27ae60";
-        btnElement.style.borderColor = "#2ecc71";
-
-        if (difficulty === 2) {
-            // Show full sentence
-            screenText.innerText = screenText.innerText.replace("___", currentCorrectAnswer);
-            window.speakText(screenText.innerText); 
-        } else {
-            // Show the word again
-            screenText.innerText = currentCorrectAnswer;
-            window.speakText("Correct! " + currentCorrectAnswer);
-        }
-
-        if (window.playConfettiEffect) window.playConfettiEffect();
-
         questionsAnswered++;
-        if (questionsAnswered >= totalQuestions) {
-            setTimeout(endGame, 2000);
-        } else {
-            setTimeout(spawnQuestion, 2000);
-        }
-
-    } else {
-        // INCORRECT
-        message.innerText = "SIGNAL LOST!";
-        message.style.color = "#e74c3c";
-        btnElement.style.background = "#c0392b";
-        btnElement.style.borderColor = "#e74c3c";
-        window.speakText("Try again.");
-        signalScreen.style.cursor = "pointer"; 
-    }
-}
-
-// --- REPEAT AUDIO LISTENER ---
-if (signalScreen) {
-    signalScreen.addEventListener('click', () => {
-        if (!currentCorrectAnswer || message.innerText === "SIGNAL LOCKED!") return;
-
-        // Visual Feedback (Flash White)
-        signalScreen.animate([
-            { borderColor: 'var(--hologram-cyan)' },
-            { borderColor: '#ffffff' },
-            { borderColor: 'var(--hologram-cyan)' }
-        ], { duration: 300 });
-
+        GameBridge.updateScore(score);
+        
+        // Show correct answer on screen
         if (difficulty === 1) {
-            window.speakText(currentCorrectAnswer);
+            document.getElementById('question-text').innerText = currentCorrectAnswer;
         } else {
-            let text = screenText.innerText.replace("___", "blank");
-            window.speakText(text);
+            // Replace the blank in the sentence
+            const currentText = document.getElementById('question-text').innerText;
+            document.getElementById('question-text').innerText = currentText.replace("___", currentCorrectAnswer);
         }
-    });
-}
-
-// --- UTILS ---
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        
+        btn.style.borderColor = "var(--primary-btn)";
+        btn.style.color = "var(--primary-btn)";
+        
+        GameBridge.celebrate("Signal Locked!");
+        
+        if (questionsAnswered >= totalQuestions) {
+            GameBridge.saveScore({ score: score, duration: Math.floor((Date.now() - startTime)/1000) });
+        } else {
+            setTimeout(spawnQuestion, 1500);
+        }
+    } else {
+        btn.style.borderColor = "var(--danger-btn)";
+        GameBridge.speak("Signal Lost. Try again.");
     }
-    return array;
-}
-
-function endGame() {
-    document.body.innerHTML = "<h1>TRANSMISSION COMPLETE!</h1><p>Saving Data...</p>";
-
-    let duration = Math.floor((Date.now() - startTime) / 1000);
-
-    fetch('../../api/save_score.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            user_id: USER_ID,
-            game_id: GAME_ID,
-            score: score,
-            duration: duration
-        })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.new_badges && data.new_badges.length > 0) {
-                let badgeNames = data.new_badges.map(b => b.icon + " " + b.name).join("\n");
-                alert("🌟 MISSION PATCH EARNED! 🌟\n\n" + badgeNames);
-            }
-            setTimeout(() => window.location.href = "../../index.php", 2000);
-        })
-        .catch(error => console.error('Error:', error));
 }

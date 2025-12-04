@@ -1,9 +1,9 @@
 <?php
 // includes/config.php
 
-define('DB_HOST', 'sql113.infinityfree.com');
-define('DB_NAME', 'if0_39329119_kids_hub_test');
-define('DB_USER', 'if0_39329119');
-define('DB_PASS', 'DrmOz8fHTAXJ');
+define('DB_HOST', 'db5019126498.hosting-data.io');
+define('DB_NAME', 'dbs15032043');
+define('DB_USER', 'dbu875104');
+define('DB_PASS', 'Myahgrace5');
 define('DB_CHARSET', 'utf8mb4');
 ?>

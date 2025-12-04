@@ -1,0 +1,20 @@
+:root {
+    --bg-color: #fff0f5; /* Lavender Blush */
+    --text-color: #5d4037;
+    --card-bg: #ffffff;
+    --primary-btn: #ff69b4; /* Hot Pink */
+    --font-family: 'Comic Neue', cursive;
+    --bg-image: none;
+}
+
+body {
+    background: linear-gradient(180deg, #ffe6f2 0%, #e6e6fa 100%);
+    font-family: var(--font-family);
+    color: var(--text-color);
+}
+
+/* Make cards look soft and magical */
+.game-card {
+    border-radius: 25px;
+    border: 3px solid #ffd700; /* Gold border */
+}
