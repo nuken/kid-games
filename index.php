@@ -35,6 +35,20 @@ try {
     // Set Theme Path
     $theme_css = $user['css_file'] ?? 'default.css';
     $theme_path = "assets/themes/" . $theme_css;
+	
+	// --- NEW: LOAD LANGUAGE ---
+    $lang_file = 'default.php';
+    if (strpos($theme_css, 'princess') !== false) {
+        $lang_file = 'princess.php';
+    }
+    
+    $lang_path = "includes/lang/" . $lang_file;
+    
+    if (file_exists($lang_path)) {
+        require_once $lang_path;
+    } else {
+        require_once "includes/lang/default.php";
+    }
 
     // 3. GET GAMES
     // We fetch overrides (custom names/icons) based on the user's theme
@@ -166,7 +180,7 @@ try {
         <div class="user-info">
             <div class="avatar">👨‍🚀</div>
             <div class="details">
-                <h2>Cadet <?php echo htmlspecialchars($user['username']); ?></h2>
+                <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
                 <p>Grade Level: <?php echo $user['grade_level']; ?></p>
             </div>
         </div>
@@ -255,6 +269,9 @@ try {
         document.addEventListener('DOMContentLoaded', () => {
             const username = "<?php echo htmlspecialchars($user['username']); ?>";
             
+            // USE PHP VARIABLE FOR WELCOME MESSAGE
+            const welcomeText = "<?php echo $LANG['welcome']; ?>"; 
+
             // Only speak welcome if they haven't been here in the last 5 minutes
             const lastVisit = localStorage.getItem('klh_last_visit');
             const now = Date.now();
@@ -265,7 +282,8 @@ try {
             if (!lastVisit || (now - lastVisit) > 300000) {
                 setTimeout(() => {
                     if (window.speakText) {
-                        window.speakText("Welcome back to base, " + username);
+                        // Combine the localized welcome with the username
+                        window.speakText(welcomeText + " " + username);
                     }
                 }, 1000);
             }

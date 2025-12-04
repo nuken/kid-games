@@ -5,22 +5,46 @@ session_start();
 require_once 'includes/db.php'; 
 require_once 'includes/header.php'; // Checks login & sets $theme_path
 
-// 1. Get Game Details
+// 1. Get Game Details & Apply Theme Overrides
 $game_id = $_GET['game_id'] ?? null;
 if (!$game_id) { header("Location: index.php"); exit; }
 
-$stmt = $pdo->prepare("SELECT * FROM games WHERE id = ?");
-$stmt->execute([$game_id]);
+// We allow fetching the user's specific theme override for this game
+$user_id = $_SESSION['user_id'];
+
+// First get user's theme ID
+$stmt = $pdo->prepare("SELECT theme_id FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$theme_id = $stmt->fetchColumn();
+
+// Now fetch game details LEFT JOINed with the overrides
+$sql = "
+    SELECT 
+        g.*, 
+        COALESCE(ov.display_name, g.default_title) as final_title,
+        COALESCE(ov.display_icon, g.default_icon) as final_icon
+    FROM games g
+    LEFT JOIN game_theme_overrides ov 
+        ON g.id = ov.game_id AND ov.theme_id = :tid
+    WHERE g.id = :gid
+";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute([':tid' => $theme_id, ':gid' => $game_id]);
 $game = $stmt->fetch();
 
 if (!$game) die("Game not found.");
 
-// 2. Prepare Config for JS
+// Update the array to use the overridden title for the HTML below
+$game['default_title'] = $game['final_title'];
+
+// 2. Prepare Config for JS (Add 'lang' block)
 $jsConfig = [
     'userId' => $_SESSION['user_id'],
     'gameId' => $game['id'],
     'themePath' => $theme_path, 
-    'root' => './'
+    'root' => './',
+    'lang' => $LANG // <--- PASS THE ARRAY HERE
 ];
 ?>
 <!DOCTYPE html>
@@ -85,9 +109,11 @@ $jsConfig = [
 <body>
 
     <nav class="game-nav">
-        <a href="index.php" class="nav-home">⬅ Base</a>
+        <a href="index.php" class="nav-home">⬅ <?php echo $LANG['base']; ?></a>
+        
         <h1 class="game-title"><?php echo htmlspecialchars($game['default_title']); ?></h1>
-        <div class="score-box">Score: <span id="score-display">0</span></div>
+        
+        <div class="score-box"><?php echo $LANG['score']; ?>: <span id="score-display">0</span></div>
     </nav>
 
     <div id="system-overlay">

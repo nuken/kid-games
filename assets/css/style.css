@@ -17,9 +17,13 @@ body {
     color: var(--text-light);
     margin: 0;
     padding: 20px;
-    background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
-                      radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
-                      radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+    
+    /* CHANGE: Wrap the star pattern in a variable default so it can be overridden */
+    background-image: var(--bg-image, 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px)
+    );
     background-size: 550px 550px, 350px 350px, 250px 250px;
     background-position: 0 0, 40px 60px, 130px 270px;
 }

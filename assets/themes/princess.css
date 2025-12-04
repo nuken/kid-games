@@ -1,20 +1,134 @@
+/* assets/themes/princess.css */
 :root {
+    /* --- Core Colors --- */
     --bg-color: #fff0f5; /* Lavender Blush */
-    --text-color: #5d4037;
+    --text-color: #5d4037; /* Warm Brown text */
     --card-bg: #ffffff;
-    --primary-btn: #ff69b4; /* Hot Pink */
+    
+    /* --- Functional Button Colors --- */
+    /* We map the "Space" variable names to Princess colors so the games work */
+    --primary-btn: #ff69b4;   /* Hot Pink (Instead of Green) */
+    --secondary-btn: #dda0dd; /* Plum (Instead of Blue) */
+    --danger-btn: #ffb7b2;    /* Soft Red (Instead of Red) */
+    
+    /* --- Game Specific Elements --- */
+    --panel-border: 3px solid #ffd700;
+    --star-gold: #ffd700;     /* Gold stays Gold */
+    --planet-red: #ff69b4;    /* Map "Planet Red" to Hot Pink */
+    --nebula-green: #98fb98;  /* Map "Nebula Green" to Pale Green */
+    
+    /* --- Clock Game Specifics --- */
+    --clock-face: #fff;
+    --clock-border: #ffd700;
+    --clock-hour: #ff69b4;
+    --clock-min: #8a2be2;
+
+    /* --- Fonts & Backgrounds --- */
     --font-family: 'Comic Neue', cursive;
-    --bg-image: none;
+    
+    /* Override the space star background */
+    --bg-image: url('https://www.transparenttextures.com/patterns/diamond-upholstery.png'); 
 }
 
 body {
-    background: linear-gradient(180deg, #ffe6f2 0%, #e6e6fa 100%);
+    background-color: var(--bg-color);
+    /* Important to override the space stars in style.css */
+    background-image: var(--bg-image) !important; 
     font-family: var(--font-family);
     color: var(--text-color);
 }
 
 /* Make cards look soft and magical */
-.game-card {
-    border-radius: 25px;
-    border: 3px solid #ffd700; /* Gold border */
+.card, .mission-card, #game-board, #shop-counter {
+    border-radius: 25px !important;
+    border: 3px solid #ffd700 !important; /* Gold border */
+    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3) !important;
+}
+
+/* Change the navigation bar */
+header, .profile-bar, .game-nav {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 2px solid white !important;
+    color: var(--text-color) !important;
+}
+
+/* Force text colors in headers to be dark brown, not white */
+h1, h2, h3, .mission-title {
+    color: var(--text-color) !important;
+}
+
+/* --- FIX: High Contrast for Headers --- */
+
+/* Force the "Return to Base" link and "Score" to be dark brown */
+.game-nav .nav-home,
+.game-nav .score-box {
+    color: var(--text-color) !important;
+    text-shadow: none !important;
+}
+
+/* Make the Game Title Hot Pink so it stands out on the light background */
+.game-nav .game-title {
+    color: var(--primary-btn) !important; /* Hot Pink */
+    text-shadow: 1px 1px 0px #ffffff;
+}
+
+/* Also fix the Profile Bar on the Dashboard (index.php) just in case */
+.profile-bar .user-info, 
+.profile-bar .details h2,
+.profile-bar .details p {
+    color: var(--text-color) !important;
+    text-shadow: none !important;
+}
+
+/* --- FIX: Card Readability & Theming --- */
+
+/* Override the dark "Space" background with a clean "Princess" look */
+.mission-card {
+    background: #ffffff !important; /* White background */
+    background-image: none !important; /* Remove the dark gradient */
+    color: var(--text-color) !important; /* Dark Brown text */
+}
+
+/* Ensure the description text (if any) is also readable */
+.mission-desc {
+    color: var(--text-color) !important;
+    opacity: 0.8;
+}
+
+/* Optional: Add a soft pink hover effect */
+.mission-card:hover {
+    background: #fff0f5 !important; /* Lavender Blush on hover */
+    transform: translateY(-10px);
+}
+
+/* --- FIX: Game Start Overlay --- */
+
+#system-overlay {
+    /* Change background from Dark Blue to Soft White/Pink */
+    background: rgba(255, 240, 245, 0.98) !important; 
+    border: 5px solid var(--primary-btn);
+}
+
+#system-overlay h1 {
+    /* Change Title from Gold to Hot Pink */
+    color: var(--primary-btn) !important; 
+    text-shadow: none !important;
+}
+
+#system-overlay p {
+    /* Change Description from Light Grey to Dark Brown */
+    color: var(--text-color) !important; 
+    opacity: 1 !important;
+}
+
+/* Fix the Level Selection Buttons */
+.btn-level {
+    background: var(--secondary-btn) !important; /* Plum color */
+    color: #fff !important;
+    border: 2px solid var(--primary-btn) !important;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+}
+.btn-level:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.1);
 }

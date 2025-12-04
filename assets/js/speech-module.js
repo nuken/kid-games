@@ -91,9 +91,9 @@ window.speakText = function(text, onEndCallback) {
 })();
 
 
-// --- PART 3: RELIABLE SPACE CONFETTI ---
+// --- PART 3: RELIABLE THEMED CONFETTI ---
 window.playConfettiEffect = function() {
-    // 1. Get or Create the Shared Container (Never Destroy it)
+    // 1. Get or Create the Shared Container
     let container = document.getElementById('global-confetti-container');
     if (!container) {
         container = document.createElement('div');
@@ -102,19 +102,29 @@ window.playConfettiEffect = function() {
         document.body.appendChild(container);
     }
 
-    const spaceIcons = ['🚀', '⭐', '🤖', '🪐', '⚙️', '🛸', '✨'];
+    // 2. DETECT THEME & SELECT ICONS
+    let icons = ['🚀', '⭐', '🤖', '🪐', '⚙️', '🛸', '✨']; // Default (Space)
+
+    // Check if the Princess theme is loaded in the page
+    const isPrincess = document.querySelector('link[href*="princess.css"]');
+    if (isPrincess) {
+        icons = ['👑', '🦄', '🏰', '✨', '💖', '🧚‍♀️', '🎀'];
+    }
+
     const particleCount = 40; 
 
     for (let i = 0; i < particleCount; i++) {
         const el = document.createElement('div');
-        el.innerText = spaceIcons[Math.floor(Math.random() * spaceIcons.length)];
+        // Pick a random icon from the selected list
+        el.innerText = icons[Math.floor(Math.random() * icons.length)];
         
+        // ... rest of the animation code remains the same ...
         const startX = Math.random() * 100; 
         const size = Math.random() * 20 + 25; 
 
         el.style.cssText = `
             position: absolute;
-            top: -70px; /* Start slightly higher to ensure off-screen */
+            top: -70px;
             left: ${startX}%;
             font-size: ${size}px;
             will-change: transform;
@@ -123,27 +133,23 @@ window.playConfettiEffect = function() {
         
         container.appendChild(el);
 
-        // Animation Settings
-        const duration = Math.random() * 3000 + 3000; // 3s - 6s
+        const duration = Math.random() * 3000 + 3000;
         const rotation = Math.random() * 360 - 180;   
         const drift = Math.random() * 150 - 75;       
 
-        // Use Web Animations API
         const anim = el.animate([
             { transform: `translate3d(0, 0, 0) rotate(0deg)`, opacity: 1 },
             { transform: `translate3d(${drift}px, ${window.innerHeight + 100}px, 0) rotate(${rotation}deg)`, opacity: 0 }
         ], {
             duration: duration,
-            easing: 'ease-in', // 'ease-in' simulates gravity acceleration better
+            easing: 'ease-in',
             delay: Math.random() * 500 
         });
 
-        // Cleanup ONLY this specific particle when it finishes
         anim.onfinish = () => {
             el.remove();
         };
     }
-    // We NO LONGER remove the container, preventing the "blocking" issue.
 };
 
 window.playBurstEffect = function(el) {

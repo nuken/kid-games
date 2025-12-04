@@ -22,8 +22,7 @@ if (file_exists($db_path)) {
     die("Error: Database connection file not found at $db_path");
 }
 
-// 3. Get Current User Theme
-// This allows us to load the specific CSS file for this child
+/// 3. Get Current User Theme
 $user_id = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
     SELECT u.*, t.css_file, t.name as theme_name
@@ -34,8 +33,23 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $current_user = $stmt->fetch();
 
-// 4. Set Theme Path
-// This variable will be used by the HTML <link> tag
+// 4. Set Paths
 $theme_css = $current_user['css_file'] ?? 'default.css';
-$theme_path = ($path_depth > 0) ? str_repeat("../", $path_depth) . "assets/themes/" . $theme_css : "assets/themes/" . $theme_css;
+$theme_path = ($path_depth > 0 ? str_repeat("../", $path_depth) : "") . "assets/themes/" . $theme_css;
+
+// 5. LOAD LANGUAGE
+// Determine which file to load based on the CSS filename
+$lang_file = 'default.php';
+if (strpos($theme_css, 'princess') !== false) {
+    $lang_file = 'princess.php';
+}
+
+$lang_path = ($path_depth > 0 ? str_repeat("../", $path_depth) : "") . "includes/lang/" . $lang_file;
+
+if (file_exists($lang_path)) {
+    require_once $lang_path;
+} else {
+    // Fallback if file missing
+    require_once ($path_depth > 0 ? str_repeat("../", $path_depth) : "") . "includes/lang/default.php";
+}
 ?>
