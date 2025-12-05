@@ -125,6 +125,7 @@
         } else {
             // NEW: Track the mistake
             sessionMistakes++;
+            GameBridge.playAudio('wrong');
 
             btn.style.background = '#ffcccc';
             setTimeout(() => btn.style.background = '', 500);

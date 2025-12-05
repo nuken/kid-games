@@ -201,6 +201,7 @@ function checkAnswer(ans, btn) {
         }
     } else {
         sessionMistakes++; // Track mistake
+        GameBridge.playAudio('wrong');
         btn.style.borderColor = "var(--danger-btn)";
         GameBridge.speak(window.LANG.try_again);
     }

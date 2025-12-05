@@ -115,6 +115,7 @@
 
         } else {
             sessionMistakes++; // Track mistake
+            GameBridge.playAudio('wrong');
             messageEl.innerText = window.LANG.try_again;
             messageEl.style.color = "var(--danger-btn)";
             btnElement.style.opacity = "0.5";
