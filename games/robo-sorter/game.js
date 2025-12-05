@@ -94,6 +94,7 @@ function checkAnswer(type) {
         }
     } else {
         sessionMistakes++; // Track mistake
+        GameBridge.playAudio('wrong');
         message.innerText = window.LANG.try_again;
         message.style.color = "var(--danger-btn)";
         message.style.display = "block";
