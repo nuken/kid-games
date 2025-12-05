@@ -36,22 +36,24 @@ try {
     $theme_css = $user['css_file'] ?? 'default.css';
     $theme_path = "assets/themes/" . $theme_css;
 	
-	// --- NEW: LOAD LANGUAGE ---
-    $lang_file = 'default.php';
-    if (strpos($theme_css, 'princess') !== false) {
-        $lang_file = 'princess.php';
-    }
-    
-    $lang_path = "includes/lang/" . $lang_file;
-    
-    if (file_exists($lang_path)) {
-        require_once $lang_path;
-    } else {
-        require_once "includes/lang/default.php";
+    // --- SMART LANGUAGE LOADER ---
+    // 1. Load the Default (Neutral) Language first
+    require_once 'includes/lang/default.php';
+    $default_lang = $LANG;
+
+    // 2. Check for Theme-Specific Language file
+    // Example: if theme is 'space.css', look for 'space.php'
+    $current_lang_file = str_replace('.css', '.php', $theme_css);
+    $current_lang_path = "includes/lang/" . $current_lang_file;
+
+    // 3. If specific file exists, load and merge
+    if ($current_lang_file !== 'default.php' && file_exists($current_lang_path)) {
+        include $current_lang_path;
+        // Merge so that theme strings overwrite default ones
+        $LANG = array_merge($default_lang, $LANG);
     }
 
     // 3. GET GAMES
-    // We fetch overrides (custom names/icons) based on the user's theme
     $sql = "
         SELECT 
             g.id, 
@@ -79,7 +81,7 @@ try {
     
     $games = $stmt->fetchAll();
 
-    // 4. GET BADGES (Grouped by Badge ID)
+    // 4. GET BADGES
     $stmt = $pdo->prepare("
         SELECT b.name, b.icon, b.description, COUNT(ub.id) as count 
         FROM user_badges ub 
@@ -122,7 +124,6 @@ try {
         }
         
         .user-info { display: flex; align-items: center; gap: 15px; }
-        .avatar { font-size: 40px; }
         .details h2 { margin: 0; font-size: 1.2em; color: var(--star-gold); }
         .details p { margin: 0; font-size: 0.9em; opacity: 0.8; color: white; }
 
@@ -178,7 +179,27 @@ try {
 
     <div class="profile-bar">
         <div class="user-info">
-            <div class="avatar">👨‍🚀</div>
+            <div class="avatar" style="
+                width: 60px; height: 60px; 
+                border-radius: 50%; 
+                border: 2px solid white; 
+                background: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 35px; /* Large Emoji Size */
+                box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            ">
+                <?php 
+                    // Check if user still has an old filename in DB
+                    $user_avatar = $user['avatar'] ?? '👤';
+                    // If it looks like a file (has a dot), show default emoji
+                    if (strpos($user_avatar, '.') !== false) {
+                        echo '👤'; 
+                    } else {
+                        echo $user_avatar;
+                    }
+                ?>
+            </div>
+
             <div class="details">
                 <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
                 <p>Grade Level: <?php echo $user['grade_level']; ?></p>
@@ -191,7 +212,7 @@ try {
         
         <div class="badge-section">
             <h3 style="margin:0; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); opacity:0.8;">
-                Mission Patches
+                <?php echo $LANG['mission_patches']; ?>
             </h3>
             
             <div class="badge-grid">
@@ -206,7 +227,7 @@ try {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div style="color: #ccc; padding: 10px; font-style: italic;">
-                        No patches yet. Complete missions to earn them!
+                        <?php echo $LANG['no_patches']; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -221,15 +242,11 @@ try {
                     if ($score >= 50) $stars = 2;
                     if ($score >= 90) $stars = 3;
 
-                    // --- SMART LINKING LOGIC ---
-                    // Check if the game has been converted to the new View system
+                    // SMART LINKING LOGIC
                     $view_path = $game['folder_path'] . '/view.php';
-                    
                     if (file_exists($view_path)) {
-                        // Converted Game -> Use Unified Wrapper
                         $link = "play.php?game_id=" . $game['id'];
                     } else {
-                        // Legacy Game (Shapes & Colors) -> Use direct folder link
                         $link = $game['folder_path'] . "/index.php";
                     }
                 ?>
@@ -247,14 +264,14 @@ try {
                             </div>
                         <?php else: ?>
                             <div style="margin-top:5px; font-size: 0.8em; opacity: 0.6;">
-                                New Mission
+                                <?php echo $LANG['new_mission']; ?>
                             </div>
                         <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             <?php else: ?>
                 <div style="grid-column: 1/-1; text-align:center; padding: 40px; background: rgba(0,0,0,0.2); border-radius: 10px;">
-                    <h2>No missions available!</h2>
+                    <h2>No games available!</h2>
                     <p>Current Grade Level: <strong><?php echo $user['grade_level']; ?></strong></p>
                     <p>Ask a parent to assign games for this grade level.</p>
                 </div>
@@ -268,21 +285,17 @@ try {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const username = "<?php echo htmlspecialchars($user['username']); ?>";
-            
-            // USE PHP VARIABLE FOR WELCOME MESSAGE
             const welcomeText = "<?php echo $LANG['welcome']; ?>"; 
 
             // Only speak welcome if they haven't been here in the last 5 minutes
             const lastVisit = localStorage.getItem('klh_last_visit');
             const now = Date.now();
             
-            // Initializing Bridge (Optional, but good practice)
             if (typeof GameBridge !== 'undefined') GameBridge.init();
 
             if (!lastVisit || (now - lastVisit) > 300000) {
                 setTimeout(() => {
                     if (window.speakText) {
-                        // Combine the localized welcome with the username
                         window.speakText(welcomeText + " " + username);
                     }
                 }, 1000);

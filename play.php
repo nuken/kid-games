@@ -9,15 +9,14 @@ require_once 'includes/header.php'; // Checks login & sets $theme_path
 $game_id = $_GET['game_id'] ?? null;
 if (!$game_id) { header("Location: index.php"); exit; }
 
-// We allow fetching the user's specific theme override for this game
 $user_id = $_SESSION['user_id'];
 
-// First get user's theme ID
+// Get user's theme ID to fetch specific game overrides
 $stmt = $pdo->prepare("SELECT theme_id FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $theme_id = $stmt->fetchColumn();
 
-// Now fetch game details LEFT JOINed with the overrides
+// Fetch game details with overrides
 $sql = "
     SELECT 
         g.*, 
@@ -35,16 +34,36 @@ $game = $stmt->fetch();
 
 if (!$game) die("Game not found.");
 
-// Update the array to use the overridden title for the HTML below
+// Update the array to use the overridden title
 $game['default_title'] = $game['final_title'];
 
-// 2. Prepare Config for JS (Add 'lang' block)
+// ---------------------------------------------------------
+// NEW: LOAD LANGUAGE FILE
+// ---------------------------------------------------------
+// 1. Load the Default Language first (as a fallback)
+require_once 'includes/lang/default.php';
+$default_lang = $LANG; // Keep a copy of defaults
+
+// 2. Determine if we need a theme-specific language file
+// We assume the theme CSS filename matches the PHP lang filename (e.g., 'princess.css' -> 'princess.php')
+$theme_css = basename($theme_path); // e.g., "princess.css"
+$lang_file = str_replace('.css', '.php', $theme_css); // "princess.php"
+$lang_path = 'includes/lang/' . $lang_file;
+
+// 3. If a specific language file exists, load it and merge with defaults
+if ($lang_file !== 'default.php' && file_exists($lang_path)) {
+    include $lang_path; // This overwrites $LANG with specific keys
+    // Merge: specific theme strings overwrite defaults, missing ones stay default
+    $LANG = array_merge($default_lang, $LANG);
+}
+// ---------------------------------------------------------
+
+// Prepare Config for JS
 $jsConfig = [
     'userId' => $_SESSION['user_id'],
     'gameId' => $game['id'],
     'themePath' => $theme_path, 
-    'root' => './',
-    'lang' => $LANG // <--- PASS THE ARRAY HERE
+    'root' => './'
 ];
 ?>
 <!DOCTYPE html>
@@ -110,9 +129,7 @@ $jsConfig = [
 
     <nav class="game-nav">
         <a href="index.php" class="nav-home">⬅ <?php echo $LANG['base']; ?></a>
-        
         <h1 class="game-title"><?php echo htmlspecialchars($game['default_title']); ?></h1>
-        
         <div class="score-box"><?php echo $LANG['score']; ?>: <span id="score-display">0</span></div>
     </nav>
 
@@ -122,7 +139,7 @@ $jsConfig = [
                 <?php echo htmlspecialchars($game['default_title']); ?>
             </h1>
             <p id="overlay-desc" style="font-size: 1.5em; margin-bottom: 30px; color: #ccc;">
-                Loading mission parameters...
+                <?php echo $LANG['loading']; ?>
             </p>
             <div id="level-select"></div>
         </div>
@@ -139,7 +156,11 @@ $jsConfig = [
         ?>
     </div>
 
-    <script>window.gameConfig = <?php echo json_encode($jsConfig); ?>;</script>
+    <script>
+        window.gameConfig = <?php echo json_encode($jsConfig); ?>;
+        window.LANG = <?php echo json_encode($LANG); ?>; 
+    </script>
+
     <script src="assets/js/speech-module.js"></script>
     <script src="assets/js/game-bridge.js"></script>
     <script src="<?php echo $game['folder_path']; ?>/game.js"></script>

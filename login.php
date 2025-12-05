@@ -5,13 +5,11 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
-require_once 'includes/db.php';
+require_once 'includes/db.php'; //
 
-// Handle the Login Logic
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pin = $_POST['pin'];
     
-    // Find user with this PIN
     $stmt = $pdo->prepare("SELECT * FROM users WHERE pin_code = ?");
     $stmt->execute([$pin]);
     $user = $stmt->fetch();
@@ -19,14 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($user) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
-        header("Location: index.php"); // Send to Dashboard
+        $_SESSION['role'] = $user['role']; // <--- ADD THIS LINE
+
+        // Redirect based on Role
+        if ($user['role'] === 'admin') {
+            header("Location: admin/index.php");
+        } elseif ($user['role'] === 'parent') {
+            header("Location: parent.php");
+        } else {
+            header("Location: index.php");
+        }
         exit;
     } else {
         $error = "Uh oh! Wrong Code.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
