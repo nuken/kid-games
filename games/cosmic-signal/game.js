@@ -6,6 +6,8 @@ let startTime = Date.now();
 let difficulty = 1;
 let currentCorrectAnswer = "";
 
+// NEW: Track mistakes
+let sessionMistakes = 0;
 
 // --- DATA: EXPANDED 1ST GRADE SIGHT WORDS ---
 const sightWords = [
@@ -106,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
             difficulty = level;
             availableWords = [...sightWords];
             availableSentences = [...sentences];
+            score = 0;
+            questionsAnswered = 0;
+            sessionMistakes = 0; // Reset
             startTime = Date.now();
             spawnQuestion();
         }
@@ -121,7 +126,7 @@ function spawnQuestion() {
     if (difficulty === 1) {
         // --- LEVEL 1 LOGIC (Sight Words) ---
         if (availableWords.length === 0) availableWords = [...sightWords];
-        
+
         const idx = Math.floor(Math.random() * availableWords.length);
         currentCorrectAnswer = availableWords[idx];
         availableWords.splice(idx, 1);
@@ -129,11 +134,9 @@ function spawnQuestion() {
         screenText.innerText = currentCorrectAnswer;
         GameBridge.speak(currentCorrectAnswer);
 
-        // Hide word after delay to test memory
         setTimeout(() => {
-            screenText.innerText = "🔍 " + window.LANG.game_cosmic_signal_lost; //
+            screenText.innerText = "🔍 " + window.LANG.game_cosmic_signal_lost;
             let opts = [currentCorrectAnswer];
-            // Fill distractors
             while(opts.length < 3) {
                 let w = sightWords[Math.floor(Math.random()*sightWords.length)];
                 if(!opts.includes(w)) opts.push(w);
@@ -144,17 +147,16 @@ function spawnQuestion() {
     } else {
         // --- LEVEL 2 LOGIC (Sentences) ---
         if (availableSentences.length === 0) availableSentences = [...sentences];
-        
+
         const idx = Math.floor(Math.random() * availableSentences.length);
         const q = availableSentences[idx];
         availableSentences.splice(idx, 1);
 
         currentCorrectAnswer = q.answer;
         screenText.innerText = q.text;
-        
-        // Speak sentence with "blank"
+
         GameBridge.speak(q.text.replace("___", "blank"));
-        
+
         createButtons(q.options.sort(() => Math.random()-0.5));
     }
 }
@@ -175,27 +177,30 @@ function checkAnswer(ans, btn) {
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
-        
-        // Show correct answer on screen
+
         if (difficulty === 1) {
             document.getElementById('question-text').innerText = currentCorrectAnswer;
         } else {
-            // Replace the blank in the sentence
             const currentText = document.getElementById('question-text').innerText;
             document.getElementById('question-text').innerText = currentText.replace("___", currentCorrectAnswer);
         }
-        
+
         btn.style.borderColor = "var(--primary-btn)";
         btn.style.color = "var(--primary-btn)";
-        
+
         GameBridge.celebrate(window.LANG.game_cosmic_signal_locked);
-        
+
         if (questionsAnswered >= totalQuestions) {
-            GameBridge.saveScore({ score: score, duration: Math.floor((Date.now() - startTime)/1000) });
+            GameBridge.saveScore({
+                score: score,
+                duration: Math.floor((Date.now() - startTime)/1000),
+                mistakes: sessionMistakes
+            });
         } else {
             setTimeout(spawnQuestion, 1500);
         }
     } else {
+        sessionMistakes++; // Track mistake
         btn.style.borderColor = "var(--danger-btn)";
         GameBridge.speak(window.LANG.try_again);
     }

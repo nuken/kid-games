@@ -8,6 +8,9 @@ let startTime = Date.now();
 let difficulty = 1;
 const items = ["🚀", "⛽", "🔧", "⚙️", "🔋", "🛰️", "🛸"];
 
+// NEW: Track mistakes
+let sessionMistakes = 0;
+
 document.addEventListener('DOMContentLoaded', () => {
     GameBridge.setupGame({
         instructions: window.LANG.game_rocket_shop_instr_text,
@@ -17,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         onStart: (level) => {
             difficulty = level;
+            score = 0;
+            questionsAnswered = 0;
+            sessionMistakes = 0; // Reset
             document.querySelector('.coin.dollar').style.display = (level === 2) ? 'flex' : 'none';
             startTime = Date.now();
             spawnItem(false);
@@ -64,16 +70,22 @@ function checkPurchase() {
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
-        GameBridge.celebrate(window.LANG.game_rocket_shop_sold); //
-        
+        GameBridge.celebrate(window.LANG.game_rocket_shop_sold);
+
         if (questionsAnswered >= totalQuestions) {
-            GameBridge.saveScore({ score: score, duration: Math.floor((Date.now() - startTime)/1000) });
+            GameBridge.saveScore({
+                score: score,
+                duration: Math.floor((Date.now() - startTime)/1000),
+                mistakes: sessionMistakes
+            });
         } else {
             setTimeout(() => spawnItem(false), 1500);
         }
     } else if (currentTotal > targetPrice) {
+        sessionMistakes++; // Overpaid is a mistake
         GameBridge.speak(window.LANG.game_rocket_shop_too_much);
     } else {
+        sessionMistakes++; // Underpaid is a mistake
         GameBridge.speak(window.LANG.game_rocket_shop_not_enough);
     }
 }

@@ -9,8 +9,10 @@ const totalQuestions = 10;
 let startTime = Date.now();
 let difficulty = 1;
 
+// NEW: Track mistakes
+let sessionMistakes = 0;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize via Bridge
     GameBridge.setupGame({
         instructions: window.LANG.game_launch_time_instr_text,
         speakInstruction: window.LANG.game_launch_time_instr_speak,
@@ -20,13 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         onStart: (level) => {
             difficulty = level;
+            score = 0;
+            questionsAnswered = 0;
+            sessionMistakes = 0; // Reset
             document.getElementById('fine-controls').style.display = (level === 2) ? 'flex' : 'none';
             startTime = Date.now();
             spawnTime(false);
         }
     });
 
-    // 2. Generate Markers
     const face = document.getElementById('clock-face');
     for(let i=1; i<=12; i++) {
         let mk = document.createElement('div');
@@ -39,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function spawnTime(silent) {
     document.getElementById('message').innerText = "";
-    
+
     if (difficulty === 2) {
         targetHour = Math.floor(Math.random() * 12) + 1;
         targetMin = Math.floor(Math.random() * 60);
@@ -61,8 +65,7 @@ function spawnTime(silent) {
 
     if (!silent) {
         let timeText = (targetMin === 0) ? targetHour + " O'Clock" : targetHour + " " + targetMin;
-        // Use lang variable for "Set clock to" if available, else construct it
-        GameBridge.speak(window.LANG.game_launch_time_speak_set + " " + timeText); //
+        GameBridge.speak(window.LANG.game_launch_time_speak_set + " " + timeText);
     }
 }
 
@@ -95,13 +98,18 @@ function checkTime() {
         questionsAnswered++;
         GameBridge.updateScore(score);
         GameBridge.celebrate(window.LANG.game_launch_time_success);
-        
+
         if (questionsAnswered >= totalQuestions) {
-            GameBridge.saveScore({ score: score, duration: Math.floor((Date.now() - startTime)/1000) });
+            GameBridge.saveScore({
+                score: score,
+                duration: Math.floor((Date.now() - startTime)/1000),
+                mistakes: sessionMistakes
+            });
         } else {
             setTimeout(() => spawnTime(false), 1500);
         }
     } else {
+        sessionMistakes++; // Track mistake
         document.getElementById('message').innerText = window.LANG.game_launch_time_check;
         GameBridge.speak(window.LANG.try_again);
     }

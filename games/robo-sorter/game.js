@@ -6,12 +6,15 @@ let currentNumber = 0;
 let score = 0;
 let difficulty = 1;
 
+// NEW: Track mistakes
+let sessionMistakes = 0;
+
 const box = document.getElementById('number-box');
 const visualHint = document.getElementById('visual-hint');
 const message = document.getElementById('message');
 
 document.addEventListener('DOMContentLoaded', () => {
-    if(!box) return; 
+    if(!box) return;
 
     GameBridge.setupGame({
         instructions: window.LANG.game_robo_sorter_instr_text,
@@ -24,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             difficulty = level;
             score = 0;
             questionsAnswered = 0;
+            sessionMistakes = 0; // Reset
             startTime = Date.now();
             spawnNumber(false);
         }
@@ -32,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function spawnNumber(silent) {
     box.style.transition = 'none';
-    box.style.top = '110px'; 
+    box.style.top = '110px';
     message.style.display = 'none';
 
     let max = (questionsAnswered >= 5) ? 99 : 20;
@@ -45,7 +49,7 @@ function spawnNumber(silent) {
 
     // Trigger Reflow
     void box.offsetWidth;
-    
+
     // Start Animation
     box.style.transition = 'top 10s linear';
     box.style.top = '85%';
@@ -73,27 +77,32 @@ function checkAnswer(type) {
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
-        
+
         message.innerText = window.LANG.correct_short;
         message.style.color = "var(--primary-btn)";
         message.style.display = "block";
-        GameBridge.celebrate(window.LANG.correct_short); //
+        GameBridge.celebrate(window.LANG.correct_short);
 
         if (questionsAnswered >= totalQuestions) {
-            GameBridge.saveScore({ score: score, duration: Math.floor((Date.now() - startTime)/1000) });
+            GameBridge.saveScore({
+                score: score,
+                duration: Math.floor((Date.now() - startTime)/1000),
+                mistakes: sessionMistakes
+            });
         } else {
             setTimeout(() => spawnNumber(false), 1500);
         }
     } else {
+        sessionMistakes++; // Track mistake
         message.innerText = window.LANG.try_again;
         message.style.color = "var(--danger-btn)";
         message.style.display = "block";
-        
+
         // Pause box
         let currentTop = getComputedStyle(box).top;
         box.style.transition = 'none';
         box.style.top = currentTop;
-        
+
         GameBridge.speak(window.LANG.oops + " " + window.LANG.try_again);
     }
 }
