@@ -79,8 +79,16 @@ function changeHour(amt) {
 
 function changeMinute(amt) {
     currentMin += amt;
-    if (currentMin >= 60) { currentMin = 0; changeHour(1); }
-    else if (currentMin < 0) { currentMin = 55; changeHour(-1); }
+
+    // FIX: Correctly handle wrap-around for any increment (1 or 5)
+    if (currentMin >= 60) {
+        currentMin -= 60;
+        changeHour(1);
+    } else if (currentMin < 0) {
+        currentMin += 60;
+        changeHour(-1);
+    }
+
     updateClockVisuals();
     GameBridge.speak(currentMin === 0 ? "O'Clock" : currentMin);
 }
