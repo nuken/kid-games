@@ -1,0 +1,136 @@
+/* assets/themes/default.css */
+:root {
+    /* --- Core Palette (Blues & Grays) --- */
+    --bg-color: #f0f4f8;      /* Alice Blue / Light Gray */
+    --text-color: #2c3e50;    /* Dark Blue-Gray */
+    --card-bg: #ffffff;       /* Pure White */
+    
+    /* --- Functional Colors --- */
+    --primary-btn: #3498db;   /* Dodger Blue */
+    --secondary-btn: #7f8c8d; /* Slate Gray */
+    --danger-btn: #e74c3c;    /* Soft Red */
+    
+    /* --- Game Elements --- */
+    --panel-border: 2px solid #bdc3c7;
+    --star-gold: #f1c40f;
+    --planet-red: #e74c3c;
+    --nebula-green: #2ecc71;
+    
+    /* --- Clock Game Colors --- */
+    --clock-face: #ffffff;
+    --clock-border: #34495e;  /* Dark Blue-Gray */
+    --clock-hour: #2c3e50;
+    --clock-min: #e74c3c;
+
+    /* --- Fonts & Visuals --- */
+    --font-family: 'Comic Neue', 'Segoe UI', sans-serif;
+    --bg-image: none; /* Clean, no stars */
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: var(--bg-image);
+    font-family: var(--font-family);
+    color: var(--text-color);
+}
+
+/* --- UI COMPONENTS --- */
+
+/* Cards & Containers - Clean & Crisp */
+.card, .mission-card, #game-board, #shop-counter {
+    background: var(--card-bg) !important;
+    border: 1px solid #dcdcdc !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+}
+
+/* Headers & Navigation - White with subtle shadow */
+header, .profile-bar, .game-nav {
+    background: #ffffff !important;
+    border: 1px solid #ecf0f1 !important;
+    border-bottom: 2px solid #bdc3c7 !important;
+    color: var(--text-color) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
+}
+
+/* --- TEXT VISIBILITY OVERRIDES --- */
+
+/* Ensure titles are dark and readable */
+h1, h2, h3, .mission-title {
+    color: #2c3e50 !important;
+}
+
+/* Navigation Links */
+.game-nav .nav-home,
+.game-nav .score-box {
+    color: #7f8c8d !important; /* Slate Gray */
+    text-shadow: none !important;
+}
+
+/* Game Titles - Make them pop in Blue */
+.game-nav .game-title {
+    color: var(--primary-btn) !important;
+    text-shadow: none !important;
+}
+
+/* Profile Section */
+.profile-bar .user-info, 
+.profile-bar .details h2,
+.profile-bar .details p {
+    color: var(--text-color) !important;
+    text-shadow: none !important;
+}
+
+/* --- MISSION CARDS --- */
+.mission-card {
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.mission-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-btn) !important;
+    box-shadow: 0 10px 20px rgba(52, 152, 219, 0.15) !important;
+}
+.mission-desc {
+    color: #95a5a6 !important;
+}
+
+/* --- BADGES (The Web Weaver Fix) --- */
+/* Use a Soft Blue background so white emojis (like 🕸️) are visible */
+.badge-item {
+    background: #d6eaf8 !important; /* Light Blue */
+    border: 2px solid #aed6f1 !important;
+    color: var(--text-color) !important;
+}
+
+/* --- GAME OVERLAYS --- */
+#system-overlay {
+    background: rgba(240, 244, 248, 0.98) !important;
+    border: none !important;
+}
+#system-overlay h1 {
+    color: var(--primary-btn) !important;
+    text-shadow: none !important;
+}
+#system-overlay p {
+    color: var(--text-color) !important;
+}
+
+/* Level Buttons */
+.btn-level {
+    background: var(--primary-btn) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 0 #2980b9 !important; /* Darker Blue Shadow */
+}
+.btn-level:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2980b9 !important;
+}
+
+/* --- HELP BUTTON --- */
+.help-btn {
+    background-color: #ffffff !important;
+    border: 2px solid var(--primary-btn) !important;
+    color: var(--primary-btn) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
