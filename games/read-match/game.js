@@ -87,6 +87,7 @@
                 } else {
                     // Wrong Answer
                     sessionMistakes++; // Increment counter
+                    GameBridge.playAudio('wrong');
                     btn.classList.add('wrong');
                     GameBridge.speak(window.LANG.try_again);
                     setTimeout(() => btn.classList.remove('wrong'), 500);
