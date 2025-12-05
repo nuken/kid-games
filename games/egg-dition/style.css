@@ -1,0 +1,90 @@
+/* games/egg-dition/style.css */
+
+#game-board {
+    position: relative; /* Key for positioning the Help button */
+    text-align: center;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+/* Matching the 'Standard' Help Button Style */
+.help-btn {
+    position: absolute; 
+    top: -10px; 
+    right: 0;
+    background: rgba(255, 255, 255, 0.6); 
+    border: 2px solid var(--text-color); 
+    color: var(--text-color);
+    padding: 5px 15px; 
+    border-radius: 20px; /* The rounded look */
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10;
+    transition: transform 0.1s;
+}
+.help-btn:hover { transform: scale(1.05); }
+
+/* The Egg Container */
+#coop-display {
+    background: #deb887; /* Light wood */
+    border: 8px solid #8b4513; /* Dark wood border */
+    border-radius: 15px;
+    min-height: 180px;
+    
+    /* Layout */
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    
+    /* Spacing Updates */
+    margin-bottom: 20px;
+	margin-left: 20px;
+	margin-right: 20px;
+    margin-top: 30px; /* Push down slightly to clear the help button */
+    padding: 20px;    /* INCREASED PADDING inside the container */
+    
+    font-size: 60px;
+    box-shadow: inset 0 0 30px rgba(139, 69, 19, 0.2); /* Depth effect */
+}
+
+/* Items inside */
+.egg { 
+    cursor: pointer; 
+    transition: transform 0.2s; 
+    display: inline-block; 
+    margin: 10px; /* More space between eggs */
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+}
+.egg:hover { transform: scale(1.2); }
+
+.math-sign { 
+    font-size: 50px; 
+    color: #8b4513; 
+    margin: 0 30px; /* More space around the plus sign */
+    font-weight: bold; 
+}
+
+/* Answer Buttons */
+#answer-options {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.number-btn {
+    background: white; 
+    border: 4px solid #8b4513;
+    border-radius: 50%; 
+    width: 80px; height: 80px;
+    font-size: 32px; 
+    font-weight: bold; 
+    color: #8b4513;
+    cursor: pointer; 
+    box-shadow: 0 6px 0 #5e2f0d;
+    transition: transform 0.1s;
+}
+.number-btn:active { 
+    transform: translateY(6px); 
+    box-shadow: none; 
+}

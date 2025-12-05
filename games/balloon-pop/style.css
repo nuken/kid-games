@@ -1,0 +1,88 @@
+/* games/balloon-pop/style.css */
+
+#game-board {
+    position: relative;
+    width: 100%; max-width: 800px; height: 500px;
+    margin: 20px auto;
+    background: linear-gradient(to bottom, #87CEEB, #E0F7FA); /* Sky Blue */
+    border: 5px solid #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.help-btn {
+    position: absolute; top: 10px; right: 10px; 
+    z-index: 100; /* Always on top */
+    background: rgba(255,255,255,0.7); border: 2px solid #2c3e50;
+    border-radius: 20px; cursor: pointer; font-weight: bold;
+}
+
+#cloud-display {
+    position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+    background: white; padding: 15px 40px; border-radius: 50px;
+    font-size: 40px; font-weight: bold; color: #2c3e50;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+    z-index: 50; /* Base Layer */
+    min-width: 200px; text-align: center;
+}
+
+#balloon-area {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.balloon {
+    position: absolute; bottom: -120px;
+    width: 80px; height: 100px;
+    background: radial-gradient(circle at 30% 30%, #ff7675, #d63031);
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: bold; color: white;
+    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+    user-select: none;
+    
+    /* FIX: Higher than Cloud (50), Lower than Help (100) */
+    z-index: 60; 
+    pointer-events: auto; /* Re-enable clicking */
+}
+
+.balloon::before { /* String */
+    content: ''; position: absolute; bottom: -20px; left: 50%;
+    width: 2px; height: 20px; background: rgba(0,0,0,0.3);
+}
+.balloon:active { transform: scale(0.95); }
+
+/* Animation: Slow Rise & Bob */
+.float-up { 
+    animation: floatUp 15s ease-out forwards, bobbing 3s infinite ease-in-out alternate; 
+}
+
+@keyframes floatUp { 
+    0% { bottom: -120px; }
+    100% { bottom: 80%; } 
+}
+
+@keyframes bobbing {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+.pop-anim { 
+    transform: scale(1.5) !important; opacity: 0; 
+    transition: all 0.2s ease-out; 
+}
+
+/* Number Pad */
+#number-pad {
+    position: absolute; bottom: 20px; width: 100%;
+    display: flex; justify-content: center; gap: 10px;
+    z-index: 80; /* Above balloons */
+}
+.num-btn {
+    width: 60px; height: 60px; background: white; border: 3px solid #2c3e50;
+    border-radius: 10px; font-size: 24px; font-weight: bold; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+}
+.num-btn:hover { background: #eee; }
