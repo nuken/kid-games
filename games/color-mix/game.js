@@ -201,6 +201,7 @@
         } else {
             // WRONG
             sessionMistakes++; // Track mistake
+            GameBridge.playAudio('wrong');
             document.getElementById('message').innerText = window.LANG.oops;
             document.getElementById('message').style.color = "var(--danger-btn)";
             document.getElementById('liquid').style.backgroundColor = "#5d4037"; // Brown
