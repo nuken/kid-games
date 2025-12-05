@@ -2,6 +2,13 @@
 window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
 
+    // --- NEW: Audio Objects ---
+    // Paths are relative to the root (play.php), so 'assets/sounds/...' works.
+    const sounds = {
+        correct: new Audio('assets/sounds/correct.mp3'),
+        wrong:   new Audio('assets/sounds/wrong.mp3')
+    };
+
     /**
      * CONFETTI LOGIC
      */
@@ -67,6 +74,9 @@ window.GameBridge = (function() {
     return {
         init: function() {
             console.log("System: GameBridge Online");
+            // Optional: Preload sounds to avoid delay on first play
+            sounds.correct.load();
+            sounds.wrong.load();
         },
 
         setupGame: function(config) {
@@ -100,7 +110,18 @@ window.GameBridge = (function() {
             if(el) el.innerText = val;
         },
 
+        // --- NEW: Helper to play audio manually (e.g., GameBridge.playAudio('wrong'))
+        playAudio: function(key) {
+            if (sounds[key]) {
+                sounds[key].currentTime = 0; // Reset to start if already playing
+                sounds[key].play().catch(e => console.warn("Audio play blocked:", e));
+            }
+        },
+
         celebrate: function(text) {
+            // --- UPDATED: Play Correct Sound ---
+            this.playAudio('correct');
+
             if (window.playConfettiEffect) window.playConfettiEffect();
             if (text && window.speakText) window.speakText(text);
         },
@@ -117,7 +138,7 @@ window.GameBridge = (function() {
                 game_id: window.gameConfig.gameId,
                 score: data.score,
                 duration: data.duration,
-                mistakes: data.mistakes || 0  // Modified to pass mistakes
+                mistakes: data.mistakes || 0
             };
 
             fetch(API_PATH, {
@@ -129,11 +150,9 @@ window.GameBridge = (function() {
             .then(result => {
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
                     let badgeMsg = result.new_badges.map(b => b.icon + " " + b.name).join("\n");
-                    // FIX: Alert blocks execution. Redirect immediately after OK is clicked.
                     alert("🌟 MISSION PATCH EARNED! 🌟\n\n" + badgeMsg);
                     window.location.href = "index.php";
                 } else {
-                    // FIX: If no alert, allow short delay for celebration effect, then redirect
                     setTimeout(() => window.location.href = "index.php", 2000);
                 }
             })
