@@ -129,9 +129,13 @@ window.GameBridge = (function() {
             .then(result => {
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
                     let badgeMsg = result.new_badges.map(b => b.icon + " " + b.name).join("\n");
+                    // FIX: Alert blocks execution. Redirect immediately after OK is clicked.
                     alert("🌟 MISSION PATCH EARNED! 🌟\n\n" + badgeMsg);
+                    window.location.href = "index.php";
+                } else {
+                    // FIX: If no alert, allow short delay for celebration effect, then redirect
+                    setTimeout(() => window.location.href = "index.php", 2000);
                 }
-                setTimeout(() => window.location.href = "index.php", 2000);
             })
             .catch(error => console.error("Save Error:", error));
         }

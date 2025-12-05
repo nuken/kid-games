@@ -17,9 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $min_grade   = $_POST['min_grade'];
     $max_grade   = $_POST['max_grade'];
 
-    // Basic Validation: Check if folder path looks somewhat valid
+    // Basic Validation
     if (empty($title) || empty($folder)) {
         $message = "<div class='alert error'>Title and Folder Path are required.</div>";
+    } elseif (!preg_match('/^[a-zA-Z0-9\-\_\/]+$/', $folder)) {
+        // FIX: Validate folder path (alphanumeric, dashes, underscores, slashes only)
+        $message = "<div class='alert error'>Invalid Folder Path. Use only letters, numbers, dashes, underscores, and slashes.</div>";
     } else {
         try {
             // ID is Auto-Increment, so we don't specify it
@@ -49,19 +52,19 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
         body { background-color: #f4f6f8; background-image: none; color: #333 !important; font-family: sans-serif; }
         .admin-container { max-width: 1100px; margin: 30px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #333; }
-        
+
         /* Typography */
         h2 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
         label { color: #2c3e50; font-weight: bold; display: block; margin-top: 10px; }
-        
+
         /* Inputs */
         input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #333; }
-        
+
         /* Table */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th { background: #f8f9fa; color: #555; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; }
         td { padding: 12px; border-bottom: 1px solid #eee; color: #333; }
-        
+
         /* Buttons */
         .btn-submit { width:100%; background:#27ae60; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer; font-weight:bold; margin-top: 15px; }
         .btn-submit:hover { background: #219150; }
@@ -73,7 +76,7 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
         .nav-item.active { background: #3498db; color: white; }
         .nav-item:hover { background: #ccc; }
         .logout { margin-left: auto; background: #e74c3c; color: white; }
-        
+
         .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; color: white; text-align: center; font-weight: bold; }
         .success { background: #2ecc71; } .error { background: #e74c3c; }
     </style>
@@ -87,28 +90,28 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 </div>
 
 <div class="admin-container">
-    
+
     <div class="card">
         <h2>Add New Game</h2>
         <?php echo $message; ?>
-        
+
         <form method="POST">
             <input type="hidden" name="action" value="add_game">
-            
+
             <label>Game Title</label>
             <input type="text" name="title" required placeholder="e.g. Super Math">
-            
+
             <label>Folder Path</label>
             <input type="text" name="folder" required placeholder="games/folder-name">
             <small style="color:#666; font-size: 0.8em;">Relative to site root (e.g. games/rocket-shop)</small>
-            
+
             <label>Default Icon</label>
             <select name="icon">
                 <?php foreach($icons as $i): ?>
                     <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                 <?php endforeach; ?>
             </select>
-            
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
                     <label>Min Grade</label>
@@ -129,7 +132,7 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
                     </select>
                 </div>
             </div>
-            
+
             <button type="submit" class="btn-submit">Add Game</button>
         </form>
     </div>

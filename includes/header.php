@@ -4,6 +4,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// FIX: Set default if not set by the calling page
+if (!isset($path_depth)) {
+    $path_depth = 0;
+}
+
 // 1. Check Login
 if (!isset($_SESSION['user_id'])) {
     // If not logged in, redirect to the login page
