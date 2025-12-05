@@ -1,17 +1,12 @@
 /* assets/js/game-bridge.js */
-const GameBridge = (function() {
-    const API_PATH = 'api/save_score.php'; 
+window.GameBridge = (function() {
+    const API_PATH = 'api/save_score.php';
 
     /**
      * CONFETTI LOGIC
-     * Handles visual celebrations based on the current theme.
-     * Defined on window so StickerManager can also use it.
      */
     window.playConfettiEffect = function() {
-        // 1. Identify Theme
         let theme = 'default';
-        
-        // Check Game Config (play.php) or CSS Links (index.php)
         if (window.gameConfig && window.gameConfig.themePath) {
             if (window.gameConfig.themePath.includes('princess')) theme = 'princess';
             else if (window.gameConfig.themePath.includes('space')) theme = 'space';
@@ -23,20 +18,15 @@ const GameBridge = (function() {
             });
         }
 
-        // 2. Select Emojis based on Theme
         let emojis = [];
         if (theme === 'princess') {
-            // Princess Theme
             emojis = ['👑', '💖', '✨', '🌸', '🦄', '🏰'];
         } else if (theme === 'space') {
-            // Space Theme (Uses the OLD default stars)
             emojis = ['⭐', '🌟', '🚀', '🪐', '☄️', '🌑'];
         } else {
-            // Default Theme (New "Basic" Party Confetti)
             emojis = ['🎊', '🎉', '🎈', '🟦', '🔴', '🔺', '✨'];
         }
 
-        // 3. Spawn Particles (Simple CSS Animation)
         const container = document.createElement('div');
         Object.assign(container.style, {
             position: 'fixed', top: '0', left: '0',
@@ -55,21 +45,18 @@ const GameBridge = (function() {
                 fontSize: (Math.random() * 20 + 20) + 'px',
                 transform: `rotate(${Math.random() * 360}deg)`
             });
-            
-            // Randomize fall speed
-            const duration = Math.random() * 2 + 3; // 3-5s
+
+            const duration = Math.random() * 2 + 3;
             el.style.transition = `top ${duration}s ease-in, transform ${duration}s linear`;
-            
+
             container.appendChild(el);
 
-            // Trigger animation next frame
             setTimeout(() => {
                 el.style.top = '110vh';
                 el.style.transform = `rotate(${Math.random() * 360 + 360}deg)`;
             }, 100);
         }
 
-        // Cleanup DOM after animation
         setTimeout(() => {
             if(document.body.contains(container)) {
                 document.body.removeChild(container);
@@ -82,9 +69,6 @@ const GameBridge = (function() {
             console.log("System: GameBridge Online");
         },
 
-        /**
-         * Standardizes Game Startup & Overlay
-         */
         setupGame: function(config) {
             const overlay = document.getElementById('system-overlay');
             const desc = document.getElementById('overlay-desc');
@@ -97,7 +81,7 @@ const GameBridge = (function() {
                 if (config.levels) {
                     config.levels.forEach(lvl => {
                         const btn = document.createElement('button');
-                        btn.className = `btn-level`; 
+                        btn.className = `btn-level`;
                         btn.innerHTML = `${lvl.label}`;
                         btn.onclick = () => {
                             if(overlay) overlay.style.display = 'none';
@@ -126,13 +110,14 @@ const GameBridge = (function() {
         },
 
         saveScore: function(data) {
-            if (!window.gameConfig) return; // Safety check
+            if (!window.gameConfig) return;
 
             const payload = {
                 user_id: window.gameConfig.userId,
                 game_id: window.gameConfig.gameId,
                 score: data.score,
-                duration: data.duration
+                duration: data.duration,
+                mistakes: data.mistakes || 0  // Modified to pass mistakes
             };
 
             fetch(API_PATH, {
