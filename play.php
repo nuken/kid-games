@@ -63,6 +63,8 @@ $jsConfig = [
     'userId' => $_SESSION['user_id'],
     'gameId' => $game['id'],
     'themePath' => $theme_path, 
+    // Pass the setting (Default to true if not set)
+    'confetti' => (bool)($current_user['confetti_enabled'] ?? true),
     'root' => './'
 ];
 ?>

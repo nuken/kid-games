@@ -37,10 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $u_id = $_POST['student_id'];
         $u_grade = $_POST['grade_level'];
         $u_theme = $_POST['theme_id'];
-        $u_avatar = $_POST['avatar']; // Get avatar selection
+        $u_avatar = $_POST['avatar']; 
+        
+        // Checkbox logic: if present, it's 1, else 0
+        $u_confetti = isset($_POST['confetti']) ? 1 : 0;
 
-        $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ? WHERE id = ?");
-        if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_id])) {
+        $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ?, confetti_enabled = ? WHERE id = ?");
+        if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_confetti, $u_id])) {
             $message = "<div class='alert success'>Settings Updated! Go check the dashboard.</div>";
         } else {
             $message = "<div class='alert error'>Error updating settings.</div>";
@@ -287,6 +290,12 @@ if ($current_student) {
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <label style="display:flex; align-items:center; margin-top:20px; cursor:pointer; background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                        <input type="checkbox" name="confetti" value="1" style="width:auto; margin-right:15px; transform:scale(1.5);" 
+                            <?php if(!isset($current_student['confetti_enabled']) || $current_student['confetti_enabled'] == 1) echo 'checked'; ?>>
+                        <span style="font-size:1.1em; color:#2c3e50;">🎉 Enable Confetti</span>
+                    </label>
 
                     <button type="submit" class="save-btn">Save Changes</button>
                 </form>
