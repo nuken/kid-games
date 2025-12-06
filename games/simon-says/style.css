@@ -82,6 +82,11 @@
     font-size: 50px; cursor: pointer;
     transition: transform 0.1s;
     box-shadow: 0 5px 0 #95a5a6;
+	padding: 0;              /* Remove default iOS padding */
+    margin: 0;               /* Remove default margins */
+    display: flex;           /* Use Flexbox for perfect centering */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
 }
 .grid-item:active { transform: translateY(5px); box-shadow: none; }
 

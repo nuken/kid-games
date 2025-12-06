@@ -112,5 +112,53 @@
     border-radius: 10px; cursor: pointer;
     box-shadow: 0 5px 0 rgba(0,0,0,0.3);
     transition: transform 0.1s;
+	padding: 0;              /* Remove default iOS padding */
+    margin: 0;               /* Remove default margins */
+    display: flex;           /* Use Flexbox for perfect centering */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
 }
 .option-btn:active { transform: translateY(5px); box-shadow: none; }
+
+/* RESPONSIVE: Fix for Mobile Portrait Mode */
+@media (max-width: 600px) {
+    
+    /* 1. Shrink the Train Container Gaps */
+    #train-container {
+        gap: 2px;          /* Smaller gap between cars */
+        padding-left: 5px; /* Less padding at the start */
+    }
+
+    /* 2. Make the Cars Smaller */
+    .train-car {
+        width: 42px;       /* Reduced from 80px */
+        height: 38px;      /* Reduced from 70px */
+        font-size: 20px;   /* Smaller emoji text */
+        border-width: 2px; /* Thinner border */
+        border-radius: 6px;
+    }
+
+    /* 3. Resize the Wheels */
+    .train-car::before, .train-car::after {
+        width: 10px; 
+        height: 10px;
+        bottom: -6px;
+        border-width: 1px;
+    }
+    .train-car::before { left: 4px; }
+    .train-car::after { right: 4px; }
+
+    /* 4. Fix the Engine Smokestack */
+    #engine::before {
+        font-size: 16px;
+        top: -18px;
+        right: 0px;
+    }
+
+    /* 5. Resize the Answer Buttons on the Platform */
+    .option-btn {
+        width: 50px; 
+        height: 50px;
+        font-size: 24px;
+    }
+}
