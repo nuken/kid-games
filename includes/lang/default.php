@@ -111,5 +111,11 @@ $LANG = [
     'game_spider_web_instr_speak' => 'Find the shape that fits the hole.',
     'game_spider_web_level1' => 'Start Game',
     'game_spider_web_found' => 'You found the', 
+	
+	// In includes/lang/default.php
+'game_lava_bridge_title' => 'Lava Bridge',
+'game_lava_bridge_instr_text' => 'Solve the math to build the bridge. Don\'t touch the lava!',
+'game_lava_bridge_level1' => 'Counting',
+'game_lava_bridge_level2' => 'Addition',
 ];
 ?>
