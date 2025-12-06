@@ -23,7 +23,7 @@ try {
         LEFT JOIN themes t ON u.theme_id = t.id 
         WHERE u.id = ?
     ");
-    $stmt->execute([$user_id]);
+   $stmt->execute([$user_id]);
     $user = $stmt->fetch();
 
     if (!$user) {
@@ -31,6 +31,19 @@ try {
         header("Location: logout.php");
         exit;
     }
+    
+    // --- ADD THIS BLOCK ---
+    $grade_map = [
+        0 => 'Preschool',
+        1 => 'Kindergarten',
+        2 => '1st Grade',
+        3 => '2nd Grade',
+        4 => '3rd Grade',
+        5 => '4th Grade',
+        6 => '5th Grade'
+    ];
+    // Get the text version, or fallback to the number if something weird happens
+    $grade_display = $grade_map[$user['grade_level']] ?? $user['grade_level'];
 	
 	// If the logged-in user is NOT a student, kick them out of the game dashboard
     if ($user['role'] !== 'student') {
@@ -212,7 +225,7 @@ try {
 
             <div class="details">
                 <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
-                <p>Grade Level: <?php echo $user['grade_level']; ?></p>
+                <p>Grade Level: <?php echo $grade_display; ?></p>
             </div>
         </div>
         <a href="logout.php" class="logout-btn">Log Out</a>
@@ -282,7 +295,7 @@ try {
             <?php else: ?>
                 <div style="grid-column: 1/-1; text-align:center; padding: 40px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                     <h2>No games available!</h2>
-                    <p>Current Grade Level: <strong><?php echo $user['grade_level']; ?></strong></p>
+                    <p>Current Grade Level: <strong><?php echo $grade_display; ?></strong></p>
                     <p>Ask a parent to assign games for this grade level.</p>
                 </div>
             <?php endif; ?>
