@@ -13,6 +13,12 @@ window.GameBridge = (function() {
      * Uses translate3d to force GPU hardware acceleration.
      */
     window.playConfettiEffect = function() {
+        // 1. CHECK USER PREFERENCE
+        if (window.gameConfig && window.gameConfig.confetti === false) {
+            console.log("Confetti disabled by parent.");
+            return; // Stop here
+        }
+
         let theme = 'default';
         if (window.gameConfig && window.gameConfig.themePath) {
             if (window.gameConfig.themePath.includes('princess')) theme = 'princess';
