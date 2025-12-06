@@ -12,114 +12,155 @@
     display: flex; flex-direction: column;
 }
 
-/* --- SCENE --- */
+/* --- SCENE (Side View) --- */
 #windshield {
-    flex: 1; /* Fills most of the screen */
+    flex: 1; 
     position: relative;
     overflow: hidden;
-    background: linear-gradient(#87CEEB, #E0F7FA);
+    /* Sky Gradient */
+    background: linear-gradient(to bottom, #87CEEB 0%, #b3e5fc 70%, #81c784 70%, #2e7d32 100%);
 }
 
 #scenery {
-    position: absolute; bottom: 150px; left: 0; width: 200%; height: 100px;
-    background-image: linear-gradient(transparent 80%, #2e7d32 80%), /* Grass line */
-                      radial-gradient(circle at 20px 20px, #2e7d32 20px, transparent 21px); /* Simple Trees */
-    background-size: 100% 100%, 50px 50px;
-    opacity: 0.8;
+    position: absolute; 
+    bottom: 140px; left: 0; 
+    width: 200%; height: 100px;
+    /* Abstract trees/bushes passing by */
+    background-image: radial-gradient(circle, #1b5e20 20px, transparent 21px);
+    background-size: 60px 60px;
+    background-position: 0 20px;
+    opacity: 0.6;
 }
 
 #road {
-    position: absolute; bottom: 0; width: 100%; height: 150px;
+    position: absolute; 
+    bottom: 0; left: 0;
+    width: 100%; height: 120px;
     background: #555;
-    transform-origin: bottom;
-    transform: perspective(300px) rotateX(20deg);
     border-top: 5px solid #333;
     overflow: hidden;
 }
 
+/* Horizontal Lane Marker */
 .lane-marker {
-    width: 20px; height: 100%;
-    border-left: 5px dashed yellow;
-    position: absolute; left: 50%; transform: translateX(-50%);
+    position: absolute;
+    top: 50%; left: 0;
+    width: 200%; /* Wider than screen for looping */
+    height: 10px;
+    /* Create a horizontal dashed line */
+    background-image: linear-gradient(to right, yellow 50%, transparent 50%);
+    background-size: 100px 100%; /* Length of dash + gap */
+    transform: translateY(-50%);
 }
 
-/* Car on the Road */
+/* Car (Side View) */
 #player-car {
-    font-size: 80px;
+    font-size: 100px;
     position: absolute;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
+    bottom: 20px; 
+    left: 50px; /* Parked on the left side */
+    filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5));
     transition: transform 0.5s;
     z-index: 10;
 }
 
-/* Animations */
-.moving .lane-marker { animation: drive 0.3s linear infinite; }
-@keyframes drive { from { top: -50px; } to { top: 0px; } }
+/* --- ANIMATIONS --- */
 
-.zoom-effect { animation: carZoom 1s ease-in-out; }
-@keyframes carZoom {
-    0% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(0.9) translateY(-10px); } /* Dip before launch */
-    100% { transform: translateX(-50%) scale(1); }
+/* Road moves Left to Right (simulating car moving Right) */
+.moving .lane-marker { 
+    animation: drive 1s linear infinite; 
+}
+@keyframes drive { 
+    from { left: 0; } 
+    to { left: -100px; } /* Match background-size width */
 }
 
-/* --- LIGHTS --- */
+/* Scenery moves slower for depth (Parallax) */
+.moving #scenery {
+    animation: sceneryScroll 5s linear infinite;
+}
+@keyframes sceneryScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100px); }
+}
+
+/* Car Vroom Effect */
+.zoom-effect { 
+    animation: carBump 0.5s ease-in-out infinite alternate; 
+}
+@keyframes carBump {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-2px) rotate(1deg); }
+}
+
+/* --- TRAFFIC LIGHT --- */
 #traffic-light-container {
     position: absolute; top: 20px; right: 20px;
-    width: 60px; padding: 10px;
+    width: 70px; padding: 10px;
     background: #2c3e50; border-radius: 10px;
-    border: 2px solid #fff;
+    border: 3px solid #fff;
     box-shadow: 5px 5px 15px rgba(0,0,0,0.3); z-index: 20;
+    display: flex; flex-direction: column; gap: 5px;
 }
 .bulb {
-    width: 40px; height: 40px;
-    background: #444; margin: 5px auto;
-    border-radius: 50%; transition: background 0.3s;
+    width: 50px; height: 50px;
+    background: #444; margin: 0 auto;
+    border-radius: 50%; transition: background 0.3s, box-shadow 0.3s;
     box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,0,0,0.2);
 }
-.bulb.active#light-red { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-.bulb.active#light-yellow { background: #f1c40f; box-shadow: 0 0 20px #f1c40f; }
-.bulb.active#light-green { background: #00ff00; box-shadow: 0 0 20px #00ff00; }
+.bulb.active#light-red { background: #ff0000; box-shadow: 0 0 25px #ff0000; border-color: #ff0000; }
+.bulb.active#light-yellow { background: #f1c40f; box-shadow: 0 0 25px #f1c40f; border-color: #f1c40f; }
+.bulb.active#light-green { background: #00ff00; box-shadow: 0 0 25px #00ff00; border-color: #00ff00; }
 
 /* --- UI PANEL --- */
 #ui-panel {
-    height: 160px;
+    height: 180px;
     background: #34495e;
     color: white;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     border-top: 5px solid #2c3e50;
     z-index: 30;
+    padding: 10px;
 }
 
-#question-box { margin-bottom: 15px; text-align: center; }
+#question-box { margin-bottom: 15px; text-align: center; width: 100%; }
+
 #subject-tag { 
-    font-size: 12px; font-weight: bold; 
+    font-size: 14px; font-weight: bold; 
     background: rgba(0,0,0,0.3); display: inline-block; 
-    padding: 2px 8px; border-radius: 4px; margin-bottom: 5px;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 8px;
+    letter-spacing: 1px;
 }
-.badge-math { color: #5dade2; border: 1px solid #5dade2; }
-.badge-reading { color: #ec7063; border: 1px solid #ec7063; }
-.badge-colors { color: #f4d03f; border: 1px solid #f4d03f; }
-.badge-science { color: #58d68d; border: 1px solid #58d68d; }
+.badge-math { color: #5dade2; border: 2px solid #5dade2; }
+.badge-reading { color: #ec7063; border: 2px solid #ec7063; }
+.badge-colors { color: #f4d03f; border: 2px solid #f4d03f; }
+.badge-science { color: #58d68d; border: 2px solid #58d68d; }
 
-#question-text { font-size: 24px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+#question-text { 
+    font-size: 28px; font-weight: bold; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+}
 
-#controls-area { display: flex; gap: 15px; }
+#controls-area { 
+    display: flex; gap: 15px; width: 100%; 
+    justify-content: center; flex-wrap: wrap;
+}
 
 .dash-btn {
     background: white; border: 4px solid #bdc3c7;
-    color: #333; font-size: 22px; font-weight: bold;
-    padding: 10px 30px; border-radius: 12px;
-    cursor: pointer; box-shadow: 0 5px 0 #95a5a6;
-    min-width: 100px;
+    color: #333; font-size: 24px; font-weight: bold;
+    padding: 12px 30px; border-radius: 15px;
+    cursor: pointer; box-shadow: 0 6px 0 #95a5a6;
+    min-width: 120px; transition: transform 0.1s;
 }
-.dash-btn:active { transform: translateY(5px); box-shadow: none; }
+.dash-btn:active { transform: translateY(6px); box-shadow: none; }
+.dash-btn:hover { background: #f9f9f9; border-color: #a0a0a0; }
 
 .help-btn {
     position: absolute; top: 10px; left: 10px; z-index: 50;
-    background: white; border: 2px solid #333;
-    padding: 5px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;
+    background: rgba(255,255,255,0.9); border: 2px solid #333;
+    padding: 8px 20px; border-radius: 25px; font-weight: bold; 
+    cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,0.2);
 }
