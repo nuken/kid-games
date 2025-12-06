@@ -9,7 +9,8 @@ window.GameBridge = (function() {
     };
 
     /**
-     * CONFETTI LOGIC
+     * CONFETTI LOGIC (Optimized for Apple Devices)
+     * Uses translate3d to force GPU hardware acceleration.
      */
     window.playConfettiEffect = function() {
         let theme = 'default';
@@ -44,25 +45,42 @@ window.GameBridge = (function() {
         for(let i=0; i<50; i++) {
             const el = document.createElement('div');
             el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // Random start position
+            const startX = Math.random() * 100; // vw
+            const startRotation = Math.random() * 360;
+            
             Object.assign(el.style, {
                 position: 'absolute',
-                left: Math.random() * 100 + 'vw',
-                top: '-10vh',
+                left: startX + 'vw',
+                top: '-10vh', // Start slightly above screen
                 fontSize: (Math.random() * 20 + 20) + 'px',
-                transform: `rotate(${Math.random() * 360}deg)`
+                // Initial State: No vertical movement yet, just rotation
+                transform: `translate3d(0, 0, 0) rotate(${startRotation}deg)`,
+                // Apple Fix: Hint to the browser to prepare for changes
+                willChange: 'transform' 
             });
 
             const duration = Math.random() * 2 + 3;
-            el.style.transition = `top ${duration}s ease-in, transform ${duration}s linear`;
+            
+            // We only animate 'transform' now, which handles BOTH position (fall) and rotation (tumble)
+            // 'ease-in' makes it start slow and speed up (gravity effect)
+            el.style.transition = `transform ${duration}s ease-in`;
 
             container.appendChild(el);
 
-            setTimeout(() => {
-                el.style.top = '110vh';
-                el.style.transform = `rotate(${Math.random() * 360 + 360}deg)`;
-            }, 100);
+            // Trigger the animation in the next frame
+            requestAnimationFrame(() => {
+                // Force a tiny delay to ensure the browser registers the start state
+                setTimeout(() => {
+                    const endRotation = startRotation + (Math.random() * 360 + 360);
+                    // Fall down 120vh (to ensure it clears the screen) while rotating
+                    el.style.transform = `translate3d(0, 120vh, 0) rotate(${endRotation}deg)`;
+                }, 50); 
+            });
         }
 
+        // Cleanup
         setTimeout(() => {
             if(document.body.contains(container)) {
                 document.body.removeChild(container);
