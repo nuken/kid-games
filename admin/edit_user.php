@@ -147,6 +147,9 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent'")->
                 <option value="1" <?php if($user['grade_level']==1) echo 'selected'; ?>>Kindergarten</option>
                 <option value="2" <?php if($user['grade_level']==2) echo 'selected'; ?>>1st Grade</option>
                 <option value="3" <?php if($user['grade_level']==3) echo 'selected'; ?>>2nd Grade</option>
+				<option value="4" <?php if($user['grade_level']==4) echo 'selected'; ?>>3rd Grade</option>
+				<option value="5" <?php if($user['grade_level']==5) echo 'selected'; ?>>4th Grade</option>
+				<option value="6" <?php if($user['grade_level']==6) echo 'selected'; ?>>5th Grade</option>
             </select>
 
             <label style="color:#8e44ad;">Assign Parent</label>

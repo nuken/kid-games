@@ -120,15 +120,21 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
                         <option value="1">Kindergarten (1)</option>
                         <option value="2">1st Grade (2)</option>
                         <option value="3">2nd Grade (3)</option>
+                        <option value="4">3rd Grade (4)</option>
+                        <option value="5">4th Grade (5)</option>
+                        <option value="6">5th Grade (6)</option>
                     </select>
                 </div>
                 <div>
                     <label>Max Grade</label>
                     <select name="max_grade">
-                        <option value="5" selected>5th Grade</option>
-                        <option value="4">4th Grade</option>
-                        <option value="3">3rd Grade</option>
-                        <option value="2">2nd Grade</option>
+                        <option value="6" selected>5th Grade (6)</option>
+                        <option value="5">4th Grade (5)</option>
+                        <option value="4">3rd Grade (4)</option>
+                        <option value="3">2nd Grade (3)</option>
+                        <option value="2">1st Grade (2)</option>
+                        <option value="1">Kindergarten (1)</option>
+                        <option value="0">Preschool (0)</option>
                     </select>
                 </div>
             </div>
