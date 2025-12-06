@@ -117,5 +117,10 @@ $LANG = [
 'game_lava_bridge_instr_text' => 'Solve the math to build the bridge. Don\'t touch the lava!',
 'game_lava_bridge_level1' => 'Counting',
 'game_lava_bridge_level2' => 'Addition',
+     
+	 'game_red_light_title' => 'Traffic Control',
+'game_red_light_instr_text' => 'The light is Red! Answer correctly to turn it Green and go!',
+'game_red_light_level1' => 'Cruising',
+'game_red_light_level2' => 'Speedway',
 ];
 ?>
