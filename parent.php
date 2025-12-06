@@ -203,7 +203,7 @@ if ($current_student) {
 
 <div class="container">
     <div class="top-bar">
-        <a href="index.php" class="back-link">⬅ Back to Kids Dashboard</a>
+      <a href="logout.php" class="back-link">⬅ Log Out & Switch to Child</a>
         <h1>Parent Controls</h1>
     </div>
 

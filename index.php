@@ -31,6 +31,16 @@ try {
         header("Location: logout.php");
         exit;
     }
+	
+	// If the logged-in user is NOT a student, kick them out of the game dashboard
+    if ($user['role'] !== 'student') {
+        if ($user['role'] === 'parent') {
+            header("Location: parent.php");
+        } elseif ($user['role'] === 'admin') {
+            header("Location: admin/index.php");
+        }
+        exit;
+    }
 
     // Set Theme Path
     $theme_css = $user['css_file'] ?? 'default.css';
