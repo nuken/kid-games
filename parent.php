@@ -245,6 +245,9 @@ if ($current_student) {
                         <option value="1" <?php echo ($current_student['grade_level'] == 1) ? 'selected' : ''; ?>>Kindergarten (Age 5-6)</option>
                         <option value="2" <?php echo ($current_student['grade_level'] == 2) ? 'selected' : ''; ?>>1st Grade (Age 6-7)</option>
                         <option value="3" <?php echo ($current_student['grade_level'] == 3) ? 'selected' : ''; ?>>2nd Grade (Age 7-8)</option>
+						<option value="4" <?php echo ($current_student['grade_level'] == 4) ? 'selected' : ''; ?>>3rd Grade (Age 8-9)</option>
+						<option value="5" <?php echo ($current_student['grade_level'] == 5) ? 'selected' : ''; ?>>2nd Grade (Age 9-10)</option>
+						<option value="6" <?php echo ($current_student['grade_level'] == 6) ? 'selected' : ''; ?>>2nd Grade (Age 10-11)</option>
                     </select>
 
                     <label>Theme:</label>
