@@ -81,14 +81,29 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
             <?php endforeach; ?>
         </select>
 
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1;">
+       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div>
                 <label>Min Grade</label>
-                <input type="number" name="min_grade" value="<?php echo $game['min_grade']; ?>">
+                <select name="min_grade">
+                    <?php 
+                    $grades = [0=>'Preschool', 1=>'Kindergarten', 2=>'1st Grade', 3=>'2nd Grade', 4=>'3rd Grade', 5=>'4th Grade', 6=>'5th Grade'];
+                    foreach($grades as $val => $label) {
+                        $sel = ($game['min_grade'] == $val) ? 'selected' : '';
+                        echo "<option value='$val' $sel>$label ($val)</option>";
+                    }
+                    ?>
+                </select>
             </div>
-            <div style="flex:1;">
+            <div>
                 <label>Max Grade</label>
-                <input type="number" name="max_grade" value="<?php echo $game['max_grade']; ?>">
+                <select name="max_grade">
+                    <?php 
+                    foreach($grades as $val => $label) {
+                        $sel = ($game['max_grade'] == $val) ? 'selected' : '';
+                        echo "<option value='$val' $sel>$label ($val)</option>";
+                    }
+                    ?>
+                </select>
             </div>
         </div>
 

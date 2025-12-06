@@ -159,11 +159,15 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
             
             <div id="studentFields">
                 <label>Grade Level</label>
+                <label>Grade Level</label>
                 <select name="grade_level">
                     <option value="0">Preschool</option>
                     <option value="1">Kindergarten</option>
                     <option value="2">1st Grade</option>
                     <option value="3">2nd Grade</option>
+                    <option value="4">3rd Grade</option>
+                    <option value="5">4th Grade</option>
+                    <option value="6">5th Grade</option>
                 </select>
 
                 <label style="color:#9b59b6;">Assign to Parent:</label>
