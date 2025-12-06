@@ -122,5 +122,15 @@ $LANG = [
 'game_red_light_instr_text' => 'The light is Red! Answer correctly to turn it Green and go!',
 'game_red_light_level1' => 'Cruising',
 'game_red_light_level2' => 'Speedway',
+
+      'game_simon_says_title' => 'Robot Commander',
+'game_simon_says_instr_text' => 'Listen carefully! Only obey if the Robot says "Simon Says".',
+'game_simon_says_level1' => 'Shapes (Pre-K)',
+'game_simon_says_level2' => 'Brain Power (Grade 1)',
+
+'game_pattern_train_title' => 'Pattern Train',
+'game_pattern_train_instr_text' => 'Complete the pattern to let the train leave the station!',
+'game_pattern_train_level1' => 'Simple Patterns',
+'game_pattern_train_level2' => 'Complex Patterns',
 ];
 ?>
