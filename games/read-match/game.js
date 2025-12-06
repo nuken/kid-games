@@ -7,14 +7,53 @@
     let currentLevel = 1;
     let availableSentences = [];
 
-    // NEW: Track mistakes
+    // Track mistakes
     let sessionMistakes = 0;
 
     const data = [
-        { image: 'games/read-match/images/cat.jpg', correct: 'The cat sits.', foils: ['The dog runs.', 'The bird flies.'] },
-        { image: 'games/read-match/images/dog.jpg', correct: 'The dog is happy.', foils: ['The cat is orange.', 'The fish swims.'] },
-        { image: 'games/read-match/images/sun.jpg', correct: 'The sun is hot.', foils: ['The moon is cold.', 'The bed is soft.'] },
-        { image: 'games/read-match/images/boy.jpg', correct: 'The boy waves.', foils: ['The girl smiles.', 'The cat runs.'] }
+        // Original Items
+        { 
+            image: 'games/read-match/images/cat.jpg', 
+            correct: 'The cat sits.', 
+            foils: ['The dog runs.', 'The bird flies.', 'The fish swims.'] 
+        },
+        { 
+            image: 'games/read-match/images/dog.jpg', 
+            correct: 'The dog is happy.', 
+            foils: ['The cat is orange.', 'The fish swims.', 'The bird sings.'] 
+        },
+        { 
+            image: 'games/read-match/images/sun.jpg', 
+            correct: 'The sun is hot.', 
+            foils: ['The moon is cold.', 'The bed is soft.', 'The stars shine.'] 
+        },
+        { 
+            image: 'games/read-match/images/boy.jpg', 
+            correct: 'The boy waves.', 
+            foils: ['The girl smiles.', 'The cat runs.', 'The dog jumps.'] 
+        },
+        
+        // New Items
+        { 
+            image: 'games/read-match/images/cow.jpg', 
+            correct: 'The cow says moo.', 
+            foils: ['The pig says oink.', 'The horse runs.', 'The duck quacks.'] 
+        },
+        { 
+            image: 'games/read-match/images/bed.jpg', 
+            correct: 'The bed is soft.', 
+            foils: ['The rock is hard.', 'The chair is red.', 'The sun is hot.'] 
+        },
+        { 
+            image: 'games/read-match/images/girl.jpg', 
+            correct: 'The girl smiles.', 
+            foils: ['The boy jumps.', 'The dog sleeps.', 'The cat plays.'] 
+        },
+        { 
+            image: 'games/read-match/images/mouse.jpg', 
+            correct: 'The mouse is small.', 
+            foils: ['The elephant is big.', 'The lion roars.', 'The cat sits.'] 
+        }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -29,7 +68,7 @@
                 startTime = Date.now();
                 score = 0;
                 questionsAnswered = 0;
-                sessionMistakes = 0; // Reset mistakes
+                sessionMistakes = 0;
                 availableSentences = [...data];
                 loadLevel();
             }
@@ -44,17 +83,22 @@
         availableSentences.splice(idx, 1);
 
         document.getElementById('word-image').src = item.image;
-        document.getElementById('next-btn').classList.add('hidden');
+        
+        // CHANGED: Ensure the next button stays hidden (just in case)
+        const nextBtn = document.getElementById('next-btn');
+        if(nextBtn) nextBtn.classList.add('hidden');
 
         const list = document.getElementById('sentence-list');
         list.innerHTML = '';
-        list.style.pointerEvents = 'auto';
+        list.style.pointerEvents = 'auto'; // Re-enable clicking
 
         // Prepare Choices
         let choices = [item.correct];
         const numFoils = (currentLevel === 1) ? 1 : 3;
 
-        item.foils.forEach(f => { if(choices.length <= numFoils) choices.push(f); });
+        item.foils.forEach(f => { 
+            if(choices.length <= numFoils) choices.push(f); 
+        });
 
         choices.sort(() => Math.random() - 0.5).forEach(txt => {
             const btn = document.createElement('div');
@@ -74,19 +118,23 @@
                     questionsAnswered++;
                     GameBridge.updateScore(score);
                     GameBridge.celebrate(window.LANG.game_read_match_correct);
-                    document.getElementById('next-btn').classList.remove('hidden');
+                    
+                    // CHANGED: Disable clicks immediately so they don't double-click
                     list.style.pointerEvents = 'none';
 
                     if (questionsAnswered >= QUESTIONS_TO_WIN) {
                         GameBridge.saveScore({
                             score: score,
                             duration: Math.floor((Date.now() - startTime)/1000),
-                            mistakes: sessionMistakes // Send data
+                            mistakes: sessionMistakes
                         });
+                    } else {
+                        // CHANGED: Auto-advance after 1.5 seconds instead of showing button
+                        setTimeout(loadLevel, 1500);
                     }
                 } else {
                     // Wrong Answer
-                    sessionMistakes++; // Increment counter
+                    sessionMistakes++;
                     GameBridge.playAudio('wrong');
                     btn.classList.add('wrong');
                     GameBridge.speak(window.LANG.try_again);
