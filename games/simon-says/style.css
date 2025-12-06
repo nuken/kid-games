@@ -1,0 +1,114 @@
+/* games/simon-says/style.css */
+
+#game-board {
+    position: relative;
+    max-width: 700px;
+    margin: 20px auto;
+    background: #2c3e50; /* Dark metal blue */
+    border: 5px solid #95a5a6; /* Silver border */
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    color: white;
+}
+
+.help-btn {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(255,255,255,0.1); border: 2px solid white; color: white;
+    padding: 5px 10px; border-radius: 15px; cursor: pointer;
+}
+
+/* --- ROBOT AREA --- */
+#robot-stage {
+    text-align: center;
+    margin-bottom: 30px;
+    background: #34495e;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px dashed #7f8c8d;
+}
+
+#robot-avatar {
+    font-size: 80px;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+
+/* Robot Animations */
+.talking { animation: bounce 0.5s infinite alternate; }
+.happy { animation: spin 0.5s; transform: scale(1.2); }
+.mad { animation: shake 0.5s; color: #e74c3c; }
+
+@keyframes bounce { to { transform: translateY(-10px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake { 
+    0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 
+    75% { transform: translateX(10px); } 100% { transform: translateX(0); } 
+}
+
+#speech-bubble {
+    background: white; color: #333;
+    padding: 15px; border-radius: 20px;
+    font-size: 24px; font-weight: bold;
+    display: inline-block; margin-top: 10px;
+    position: relative;
+    min-width: 200px;
+}
+#speech-bubble::after { /* Little triangle arrow */
+    content: ''; position: absolute; top: -10px; left: 50%;
+    border-width: 0 10px 10px; border-style: solid;
+    border-color: white transparent; display: block; width: 0;
+    transform: translateX(-50%);
+}
+
+/* --- CONTROLS --- */
+#control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+/* The Grid of Answers */
+#options-grid {
+    flex: 2;
+    display: flex; gap: 15px;
+    justify-content: center;
+}
+
+.grid-item {
+    background: #ecf0f1; border: 4px solid #bdc3c7;
+    border-radius: 15px; width: 90px; height: 90px;
+    font-size: 50px; cursor: pointer;
+    transition: transform 0.1s;
+    box-shadow: 0 5px 0 #95a5a6;
+}
+.grid-item:active { transform: translateY(5px); box-shadow: none; }
+
+/* The Freeze Zone */
+#freeze-zone {
+    flex: 1;
+    text-align: center;
+    background: rgba(0,0,0,0.2);
+    padding: 15px; border-radius: 15px;
+}
+
+#btn-freeze {
+    background: #e74c3c; /* Red stop button */
+    color: white; border: none;
+    font-size: 20px; font-weight: bold;
+    padding: 20px; width: 100%;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 5px 0 #c0392b;
+    border: 2px solid white;
+}
+#btn-freeze:active { transform: translateY(5px); box-shadow: none; }
+
+#freeze-label {
+    margin-top: 5px; font-size: 12px; color: #bdc3c7;
+}
+
+@media (max-width: 600px) {
+    #control-panel { flex-direction: column; }
+    #freeze-zone { width: 100%; box-sizing: border-box; }
+}

@@ -1,0 +1,116 @@
+/* games/pattern-train/style.css */
+
+#game-board {
+    position: relative;
+    max-width: 800px;
+    margin: 20px auto;
+    height: 450px;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #87CEEB; /* Sky */
+    border: 4px solid #333;
+}
+
+.help-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: white; padding: 5px 15px; border-radius: 20px;
+    font-weight: bold; border: 2px solid #333; cursor: pointer; z-index: 20;
+}
+
+/* --- SCENERY --- */
+#sky {
+    position: absolute; top: 0; left: 0; width: 100%; height: 60%;
+    background: linear-gradient(#87CEEB, #E0F7FA);
+}
+
+#mountains {
+    position: absolute; bottom: 30%; left: 0; width: 100%; height: 40%;
+    background-image: linear-gradient(135deg, #795548 25%, transparent 25%), 
+                      linear-gradient(225deg, #795548 25%, transparent 25%);
+    background-position: 0 0, 50px 0;
+    background-size: 100px 100px;
+    opacity: 0.5;
+}
+
+/* --- STATION --- */
+#station-area {
+    position: absolute; top: 30%; left: 0; width: 100%; height: 150px;
+    display: flex; align-items: center;
+}
+
+#track {
+    position: absolute; bottom: 10px; width: 100%; height: 10px;
+    background: #555;
+    border-top: 2px dashed #999;
+}
+
+#train-container {
+    display: flex;
+    gap: 5px;
+    padding-left: 20px;
+    transform: translateX(150%); /* Start hidden */
+}
+
+.train-car {
+    width: 80px; height: 70px;
+    background: #e74c3c;
+    border: 3px solid #c0392b;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    position: relative;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Wheels */
+.train-car::before, .train-car::after {
+    content: ''; position: absolute; bottom: -10px;
+    width: 20px; height: 20px; background: #333;
+    border-radius: 50%; border: 2px solid #7f8c8d;
+}
+.train-car::before { left: 10px; }
+.train-car::after { right: 10px; }
+
+/* Engine styling */
+#engine {
+    background: #34495e; border-color: #2c3e50;
+    border-radius: 10px 30px 10px 10px; /* Aerodynamic front */
+}
+#engine::before { /* Smokestack */
+    content: '💨'; position: absolute; top: -40px; right: 10px; font-size: 30px; border:none; background:none;
+}
+
+/* Mystery Car */
+.train-car.mystery {
+    background: #34495e;
+    color: #bdc3c7;
+    border: 3px dashed #bdc3c7;
+}
+
+/* --- PLATFORM (UI) --- */
+#platform {
+    position: absolute; bottom: 0; width: 100%; height: 140px;
+    background: #95a5a6;
+    border-top: 5px solid #7f8c8d;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 10px;
+}
+
+#conductor-msg {
+    font-size: 20px; font-weight: bold; color: white; margin-bottom: 10px;
+    text-shadow: 1px 1px 0 #333;
+}
+
+#options-container {
+    display: flex; gap: 20px;
+}
+
+.option-btn {
+    width: 70px; height: 70px;
+    font-size: 40px;
+    background: white; border: 3px solid #333;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+}
+.option-btn:active { transform: translateY(5px); box-shadow: none; }
