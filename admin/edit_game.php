@@ -2,10 +2,7 @@
 session_start();
 require_once '../includes/db.php'; //
 
-// 1. Security Check
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    die("Access Denied.");
-}
+require_once 'auth_check.php';
 
 $id = $_GET['id'] ?? null;
 if (!$id) { header("Location: games.php"); exit; }

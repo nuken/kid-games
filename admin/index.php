@@ -2,10 +2,7 @@
 session_start();
 require_once '../includes/db.php'; //
 
-// 1. Security Check: Only Admins Allowed
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    die("Access Denied: Admins Only.");
-}
+require_once 'auth_check.php';
 
 $message = "";
 
@@ -127,6 +124,17 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
         .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; color: white; text-align: center; font-weight: bold; }
         .success { background: #2ecc71; } 
         .error { background: #e74c3c; }
+		/* Add this for the red delete button */
+.btn-delete { 
+    background: #e74c3c; 
+    color: white; 
+    padding: 5px 10px; 
+    text-decoration: none; 
+    border-radius: 4px; 
+    font-size: 0.9em; 
+    margin-left: 5px; 
+}
+.btn-delete:hover { background: #c0392b; }
     </style>
 </head>
 <body>
@@ -218,8 +226,16 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-edit">Edit</a>
-                    </td>
+    <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-edit">Edit</a>
+    
+    <?php if ($u['id'] != $_SESSION['user_id']): ?>
+        <a href="delete_user.php?id=<?php echo $u['id']; ?>" 
+           class="btn-delete"
+           onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($u['username']); ?>? This cannot be undone.');">
+           Delete
+        </a>
+    <?php endif; ?>
+</td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
