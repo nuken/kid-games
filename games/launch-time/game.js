@@ -74,7 +74,7 @@ function changeHour(amt) {
     if (currentHour > 12) currentHour = 1;
     if (currentHour < 1) currentHour = 12;
     updateClockVisuals();
-    GameBridge.speak(currentHour + " O'Clock");
+    GameBridge.speak(currentHour.toString());
 }
 
 function changeMinute(amt) {
