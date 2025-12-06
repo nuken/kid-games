@@ -159,7 +159,6 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
             
             <div id="studentFields">
                 <label>Grade Level</label>
-                <label>Grade Level</label>
                 <select name="grade_level">
                     <option value="0">Preschool</option>
                     <option value="1">Kindergarten</option>
