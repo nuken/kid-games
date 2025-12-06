@@ -7,12 +7,15 @@
     let level1State = { total: 0, toPop: 0, popped: 0 };
     let level2Answer = 0;
     let sessionMistakes = 0;
+    
+    // TIME TRACKING START
+    let startTime = Date.now();
 
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
-            instructions: "Click the balloons to solve the math!", // Updated text
+            instructions: "Click the balloons to solve the math!",
             levels: [
-                { id: 1, label: "Click & Count (Pre-K)" }, // Updated label
+                { id: 1, label: "Click & Count (Pre-K)" },
                 { id: 2, label: "Subtraction (Grades 1-2)" }
             ],
             onStart: (level) => {
@@ -20,6 +23,10 @@
                 score = 0;
                 questionsAnswered = 0;
                 sessionMistakes = 0;
+                
+                // RESET TIMER
+                startTime = Date.now();
+
                 document.getElementById('balloon-area').innerHTML = '';
                 document.getElementById('number-pad').style.display = 'none';
                 nextRound();
@@ -45,7 +52,6 @@
             
             level1State = { total: startCount, toPop: takeAway, popped: 0 };
             
-            // FIX: Changed "Pop" to "Click" to completely solve the "Population" TTS bug
             cloud.innerText = "Click " + takeAway; 
             GameBridge.speak("Click " + takeAway + " balloons.");
 
@@ -162,12 +168,13 @@
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
-        GameBridge.celebrate("Correct!"); // Simplified to avoid "Population" risk
+        GameBridge.celebrate("Correct!");
 
         if (questionsAnswered >= QUESTIONS_TO_WIN) {
+            // CALCULATE DURATION
             GameBridge.saveScore({
                 score: score,
-                duration: 0,
+                duration: Math.floor((Date.now() - startTime) / 1000),
                 mistakes: sessionMistakes
             });
         } else {

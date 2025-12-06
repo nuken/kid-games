@@ -6,15 +6,16 @@
     let difficulty = 1;
     let currentTarget = null;
     let sessionMistakes = 0;
+    
+    // TIME TRACKING: Initialize start time
+    let startTime = Date.now();
 
     // --- SMART SHUFFLE DECKS ---
-    // These arrays track what cards are left in the "deck"
+    // These arrays track what cards are left in the "deck" to prevent repeats
     let availableLevel1 = [];
     let availableLevel2 = [];
 
-    // --- EXPANDED DATA SETS ---
-    
-    // Level 1: Colors (10) & Numbers (10)
+    // --- LEVEL 1 DATA: Colors & Numbers (20 Items) ---
     const level1Data = [
         // Colors
         { t: 'Rojo',      type: 'color', val: '#e74c3c' }, // Red
@@ -27,6 +28,7 @@
         { t: 'Negro',     type: 'color', val: '#2d3436' }, // Black
         { t: 'Blanco',    type: 'color', val: '#ffffff' }, // White
         { t: 'Gris',      type: 'color', val: '#95a5a6' }, // Gray
+        
         // Numbers
         { t: 'Uno',       type: 'number', val: '1' },
         { t: 'Dos',       type: 'number', val: '2' },
@@ -40,7 +42,7 @@
         { t: 'Diez',      type: 'number', val: '10' }
     ];
 
-    // Level 2: Sight Words (20)
+    // --- LEVEL 2 DATA: Sight Words (20 Items) ---
     const level2Data = [
         { eng: 'Hello',   span: 'Hola' },
         { eng: 'Goodbye', span: 'Adiós' },
@@ -76,9 +78,12 @@
                 score = 0;
                 questionsAnswered = 0;
                 sessionMistakes = 0;
+                
+                // RESET TIMER & DECKS
+                startTime = Date.now();
                 GameBridge.updateScore(0);
                 
-                // Reset Smart Decks
+                // Refill decks fresh on start
                 availableLevel1 = [];
                 availableLevel2 = [];
                 
@@ -91,6 +96,7 @@
         const container = document.getElementById('candy-container');
         container.innerHTML = '';
         
+        // Determine which deck to use
         let targetPool = (difficulty === 1) ? availableLevel1 : availableLevel2;
         const masterList = (difficulty === 1) ? level1Data : level2Data;
 
@@ -98,6 +104,7 @@
         // If the deck is empty, refill it with a fresh copy of the master list
         if (targetPool.length === 0) {
             targetPool = [...masterList];
+            // Update the global reference so it persists
             if(difficulty === 1) availableLevel1 = targetPool;
             else availableLevel2 = targetPool;
         }
@@ -108,9 +115,8 @@
         
         // Remove it from the pool so it doesn't repeat until the deck is empty
         targetPool.splice(randIndex, 1);
-        // ---------------------------
 
-        // Speak the Prompt
+        // --- DISPLAY PROMPTS ---
         if (difficulty === 1) {
             // Level 1: Speak Spanish ("Rojo!")
             GameBridge.speak(currentTarget.t);
@@ -121,17 +127,18 @@
             document.getElementById('message').innerText = "Translate: " + currentTarget.eng;
         }
 
-        // Generate Options (1 Correct + 2 Distractors)
+        // --- GENERATE OPTIONS ---
+        // Start with the correct answer
         let options = [currentTarget];
         
-        // For distractors, we pick from the MASTER list (so we can reuse items as wrong answers)
+        // Add 2 distractors from the MASTER list (we can reuse items as wrong answers)
         while (options.length < 3) {
             let r = masterList[Math.floor(Math.random() * masterList.length)];
             // Prevent duplicates in the options
             if (!options.includes(r)) options.push(r);
         }
         
-        // Shuffle the buttons visually
+        // Shuffle the buttons visually so the answer isn't always first
         options.sort(() => Math.random() - 0.5);
 
         // Render Buttons
@@ -159,7 +166,7 @@
 
     function checkAnswer(selected, btn) {
         if (selected === currentTarget) {
-            // Correct!
+            // CORRECT ANSWER
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
@@ -169,25 +176,24 @@
             pinata.classList.add('hit-anim');
             setTimeout(() => pinata.classList.remove('hit-anim'), 500);
 
-            // Celebration
+            // Celebration (Plays 'correct.mp3' via Bridge)
             GameBridge.celebrate("Muy bien!"); 
 
             if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                 // GAME OVER - SAVE SCORE
                  GameBridge.saveScore({
                     score: score,
-                    duration: Math.floor((Date.now() - Date.now())/1000), 
+                    duration: Math.floor((Date.now() - startTime) / 1000), 
                     mistakes: sessionMistakes
                 });
             } else {
                 setTimeout(nextQuestion, 1500);
             }
         } else {
-            // Wrong
+            // WRONG ANSWER
             sessionMistakes++;
             
-            // New Audio Helper
             GameBridge.playAudio('wrong');
-            
             GameBridge.speak("Try again");
             btn.style.opacity = "0.5";
         }

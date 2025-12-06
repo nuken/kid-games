@@ -1,3 +1,4 @@
+/* games/egg-dition/game.js */
 (function() {
     let score = 0;
     let questionsAnswered = 0;
@@ -5,13 +6,13 @@
     let difficulty = 1;
     let currentAnswer = 0;
     let sessionMistakes = 0;
+    
+    // TIME TRACKING
+    let startTime = Date.now();
 
     // --- Smart Decks ---
     // Level 1: Numbers 1-10
     let deckLvl1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    
-    // Level 2: Simple Math Facts (Sums <= 10, then <= 20)
-    // We generate these dynamically to save space
     
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
@@ -25,6 +26,10 @@
                 score = 0;
                 questionsAnswered = 0;
                 sessionMistakes = 0;
+                
+                // RESET TIMER
+                startTime = Date.now();
+                
                 // Reset Deck 1
                 deckLvl1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
                 nextQuestion();
@@ -48,26 +53,28 @@
             currentAnswer = deckLvl1[idx];
             deckLvl1.splice(idx, 1);
 
-            // Draw Eggs
+            // Draw Eggs using HTML Entity &#129370; instead of emoji
+            let eggsHtml = '';
             for(let i=0; i<currentAnswer; i++) {
-                visualContainer.innerHTML += '<span class="egg">🥚</span>';
+                eggsHtml += '<span class="egg">&#129370;</span>';
             }
+            visualContainer.innerHTML = eggsHtml;
             
             GameBridge.speak("How many eggs?");
             msg.innerText = "Count the eggs!";
 
         } else {
             // --- LEVEL 2: ADDITION ---
-            // Randomly generate sums between 2 and 12 (easy) or up to 20 (later)
+            // Randomly generate sums between 2 and 12
             const numA = Math.floor(Math.random() * 6) + 1; 
             const numB = Math.floor(Math.random() * 6) + 1;
             currentAnswer = numA + numB;
 
-            // Visuals:  🥚🥚 + 🥚🥚🥚
+            // Visuals using HTML Entity &#129370;
             let html = '';
-            for(let i=0; i<numA; i++) html += '🥚';
+            for(let i=0; i<numA; i++) html += '&#129370;';
             html += '<span class="math-sign">+</span>';
-            for(let i=0; i<numB; i++) html += '🥚';
+            for(let i=0; i<numB; i++) html += '&#129370;';
             
             visualContainer.innerHTML = html;
             GameBridge.speak(numA + " plus " + numB + " is?");
@@ -101,9 +108,10 @@
             GameBridge.celebrate("Excellent!");
 
             if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                // CALCULATE DURATION
                 GameBridge.saveScore({
                     score: score,
-                    duration: 0, 
+                    duration: Math.floor((Date.now() - startTime) / 1000), 
                     mistakes: sessionMistakes
                 });
             } else {
