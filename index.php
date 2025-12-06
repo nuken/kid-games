@@ -154,7 +154,7 @@ try {
             border-radius: 50%; width: 60px; height: 60px;
             display: flex; align-items: center; justify-content: center;
             font-size: 30px; position: relative;
-            cursor: help; transition: transform 0.2s;
+            cursor: pointer; transition: transform 0.2s;
         }
         .badge-item:hover { transform: scale(1.15) rotate(5deg); background: rgba(255,255,255,0.2); }
 
