@@ -3,10 +3,11 @@
 
     <div id="windshield">
         <div id="sky"></div>
-        <div id="scenery">
-            </div>
+        <div id="scenery"></div>
+        
         <div id="road">
             <div class="lane-marker"></div>
+            <div id="player-car">🚗</div>
         </div>
         
         <div id="traffic-light-container">
@@ -18,14 +19,13 @@
         </div>
     </div>
 
-    <div id="dashboard">
-        <div id="steering-wheel">🚗</div>
-        
-        <div id="display-panel">
-            <div id="subject-tag">MATH ZONE</div>
+    <div id="ui-panel">
+        <div id="question-box">
+            <div id="subject-tag">READY</div>
             <div id="question-text">Loading...</div>
         </div>
+        <div id="controls-area"></div>
     </div>
-
-    <div id="controls-area"></div>
+    
+    <div id="message"></div>
 </div>
