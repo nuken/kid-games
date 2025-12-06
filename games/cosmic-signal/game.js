@@ -90,6 +90,7 @@ let availableWords = [];
 let availableSentences = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Setup Signal Screen Click (Replay Logic)
     const screen = document.getElementById('signal-screen');
     if(screen) {
         screen.onclick = () => {
@@ -97,6 +98,25 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // 2. FIXED: Setup Help Button Logic
+    // We override the default onclick to handle the "hidden" text issue in Level 1
+    const helpBtn = document.querySelector('.help-btn');
+    if(helpBtn) {
+        helpBtn.onclick = (e) => {
+            e.preventDefault(); // Stop the inline handler from view.php
+            
+            if (difficulty === 1) {
+                // Level 1: Always speak the ANSWER word, even if screen says "HIDDEN"
+                if(currentCorrectAnswer) GameBridge.speak(currentCorrectAnswer);
+            } else {
+                // Level 2: Speak the sentence from the screen (Context Clues)
+                const txt = document.getElementById('question-text').innerText;
+                GameBridge.speak(txt.replace(/_+/g, 'blank'));
+            }
+        };
+    }
+
+    // 3. Initialize Game
     GameBridge.setupGame({
         instructions: window.LANG.game_cosmic_signal_instr_text,
         speakInstruction: window.LANG.game_cosmic_signal_instr_speak,

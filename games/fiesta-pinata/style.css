@@ -71,6 +71,7 @@
     cursor: pointer;
     box-shadow: 0 5px 0 #bbb;
     min-width: 100px;
+    min-height: 80px; /* <--- ADDED: Forces consistent height for empty color buttons */
     transition: transform 0.1s;
     color: #333;
 }
