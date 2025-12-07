@@ -1,21 +1,40 @@
 /* games/spell-it/style.css */
 
-/* CENTER THE MAIN IMAGE */
-#word-image {
+/* Container to hold either Image or Emoji */
+#visual-container {
     width: 280px; height: 280px;
+    margin: 0 auto 20px auto;
+    position: relative;
+}
+
+/* Existing Image Style */
+#word-image {
+    width: 100%; height: 100%;
     border: 6px solid var(--text-color);
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.4);
     object-fit: cover;
     background: white; 
-    transition: transform 0.2s;
-    
-    /* Centering Fix */
     display: block;
-    margin: 0 auto 20px auto;
 }
 
-/* Shake Animation */
+/* New Emoji Style */
+#emoji-display {
+    width: 100%; height: 100%;
+    border: 6px solid var(--text-color);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    background: white;
+    
+    /* Center the Emoji */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 140px; /* Big Emoji */
+    cursor: default;
+}
+
+/* Animation Classes */
 .shake { animation: shake 0.5s; }
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -45,13 +64,9 @@
     color: white;
 }
 
-/* CENTER THE LETTER BUTTONS */
 .letter-choices {
     display: flex; flex-wrap: wrap; gap: 10px;
-    justify-content: center; 
-    max-width: 600px;
-    
-    /* Centering Fix */
+    justify-content: center; max-width: 600px;
     margin: 20px auto;
 }
 
@@ -59,36 +74,20 @@
     width: 60px; height: 60px;
     font-size: 30px; font-weight: bold;
     border: 1px solid rgba(0,0,0,0.2); border-radius: 12px;
-    background: var(--card-bg); 
-    color: var(--text-color);
-    cursor: pointer;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    background: var(--card-bg); color: var(--text-color);
+    cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     transition: transform 0.1s;
 }
-.letter-button:active {
-    transform: translateY(4px);
-    box-shadow: none;
-}
+.letter-button:active { transform: translateY(4px); box-shadow: none; }
 
-/* Next Button - Centered via margin */
 .next-btn {
-    display: block;
-    margin: 30px auto 0 auto; 
-    padding: 15px 40px;
-    font-size: 1.5em; font-weight: bold;
-    background: var(--primary-btn); 
-    color: white;
-    border: none; border-radius: 50px;
-    cursor: pointer; 
+    display: block; margin: 30px auto 0 auto; 
+    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    background: var(--primary-btn); color: white;
+    border: none; border-radius: 50px; cursor: pointer; 
     box-shadow: 0 6px 0 rgba(0,0,0,0.3);
     animation: pulse 1.5s infinite;
 }
 .next-btn:active { transform: translateY(6px); box-shadow: none; }
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 .hidden { display: none !important; }

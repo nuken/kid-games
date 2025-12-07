@@ -7,11 +7,11 @@
     let currentLevel = 1;
     let currentWordLetters = [];
     let availableWords = [];
-
-    // NEW: Track mistakes for this session
     let sessionMistakes = 0;
 
+    // --- EXPANDED DATA ---
     const words = [
+        // Original Images
         { w: 'cat', i: 'games/spell-it/images/cat.jpg' },
         { w: 'dog', i: 'games/spell-it/images/dog.jpg' },
         { w: 'sun', i: 'games/spell-it/images/sun.jpg' },
@@ -19,7 +19,34 @@
         { w: 'boy', i: 'games/spell-it/images/boy.jpg' },
         { w: 'girl', i: 'games/spell-it/images/girl.jpg' },
         { w: 'cow', i: 'games/spell-it/images/cow.jpg' },
-        { w: 'mouse', i: 'games/spell-it/images/mouse.jpg' }
+        { w: 'mouse', i: 'games/spell-it/images/mouse.jpg' },
+        
+        // Emoji Words (Animals)
+        { w: 'pig', i: '🐷' }, { w: 'bee', i: '🐝' }, { w: 'ant', i: '🐜' },
+        { w: 'fox', i: '🦊' }, { w: 'owl', i: '🦉' }, { w: 'bat', i: '🦇' },
+        { w: 'duck', i: '🦆' }, { w: 'fish', i: '🐟' }, { w: 'frog', i: '🐸' },
+        { w: 'crab', i: '🦀' }, { w: 'lion', i: '🦁' }, { w: 'bear', i: '🐻' },
+        { w: 'worm', i: '🪱' }, { w: 'bird', i: '🐦' }, { w: 'wolf', i: '🐺' },
+        
+        // Emoji Words (Objects)
+        { w: 'bus', i: '🚌' }, { w: 'car', i: '🚗' }, { w: 'bed', i: '🛏️' },
+        { w: 'box', i: '📦' }, { w: 'map', i: '🗺️' }, { w: 'cup', i: '☕' },
+        { w: 'hat', i: '🎩' }, { w: 'pen', i: '🖊️' }, { w: 'key', i: '🔑' },
+        { w: 'gem', i: '💎' }, { w: 'bag', i: '🎒' }, { w: 'fan', i: '💨' },
+        { w: 'net', i: '🥅' }, { w: 'axe', i: '🪓' }, { w: 'pot', i: '🍲' },
+
+        // Emoji Words (Food & Nature)
+        { w: 'egg', i: '🥚' }, { w: 'jam', i: '🍯' }, { w: 'nut', i: '🥜' },
+        { w: 'pie', i: '🥧' }, { w: 'ice', i: '🧊' }, { w: 'sky', i: '☁️' },
+        { w: 'sea', i: '🌊' }, { w: 'tree', i: '🌳' }, { w: 'rose', i: '🌹' },
+        { w: 'moon', i: '🌙' }, { w: 'star', i: '⭐' }, { w: 'fire', i: '🔥' },
+        
+        // Emoji Words (4 Letters)
+        { w: 'ball', i: '⚽' }, { w: 'book', i: '📖' }, { w: 'cake', i: '🎂' },
+        { w: 'door', i: '🚪' }, { w: 'drum', i: '🥁' }, { w: 'kite', i: '🪁' },
+        { w: 'lamp', i: '💡' }, { w: 'milk', i: '🥛' }, { w: 'nest', i: '🪺' },
+        { w: 'ring', i: '💍' }, { w: 'shoe', i: '👟' }, { w: 'sock', i: '🧦' },
+        { w: 'tent', i: '⛺' }, { w: 'bike', i: '🚲' }, { w: 'ship', i: '🚢' }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +61,7 @@
                 currentLevel = level;
                 startTime = Date.now();
                 availableWords = [...words];
-                sessionMistakes = 0; // Reset mistakes on start
+                sessionMistakes = 0;
                 loadLevel();
             }
         });
@@ -47,11 +74,27 @@
         const data = availableWords[randIndex];
         availableWords.splice(randIndex, 1);
 
-        const img = document.getElementById('word-image');
-        img.src = data.i;
-        img.classList.remove('shake');
-        document.getElementById('next-btn').classList.add('hidden');
+        const imgEl = document.getElementById('word-image');
+        const emojiEl = document.getElementById('emoji-display');
+        const visualContainer = document.getElementById('visual-container');
 
+        // Logic: Check if it's a file path (contains slash or dot) or Emoji
+        if (data.i.includes('/') || data.i.includes('.')) {
+            imgEl.src = data.i;
+            imgEl.style.display = 'block';
+            if(emojiEl) emojiEl.style.display = 'none';
+        } else {
+            if(emojiEl) {
+                emojiEl.innerText = data.i;
+                emojiEl.style.display = 'flex';
+            }
+            imgEl.style.display = 'none';
+        }
+        
+        // Remove shake from container
+        if(visualContainer) visualContainer.classList.remove('shake');
+
+        document.getElementById('next-btn').classList.add('hidden');
         GameBridge.speak(data.w);
 
         currentWordLetters = data.w.split('');
@@ -104,7 +147,6 @@
             targetBlank.classList.add('filled');
             btn.style.visibility = 'hidden';
 
-            // Check win
             const remaining = document.querySelectorAll('.blank:not(.filled)').length;
             if (remaining === 0) {
                 score += 10;
@@ -114,7 +156,6 @@
                 document.getElementById('next-btn').classList.remove('hidden');
 
                 if (questionsAnswered >= QUESTIONS_TO_WIN) {
-                    // Pass the mistakes count to the bridge
                     GameBridge.saveScore({
                         score: score,
                         duration: Math.floor((Date.now() - startTime)/1000),
@@ -123,14 +164,16 @@
                 }
             }
         } else {
-            // NEW: Track the mistake
             sessionMistakes++;
             GameBridge.playAudio('wrong');
-
             btn.style.background = '#ffcccc';
             setTimeout(() => btn.style.background = '', 500);
-            document.getElementById('word-image').classList.add('shake');
-            setTimeout(() => document.getElementById('word-image').classList.remove('shake'), 500);
+            
+            const visualContainer = document.getElementById('visual-container');
+            if(visualContainer) {
+                visualContainer.classList.add('shake');
+                setTimeout(() => visualContainer.classList.remove('shake'), 500);
+            }
             GameBridge.speak(window.LANG.try_again);
         }
     }
