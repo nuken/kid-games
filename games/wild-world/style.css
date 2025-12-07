@@ -62,10 +62,23 @@
     cursor: pointer;
     box-shadow: 0 5px 0 #1b5e20;
     transition: transform 0.1s;
+    
+    /* FIX: Improve touch response on iOS */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
-.animal-card:active { transform: translateY(5px); box-shadow: none; }
-.animal-card:hover { background: #f1f8e9; }
 
+.animal-card:active { 
+    transform: translateY(5px); 
+    box-shadow: none; 
+}
+
+/* FIX: Only show hover effect on devices with a mouse */
+@media (hover: hover) {
+    .animal-card:hover { 
+        background: #f1f8e9; 
+    }
+}
 .animal-icon { font-size: 50px; line-height: 60px; }
 .animal-name { font-size: 16px; font-weight: bold; color: #333; margin-top: 5px; }
 
