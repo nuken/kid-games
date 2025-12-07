@@ -5,6 +5,7 @@ const totalQuestions = 10;
 let startTime = Date.now();
 let difficulty = 1;
 let currentCorrectAnswer = "";
+let currentSentenceTemplate = ""; // NEW: Stores the raw text with "___"
 
 // NEW: Track mistakes
 let sessionMistakes = 0;
@@ -98,20 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 2. FIXED: Setup Help Button Logic
-    // We override the default onclick to handle the "hidden" text issue in Level 1
+    // 2. Setup Help Button
     const helpBtn = document.querySelector('.help-btn');
     if(helpBtn) {
         helpBtn.onclick = (e) => {
-            e.preventDefault(); // Stop the inline handler from view.php
-            
+            e.preventDefault(); 
             if (difficulty === 1) {
-                // Level 1: Always speak the ANSWER word, even if screen says "HIDDEN"
                 if(currentCorrectAnswer) GameBridge.speak(currentCorrectAnswer);
             } else {
-                // Level 2: Speak the sentence from the screen (Context Clues)
-                const txt = document.getElementById('question-text').innerText;
-                GameBridge.speak(txt.replace(/_+/g, 'blank'));
+                // Speak the stored text template
+                GameBridge.speak(currentSentenceTemplate.replace(/_+/g, 'blank'));
             }
         };
     }
@@ -173,7 +170,10 @@ function spawnQuestion() {
         availableSentences.splice(idx, 1);
 
         currentCorrectAnswer = q.answer;
-        screenText.innerText = q.text;
+        currentSentenceTemplate = q.text; // Store for valid checking
+
+        // CHANGE: Replace ___ with a styled HTML span for a solid line
+        screenText.innerHTML = q.text.replace("___", "<span class='blank-line'></span>");
 
         GameBridge.speak(q.text.replace("___", "blank"));
 
@@ -201,8 +201,9 @@ function checkAnswer(ans, btn) {
         if (difficulty === 1) {
             document.getElementById('question-text').innerText = currentCorrectAnswer;
         } else {
-            const currentText = document.getElementById('question-text').innerText;
-            document.getElementById('question-text').innerText = currentText.replace("___", currentCorrectAnswer);
+            // CHANGE: Rebuild string from template instead of reading innerText
+            const fullText = currentSentenceTemplate.replace("___", currentCorrectAnswer);
+            document.getElementById('question-text').innerText = fullText;
         }
 
         btn.style.borderColor = "var(--primary-btn)";

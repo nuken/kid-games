@@ -30,13 +30,30 @@
     border: 2px solid #7f8c8d; border-radius: 10px;
     cursor: pointer; transition: all 0.2s; min-width: 150px; font-weight: bold;
 }
-.freq-btn:hover {
-    transform: translateY(-5px);
-    border-color: var(--star-gold);
-    color: var(--star-gold);
+/* FIX: Only apply hover effect on devices with a mouse (prevents sticky yellow on iOS) */
+@media (hover: hover) {
+    .freq-btn:hover {
+        transform: translateY(-5px);
+        border-color: var(--star-gold);
+        color: var(--star-gold);
+    }
+}
+/* Optional: Add an :active state so mobile users still get visual feedback when tapping */
+.freq-btn:active {
+    transform: scale(0.95);
+    border-color: white;
 }
 
 #message {
     height: 50px; margin-top: 20px;
     font-size: 32px; font-weight: bold; text-shadow: 2px 2px 4px black;
+}
+
+/* NEW: Force a solid line for blanks (Fixes Android dashes) */
+.blank-line {
+    display: inline-block;
+    min-width: 60px;
+    border-bottom: 3px solid; /* Uses text color automatically */
+    margin: 0 5px;
+    vertical-align: bottom; /* Aligns with text baseline */
 }
