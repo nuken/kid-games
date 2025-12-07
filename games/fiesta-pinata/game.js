@@ -148,7 +148,7 @@
 
         if (difficulty === 1) {
             // Level 1: "Find Rojo"
-            GameBridge.speak(currentTarget.t);
+            GameBridge.speak(currentTarget.t, 'es');
             document.getElementById('message').innerText = "Find: " + currentTarget.t;
         } else {
             // Level 2: "Find the word for CAT"
