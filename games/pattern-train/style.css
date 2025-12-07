@@ -119,6 +119,46 @@
     align-items: center;     /* Center Vertically */
 }
 .option-btn:active { transform: translateY(5px); box-shadow: none; }
+/* NEW: Tablet Portrait Mode (Intermediate Size) */
+/* Fixes 8" tablets where desktop is too big but phone is too small */
+@media (max-width: 900px) {
+    
+    #train-container {
+        padding-left: 10px;
+    }
+
+    /* 1. Resize Cars */
+    .train-car {
+        width: 60px;
+        height: 55px;
+        font-size: 30px;
+        border-width: 3px;
+    }
+
+    /* 2. Resize Wheels */
+    .train-car::before, .train-car::after {
+        width: 14px; 
+        height: 14px;
+        bottom: -7px;
+        border-width: 2px;
+    }
+    .train-car::before { left: 6px; }
+    .train-car::after { right: 6px; }
+
+    /* 3. Adjust Engine Smokestack */
+    #engine::before {
+        font-size: 22px;
+        top: -30px;
+        right: 5px;
+    }
+
+    /* 4. Resize Buttons */
+    .option-btn {
+        width: 60px; 
+        height: 60px;
+        font-size: 30px;
+    }
+}
 
 /* RESPONSIVE: Fix for Mobile Portrait Mode */
 @media (max-width: 600px) {
