@@ -12,14 +12,19 @@
     let deckLvl1 = [];
     let deckLvl2 = [];
 
-    // --- DATA BANKS ---
+    // --- EXPANDED DATA BANKS ---
     const level1Items = [
         { id: 'red-tri',      name: 'Red Triangle',    icon: '🔺', tags: ['red', 'triangle'] },
         { id: 'blue-square',  name: 'Blue Square',     icon: '🟦', tags: ['blue', 'square'] },
         { id: 'green-circle', name: 'Green Circle',    icon: '🟢', tags: ['green', 'circle'] },
         { id: 'yellow-star',  name: 'Yellow Star',     icon: '⭐', tags: ['yellow', 'star'] },
         { id: 'purple-heart', name: 'Purple Heart',    icon: '💜', tags: ['purple', 'heart'] },
-        { id: 'orange-diamond', name: 'Orange Diamond', icon: '🔶', tags: ['orange', 'diamond'] }
+        { id: 'orange-diamond', name: 'Orange Diamond', icon: '🔶', tags: ['orange', 'diamond'] },
+        // NEW ITEMS
+        { id: 'black-square', name: 'Black Square',    icon: '⬛', tags: ['black', 'square'] },
+        { id: 'white-circle', name: 'White Circle',    icon: '⚪', tags: ['white', 'circle'] },
+        { id: 'brown-heart',  name: 'Brown Heart',     icon: '🤎', tags: ['brown', 'heart'] },
+        { id: 'blue-circle',  name: 'Blue Circle',     icon: '🔵', tags: ['blue', 'circle'] }
     ];
 
     const level2Items = [
@@ -32,7 +37,18 @@
         { id: 'sun',    name: 'Sun',    icon: '☀️', tags: ['hot', 'sky', 'yellow', 'star'] },
         { id: 'snow',   name: 'Snowman',icon: '⛄', tags: ['cold', 'winter', 'white', 'ice'] },
         { id: 'flower', name: 'Flower', icon: '🌻', tags: ['plant', 'grow', 'garden', 'yellow'] },
-        { id: 'fish',   name: 'Fish',   icon: '🐟', tags: ['animal', 'swim', 'water', 'blue'] }
+        { id: 'fish',   name: 'Fish',   icon: '🐟', tags: ['animal', 'swim', 'water', 'blue'] },
+        // NEW ITEMS
+        { id: 'moon',   name: 'Moon',   icon: '🌙', tags: ['night', 'sky', 'sleep', 'space'] },
+        { id: 'rocket', name: 'Rocket', icon: '🚀', tags: ['space', 'fly', 'fast', 'fire'] },
+        { id: 'burger', name: 'Burger', icon: '🍔', tags: ['food', 'eat', 'lunch', 'meat'] },
+        { id: 'cake',   name: 'Cake',   icon: '🎂', tags: ['food', 'birthday', 'sweet', 'eat'] },
+        { id: 'bear',   name: 'Bear',   icon: '🐻', tags: ['animal', 'wild', 'brown', 'fur'] },
+        { id: 'frog',   name: 'Frog',   icon: '🐸', tags: ['animal', 'green', 'jump', 'pond'] },
+        { id: 'train',  name: 'Train',  icon: '🚂', tags: ['vehicle', 'tracks', 'choo choo', 'ride'] },
+        { id: 'book',   name: 'Book',   icon: '📚', tags: ['read', 'school', 'story', 'paper'] },
+        { id: 'ball',   name: 'Ball',   icon: '⚽', tags: ['play', 'sport', 'kick', 'round'] },
+        { id: 'robot',  name: 'Robot',  icon: '🤖', tags: ['metal', 'beep', 'toy', 'machine'] }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -69,31 +85,26 @@
         const masterList = (difficulty === 1) ? level1Items : level2Items;
         let currentDeck = (difficulty === 1) ? deckLvl1 : deckLvl2;
 
-        // 1. SMART SHUFFLE: Pick a unique TARGET from the deck
+        // 1. SMART SHUFFLE
         if (currentDeck.length === 0) {
-            currentDeck = [...masterList]; // Refill if empty
-            // Update global reference
+            currentDeck = [...masterList]; 
             if(difficulty === 1) deckLvl1 = currentDeck; 
             else deckLvl2 = currentDeck;
         }
 
         const deckIndex = Math.floor(Math.random() * currentDeck.length);
         const targetItem = currentDeck[deckIndex];
-        
-        // Remove from deck so it doesn't repeat soon
         currentDeck.splice(deckIndex, 1);
 
-        // 2. Pick 2 Distractors (Must not be the target)
+        // 2. Pick Distractors
         let options = [targetItem];
         while (options.length < 3) {
             let r = masterList[Math.floor(Math.random() * masterList.length)];
-            // Prevent duplicates in the visual grid
             if (!options.some(o => o.id === r.id)) {
                 options.push(r);
             }
         }
         
-        // Shuffle the buttons visually so target isn't always first
         options.sort(() => Math.random() - 0.5);
         
         // Render Board
@@ -105,70 +116,45 @@
             grid.appendChild(btn);
         });
 
-        // 3. Decide Command Type (Valid vs Fake)
+        // 3. Command Type
         const isSimon = Math.random() > 0.4; 
-        
-        currentCommand = {
-            type: isSimon ? 'valid' : 'fake',
-            target: targetItem
-        };
+        currentCommand = { type: isSimon ? 'valid' : 'fake', target: targetItem };
 
-        // 4. GENERATE SMART CLUE
+        // 4. Generate Clue
         let commandText = "";
-        
         if (difficulty === 1) {
             commandText = `click the ${targetItem.name}`;
         } else {
-            // Find a UNIQUE tag compared to the *currently displayed* distractors
+            // Find unique tag
             const uniqueTags = targetItem.tags.filter(tag => {
-                const collision = options.some(other => 
-                    other.id !== targetItem.id && other.tags.includes(tag)
-                );
-                return !collision; 
+                return !options.some(other => other.id !== targetItem.id && other.tags.includes(tag));
             });
 
-            let clue = "";
-            if (uniqueTags.length > 0) {
-                clue = uniqueTags[Math.floor(Math.random() * uniqueTags.length)];
-            } else {
-                clue = targetItem.name.toLowerCase();
-            }
-
+            let clue = (uniqueTags.length > 0) ? uniqueTags[Math.floor(Math.random() * uniqueTags.length)] : targetItem.name.toLowerCase();
             const article = ['a','e','i','o','u'].includes(clue[0]) ? 'an' : 'a';
             commandText = `click ${article} ${clue}`;
         }
 
-        // 5. Output
         let fullSpeech = isSimon ? "Simon says " + commandText : commandText;
         let visualText = isSimon ? `"${fullSpeech}."` : `"${commandText}."`;
 
         bubble.innerText = visualText;
         robot.classList.add('talking');
-        GameBridge.speak(fullSpeech, () => {
-            robot.classList.remove('talking');
-        });
+        GameBridge.speak(fullSpeech, () => robot.classList.remove('talking'));
     }
 
-    // Handle Item Clicks
     window.checkClick = function(item) {
         if (currentCommand.type === 'valid') {
-            if (item.id === currentCommand.target.id) {
-                handleSuccess();
-            } else {
-                handleFail("Wrong item!");
-            }
+            if (item.id === currentCommand.target.id) handleSuccess();
+            else handleFail("Wrong item!");
         } else {
             handleFail("Simon didn't say!");
         }
     };
 
-    // Handle Freeze Button
     window.checkFreeze = function() {
-        if (currentCommand.type === 'fake') {
-            handleSuccess();
-        } else {
-            handleFail("Simon said do it!");
-        }
+        if (currentCommand.type === 'fake') handleSuccess();
+        else handleFail("Simon said do it!");
     };
 
     function handleSuccess() {
@@ -197,12 +183,10 @@
     function handleFail(reason) {
         sessionMistakes++;
         GameBridge.playAudio('wrong');
-        
         const robot = document.getElementById('robot-avatar');
         robot.classList.add('mad');
         robot.innerText = "🤖⚡"; 
         setTimeout(() => robot.innerText = "🤖", 1000);
-
         GameBridge.speak(reason);
     }
 
