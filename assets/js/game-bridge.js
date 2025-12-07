@@ -207,8 +207,13 @@ window.GameBridge = (function() {
 
         playAudio: function(key) {
             if (sounds[key]) {
-                sounds[key].currentTime = 0;
-                sounds[key].play().catch(e => console.warn("Audio play blocked:", e));
+                // FIX: Use cloneNode() to allow overlapping sounds.
+                // This prevents iOS from blocking rapid replays.
+                const soundClone = sounds[key].cloneNode();
+                
+                // Optional: Slightly vary pitch for fun (randomness) if you wanted, 
+                // but for now we just play the clone.
+                soundClone.play().catch(e => console.warn("Audio play blocked:", e));
             }
         },
 
