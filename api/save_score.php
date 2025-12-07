@@ -3,13 +3,23 @@
 header('Content-Type: application/json');
 require_once '../includes/db.php';
 
-// 1. Get the data from the game
+session_start();
+// 1. Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    die(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+}
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
 if (!$data) {
     echo json_encode(['status' => 'error', 'message' => 'No data received']);
     exit;
+}
+
+if ($data['user_id'] != $_SESSION['user_id']) {
+    http_response_code(403);
+    die(json_encode(['status' => 'error', 'message' => 'ID Mismatch']));
 }
 
 // 2. Extract variables
