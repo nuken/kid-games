@@ -77,6 +77,18 @@
     background: var(--card-bg); color: var(--text-color);
     cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     transition: transform 0.1s;
+	/* FIX: Lock layout for Apple Devices */
+    display: flex;           /* Use Flexbox for perfect centering */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
+    padding: 0;              /* Remove default iOS padding */
+    margin: 0;               /* Remove default margins */
+    
+    /* FIX: Prevent text selection/highlighting on tap */
+    user-select: none;
+    -webkit-user-select: none; 
+    -webkit-tap-highlight-color: transparent; /* Removes gray tap box */
+    touch-action: manipulation; \
 }
 .letter-button:active { transform: translateY(4px); box-shadow: none; }
 
