@@ -218,8 +218,11 @@ window.GameBridge = (function() {
             if (text && window.speakText) window.speakText(text);
         },
 
-        speak: function(text) {
-            if (window.speakText) window.speakText(text);
+        // --- UPDATED SPEAK FUNCTION ---
+        speak: function(text, arg2, arg3) {
+            // Pass arguments intelligently to the global speech module
+            // This supports speak(text, 'es') or speak(text, callback)
+            if (window.speakText) window.speakText(text, arg2, arg3);
         },
 
         saveScore: function(data) {
@@ -240,7 +243,7 @@ window.GameBridge = (function() {
             })
             .then(response => response.json())
             .then(result => {
-                // CHANGED: Use new Custom Modal instead of Alert
+                // Use new Custom Modal instead of Alert
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
                     showBadgeModal(result.new_badges);
                 } else {
