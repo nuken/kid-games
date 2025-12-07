@@ -127,7 +127,12 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kids Hub Dashboard</title>
-    
+    <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="assets/css/style.css"> 
     <link rel="stylesheet" href="<?php echo htmlspecialchars($theme_path); ?>">
     
