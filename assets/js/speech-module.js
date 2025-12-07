@@ -7,6 +7,14 @@
     let isSpeaking = false;     // Flag to track status
     let activeUtterance = null; // Global reference to prevent Garbage Collection
     let hasUserInteracted = false;
+    let watchdogTimer = null;   // NEW: Safety timer for stuck audio
+
+    // --- CRITICAL FIX: RESET ENGINE ON LOAD ---
+    // Android often gets stuck in "speaking" state between page navigations.
+    // We force a cancel immediately to clear any debris from the previous page.
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
 
     // --- VOICE LOADING ---
     function loadVoices() {
@@ -53,20 +61,24 @@
 
     // --- QUEUE PROCESSOR ---
     function processQueue() {
+        // Safety check: If browser says it's not speaking but we think it is, reset.
+        if (!window.speechSynthesis.speaking && isSpeaking) {
+            isSpeaking = false;
+        }
+
         if (isSpeaking || speechQueue.length === 0) return;
 
         isSpeaking = true;
         const currentItem = speechQueue.shift(); // Get next message
 
-        // Windows Chrome Bug Fix: "Wake up" the engine with a silent pause
-        if (navigator.platform.indexOf('Win') > -1) {
+        // General "Wake Up" Fix for all browsers (Android/Windows)
+        if (window.speechSynthesis.paused) {
             window.speechSynthesis.resume(); 
         }
 
         const utterance = new SpeechSynthesisUtterance(currentItem.text);
         
         // --- BROWSER TWEAKS ---
-        // iOS tends to handle pitch differently; a slight tweak helps realism
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -83,25 +95,43 @@
         }
 
         // --- EVENT HANDLERS ---
+        
+        // NEW: Watchdog Timer
+        // If 'onend' doesn't fire within 8 seconds, we assume it crashed and reset.
+        utterance.onstart = function() {
+            clearTimeout(watchdogTimer);
+            watchdogTimer = setTimeout(() => {
+                console.warn("TTS Watchdog: Speech timed out. Resetting engine.");
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                activeUtterance = null;
+                processQueue(); // Try the next item
+            }, 8000); 
+        };
+
         utterance.onend = function() {
+            clearTimeout(watchdogTimer); // Clear safety timer
             isSpeaking = false;
             activeUtterance = null; // Release memory
             if (currentItem.callback) currentItem.callback();
             
-            // Artificial delay between sentences so they don't blend too much
+            // Artificial delay between sentences
             setTimeout(processQueue, 250);
         };
 
         utterance.onerror = function(e) {
+            clearTimeout(watchdogTimer);
             console.warn("TTS Error:", e);
+            
+            // On Android, an error often means we need to hard reset the engine
+            window.speechSynthesis.cancel();
+            
             isSpeaking = false;
             activeUtterance = null;
             setTimeout(processQueue, 250);
         };
 
         // --- GC FIX ---
-        // We MUST assign this to a global/persistent variable or Chrome 
-        // might delete the object while it is speaking.
         activeUtterance = utterance; 
 
         window.speechSynthesis.speak(utterance);
@@ -109,35 +139,37 @@
 
     // --- PUBLIC API ---
     window.speakText = function(text, onEndCallback, forceInterrupt = false) {
-        // Ensure voices are loaded before trying to speak
         if (voiceList.length === 0) loadVoices();
 
-        // Optional: Force Interrupt (good for Reset buttons or new Game starts)
         if (forceInterrupt) {
             window.speechSynthesis.cancel();
             speechQueue = [];
             isSpeaking = false;
+            clearTimeout(watchdogTimer);
         }
 
-        // Add to queue
         speechQueue.push({ text: text, callback: onEndCallback });
-        
-        // Try to process
         processQueue();
     };
 
     // --- AUDIO UNLOCKER ---
-    // Mobile browsers require a user interaction to play the first audio.
-    // Call this on the first click anywhere on the page.
     window.unlockAudio = function() {
         if (hasUserInteracted) return;
         hasUserInteracted = true;
         
-        const buffer = window.speechSynthesis;
-        const utter = new SpeechSynthesisUtterance("");
-        utter.volume = 0;
-        buffer.speak(utter);
+        // Just waking up the engine
+        if (window.speechSynthesis) {
+            window.speechSynthesis.resume();
+        }
     };
+
+    // --- CLEANUP ON EXIT (Crucial for Android) ---
+    // When the user leaves the page (e.g. Back button or Link), kill the audio.
+    window.addEventListener('beforeunload', () => {
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    });
 
     // Attach unlocker to global clicks
     document.addEventListener('click', window.unlockAudio, { once: true });
