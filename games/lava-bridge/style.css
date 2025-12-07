@@ -80,7 +80,7 @@
     font-size: 50px;
     transition: left 0.5s ease-in-out;
     z-index: 10;
-    transform: translateX(-50%); /* Center on point */
+    transform: translateX(-50%) scaleX(-1);
     filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
 }
 
