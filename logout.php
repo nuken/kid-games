@@ -15,7 +15,7 @@ if (isset($_COOKIE['remember_me'])) {
     
     // 2. DELETE THE COOKIE
     // Set expiry time to the past
-    setcookie('remember_me', '', time() - 3600, '/', '', false, true); 
+    setcookie('remember_me', '', time() - 3600, '/', '', true, true); 
     unset($_COOKIE['remember_me']);
 }
 

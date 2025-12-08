@@ -192,3 +192,49 @@ header {
         gap: 15px;
     }
 }
+/* Favorite Heart Styling */
+.mission-card-wrapper {
+    transition: transform 0.2s;
+}
+.mission-card-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+/* Ensure the wrapper behaves like the card for layout */
+.mission-card-wrapper .mission-card {
+    height: 100%;
+    display: block;
+    transform: none !important; /* Disable double hover effect */
+}
+
+.fav-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.3); /* Faint white/grey by default */
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    user-select: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.fav-btn:hover {
+    transform: scale(1.2);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.fav-btn.active {
+    color: #e74c3c; /* Red when active */
+    text-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+    opacity: 1;
+}
+
+/* Fix for Princess Theme (Light Backgrounds) */
+/* This ensures the empty heart is visible on white cards */
+body[style*="princess"] .fav-btn,
+.fav-btn {
+    /* Fallback for light themes if not handled by CSS variables */
+    -webkit-text-stroke: 1px rgba(0,0,0,0.1);
+}
