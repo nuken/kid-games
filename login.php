@@ -1,23 +1,48 @@
 <?php
-// Add these lines for debugging:
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// PRODUCTION SECURITY: Turn off error display to users
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL); 
+
+// Log errors to a file instead (check your server logs)
+ini_set('log_errors', 1);
 
 session_start();
-require_once 'includes/db.php'; //
+require_once 'includes/db.php'; 
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// --- 1. SECURITY: Rate Limiting (Brute Force Protection) ---
+// If the user has failed 5 times, block them for 15 minutes.
+if (isset($_SESSION['lockout_time']) && time() < $_SESSION['lockout_time']) {
+    $time_left = $_SESSION['lockout_time'] - time();
+    $minutes = ceil($time_left / 60);
+    $error = "Too many attempts. Please wait $minutes minutes.";
+} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    
+    // Check if we are currently tracking failed attempts
+    if (!isset($_SESSION['failed_attempts'])) {
+        $_SESSION['failed_attempts'] = 0;
+    }
+
     $pin = $_POST['pin'];
     
+    // --- 2. DATABASE: Fetch User ---
+    // Note: Since you are looking up by PIN directly, you cannot use 
+    // standard password_hash() yet. This logic relies on strict Rate Limiting.
     $stmt = $pdo->prepare("SELECT * FROM users WHERE pin_code = ?");
     $stmt->execute([$pin]);
     $user = $stmt->fetch();
 
     if ($user) {
+        // SUCCESS: Reset failure counter
+        $_SESSION['failed_attempts'] = 0;
+        unset($_SESSION['lockout_time']);
+
+        // SECURITY: Prevent Session Fixation
+        session_regenerate_id(true); 
+        
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role']; // <--- ADD THIS LINE
+        $_SESSION['role'] = $user['role']; 
 
         // Redirect based on Role
         if ($user['role'] === 'admin') {
@@ -29,7 +54,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         exit;
     } else {
-        $error = "Uh oh! Wrong Code.";
+        // FAILURE: Increment counter
+        $_SESSION['failed_attempts']++;
+        
+        // If 5 failures, lock out for 15 minutes (900 seconds)
+        if ($_SESSION['failed_attempts'] >= 5) {
+            $_SESSION['lockout_time'] = time() + 900;
+            $error = "Too many failed attempts. Locked for 15 minutes.";
+        } else {
+            $remaining = 5 - $_SESSION['failed_attempts'];
+            $error = "Uh oh! Wrong Code. ($remaining attempts left)";
+        }
     }
 }
 ?>
