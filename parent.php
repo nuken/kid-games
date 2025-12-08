@@ -48,7 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         
         // Checkbox logic: if present, it's 1, else 0
         $u_confetti = isset($_POST['confetti']) ? 1 : 0;
-
+        // Check ownership before updating
+if ($_SESSION['role'] === 'parent') {
+    $check = $pdo->prepare("SELECT id FROM users WHERE id = ? AND parent_id = ?");
+    $check->execute([$u_id, $_SESSION['user_id']]);
+    if (!$check->fetch()) {
+        die("Error: You do not have permission to edit this student.");
+    }
+}
         $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ?, confetti_enabled = ? WHERE id = ?");
         if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_confetti, $u_id])) {
             $message = "<div class='alert success'>Settings Updated! Go check the dashboard.</div>";
