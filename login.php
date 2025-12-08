@@ -44,12 +44,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $expiry = date('Y-m-d H:i:s', time() + (86400 * 30)); // 30 Days
 
                 // Store in DB
-                $stmt = $pdo->prepare("INSERT INTO user_tokens (selector, hashed_validator, user_id, expiry) VALUES (?, ?, ?, ?)");
+               $stmt = $pdo->prepare("INSERT INTO user_tokens (selector, hashed_validator, user_id, expiry) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$selector, $hashed_validator, $user['id'], $expiry]);
 
-                // Set Secure Cookie (HttpOnly)
-            setcookie('remember_me', $selector . ':' . $validator, time() + (86400 * 30), "/", null, false, true);            }
-
+                // --- NEW SECURE COOKIE SETTING ---
+                $cookie_options = [
+                    'expires' => time() + (86400 * 30),
+                    'path' => '/',
+                    'domain' => '', // Leave empty for current domain
+                    'secure' => true, // TRUE because you are using HTTPS
+                    'httponly' => true,
+                    'samesite' => 'Lax' // Helps prevent CSRF
+                ];
+                setcookie('remember_me', $selector . ':' . $validator, $cookie_options);
+                
+            }
             // 3. REDIRECT
             if ($user['role'] === 'admin') {
                 header("Location: admin/index.php");
