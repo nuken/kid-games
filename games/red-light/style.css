@@ -58,27 +58,31 @@
     font-size: 100px;
     position: absolute;
     bottom: 20px; 
-    left: 50px; /* Parked on the left side */
+    left: 25%; 
     filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5));
     transition: transform 0.5s;
     z-index: 10;
+    /* Flip car to face Right (if emoji defaults to left) */
+    transform: scaleX(-1); 
 }
 
 /* --- ANIMATIONS --- */
 
-/* Road moves Left to Right (simulating car moving Right) */
+/* Road moves Right to Left (Car drives Forward) */
 .moving .lane-marker { 
-    animation: drive 1s linear infinite; 
+    animation: drive 0.8s linear infinite; 
 }
+
 @keyframes drive { 
     from { left: 0; } 
-    to { left: -100px; } /* Match background-size width */
+    to { left: -100px; } 
 }
 
 /* Scenery moves slower for depth (Parallax) */
 .moving #scenery {
-    animation: sceneryScroll 5s linear infinite;
+    animation: sceneryScroll 4s linear infinite;
 }
+
 @keyframes sceneryScroll {
     from { transform: translateX(0); }
     to { transform: translateX(-100px); }
@@ -89,8 +93,8 @@
     animation: carBump 0.5s ease-in-out infinite alternate; 
 }
 @keyframes carBump {
-    0% { transform: translateY(0) rotate(0deg); }
-    100% { transform: translateY(-2px) rotate(1deg); }
+    0% { transform: translateX(0) scaleX(-1) rotate(0deg); }
+    100% { transform: translateX(5px) scaleX(-1) rotate(-2deg); } /* Slight wheelie */
 }
 
 /* --- TRAFFIC LIGHT --- */

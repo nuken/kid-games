@@ -84,5 +84,10 @@
     width: 60px; height: 60px; background: white; border: 3px solid #2c3e50;
     border-radius: 10px; font-size: 24px; font-weight: bold; cursor: pointer;
     box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+	padding: 0;              /* Remove default iOS padding */
+    margin: 0;               /* Remove default margins */
+    display: flex;           /* Use Flexbox for perfect centering */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
 }
 .num-btn:hover { background: #eee; }

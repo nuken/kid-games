@@ -130,7 +130,17 @@
         tag.className = 'badge-' + subj; 
 
         document.getElementById('question-text').innerText = qData.q;
-        GameBridge.speak(qData.q);
+
+        // FIX: Improve pronunciation for Math symbols
+        let speakText = qData.q;
+        if (subj === 'math') {
+            speakText = speakText
+                .replace(/-/g, " minus ")
+                .replace(/\+/g, " plus ")
+                .replace(/=/g, " equals ");
+        }
+        
+        GameBridge.speak(speakText);
 
         // 5. Render Buttons
         const controls = document.getElementById('controls-area');

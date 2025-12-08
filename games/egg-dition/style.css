@@ -83,6 +83,11 @@
     cursor: pointer; 
     box-shadow: 0 6px 0 #5e2f0d;
     transition: transform 0.1s;
+	padding: 0;              /* Remove default iOS padding */
+    margin: 0;               /* Remove default margins */
+    display: flex;           /* Use Flexbox for perfect centering */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
 }
 .number-btn:active { 
     transform: translateY(6px); 
