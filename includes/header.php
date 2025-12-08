@@ -47,7 +47,28 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_me'])) {
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
                 }
+            } 
+            // ---------------------------------------------------------
+            // THEFT DETECTION ADDITION STARTS HERE
+            // ---------------------------------------------------------
+            else {
+                // The Selector matched (so the cookie "looked" valid),
+                // BUT the Validator failed. This implies a stolen or replayed cookie.
+                
+                // 1. Delete ALL tokens for this specific user to lock out the thief
+                $del = $pdo->prepare("DELETE FROM user_tokens WHERE user_id = ?");
+                $del->execute([$token_row['user_id']]);
+
+                // 2. Kill the bad cookie in the browser
+                setcookie('remember_me', '', time() - 3600, '/');
+
+                // 3. Optional: Redirect to login with a specific error
+                // header("Location: login.php?error=session_terminated");
+                // exit();
             }
+            // ---------------------------------------------------------
+            // THEFT DETECTION ADDITION ENDS HERE
+            // ---------------------------------------------------------
         }
     }
 }
