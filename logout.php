@@ -1,9 +1,29 @@
 <?php
+// logout.php
 session_start();
-session_destroy();
+require_once 'includes/db.php';
 
-// Redirect specifically to the root login file
-// We use './' to tell the server "look in the current directory"
+// 1. DELETE TOKEN FROM DATABASE (If cookie exists)
+if (isset($_COOKIE['remember_me'])) {
+    $parts = explode(':', $_COOKIE['remember_me']);
+    if (count($parts) === 2) {
+        $selector = $parts[0];
+        // Delete the specific token associated with this browser
+        $stmt = $pdo->prepare("DELETE FROM user_tokens WHERE selector = ?");
+        $stmt->execute([$selector]);
+    }
+    
+    // 2. DELETE THE COOKIE
+    // Set expiry time to the past
+    setcookie('remember_me', '', time() - 3600, '/', '', false, true); 
+    unset($_COOKIE['remember_me']);
+}
+
+// 3. DESTROY SESSION
+$_SESSION = []; // Clear array
+session_destroy(); // Destroy session data
+
+// 4. REDIRECT
 header("Location: ./login.php"); 
 exit;
 ?>

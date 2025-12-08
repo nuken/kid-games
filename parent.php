@@ -1,12 +1,19 @@
 <?php
 // parent.php
-// 1. Error Reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
-require_once 'includes/db.php';
+// 1. LOAD HEADER (Handles Session Start & Auto-Login)
+require_once 'includes/header.php';
+
+// --------------------------------------------------------
+// 2. ROLE SECURITY CHECK
+// --------------------------------------------------------
+// We do this AFTER header.php has had a chance to restore the session from the cookie
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'parent' && $_SESSION['role'] !== 'admin')) {
+    header("Location: login.php"); exit;
+}
 
 // --------------------------------------------------------
 // DEFINITIONS

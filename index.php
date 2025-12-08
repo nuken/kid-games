@@ -4,19 +4,20 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
-require_once 'includes/db.php'; 
+// 1. LOAD HEADER (Handles Session Start, Auto-Login Check, and Redirects)
+// This replaces the manual session_start() and security check
+require_once 'includes/header.php'; 
 
-// 1. SECURITY CHECK
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-
+// "includes/header.php" sets $current_user. 
+// We alias it to $user to keep the rest of your code working without changes.
+$user = $current_user; 
 $user_id = $_SESSION['user_id'];
 
 try {
-    // 2. GET USER & THEME
+    // 2. (Optional) RE-FETCH USER & THEME
+    // header.php already fetches user data, but your index.php uses a LEFT JOIN 
+    // while header uses an INNER JOIN. Keeping this ensures consistent behavior 
+    // with your existing logic.
     $stmt = $pdo->prepare("
         SELECT u.*, t.css_file, t.name as theme_name 
         FROM users u 
