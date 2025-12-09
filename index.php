@@ -275,7 +275,7 @@ try {
                     $heartClass = ($game['is_favorite'] > 0) ? 'active' : '';
                 ?>
                     <div class="mission-card-wrapper">
-                        <div class="fav-btn <?php echo $heartClass; ?>" onclick="toggleFavorite(event, <?php echo $game['id']; ?>, this)">❤</div>
+                        <div class="fav-btn <?php echo $heartClass; ?>" onclick="toggleFavorite(event, <?php echo $game['id']; ?>, this)">&#x2764;&#xfe0e;</div>
 
                         <a href="<?php echo $link; ?>" class="mission-card">
                             <div class="mission-icon"><?php echo $game['icon']; ?></div>
