@@ -117,3 +117,44 @@
     background: white; padding: 5px 10px; border-radius: 15px;
     border: 2px solid #333; font-weight: bold; cursor: pointer;
 }
+
+/* RESPONSIVE: Fix for Mobile Portrait Mode */
+@media (max-width: 600px) {
+    
+    /* 1. Shrink the banks to give the bridge more room */
+    .bank {
+        width: 12%;       /* Reduced from 15% */
+        font-size: 0.9em; /* Smaller text */
+    }
+
+    /* 2. Shrink the stones so all 6 fit on screen */
+    .bridge-slot {
+        width: 35px;      /* Reduced from 60px */
+        height: 35px;     
+        border-width: 1px;
+        border-radius: 6px;
+    }
+
+    /* 3. Resize the Player Emoji to match the small stones */
+    #player-char {
+        font-size: 30px; /* Reduced from 50px */
+        margin-bottom:10px;
+    }
+
+    /* 4. Adjust the river height to save vertical space */
+    #lava-river {
+        height: 180px; /* Reduced from 250px */
+    }
+
+    /* 5. Make the buttons and math text smaller to fit */
+    #math-problem {
+        font-size: 28px; 
+        margin-bottom: 10px;
+    }
+    
+    .answer-btn {
+        font-size: 20px; 
+        padding: 10px 20px; 
+        margin: 0 5px;
+    }
+}

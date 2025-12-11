@@ -137,22 +137,36 @@
     function movePlayerTo(stepIndex) {
         const player = document.getElementById('player-char');
         const river = document.getElementById('lava-river');
-        
-        // Calculate position percentage
-        // 0 = Start (5%), 7 = Goal (95%)
-        // Steps 1-6 are distributed in between
-        let percent = 5; 
-        
-        if (stepIndex > 0 && stepIndex <= TOTAL_STONES) {
-            // Distribute stones between 20% and 80%
-            let stepSize = 60 / (TOTAL_STONES - 1);
-            percent = 20 + ((stepIndex - 1) * stepSize);
+        let targetEl = null;
+
+        // 1. Determine which element we are jumping to
+        if (stepIndex === 0) {
+            targetEl = document.getElementById('bank-left');
         } else if (stepIndex > TOTAL_STONES) {
-            percent = 95; // Goal
+            targetEl = document.getElementById('bank-right');
+        } else {
+            targetEl = document.getElementById('slot-' + stepIndex);
         }
 
-        player.style.left = percent + '%';
+        // 2. Calculate position based on the element's actual location
+        if (targetEl && river) {
+            // Get screen coordinates for the container (river) and the target (stone/bank)
+            const riverRect = river.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+
+            // Math: (Target's Left Edge - River's Left Edge) + (Half of Target's Width)
+            // This gives us the exact center pixel relative to the river
+            const centerPos = (targetRect.left - riverRect.left) + (targetRect.width / 2);
+            
+            // Apply exact pixel position
+            player.style.left = centerPos + 'px';
+        }
+
+        // 3. Trigger Animation
+        player.classList.remove('jump'); // Reset animation if it got stuck
+        void player.offsetWidth;         // Trigger reflow (magic browser reset)
         player.classList.add('jump');
+        
         setTimeout(() => player.classList.remove('jump'), 300);
     }
 
