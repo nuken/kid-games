@@ -1,0 +1,71 @@
+#game-board {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.help-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: white; border: 2px solid var(--text-color);
+    border-radius: 20px; cursor: pointer; font-weight: bold;
+    color: var(--text-color); padding: 5px 15px;
+}
+
+#alphabet-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 20px;
+    /* Make the container slightly darker/translucent to help contrast */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    margin-top: 20px;
+}
+
+.letter-box {
+    background: white;
+    border-radius: 15px;
+    padding: 15px 0;
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #333; /* Keep text dark so it shows on white box */
+    cursor: pointer;
+
+    /* --- FIX: Add border and stronger shadow for visibility --- */
+    border: 2px solid #ccc;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    /* ---------------------------------------------------------- */
+
+    transition: transform 0.1s;
+    user-select: none;
+}
+
+.letter-box:active {
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
+.letter-box.found {
+    opacity: 0.5;
+    transform: scale(0.9);
+    cursor: default;
+    background: #e0e0e0 !important;
+}
+
+/* Animations */
+.shake { animation: shake 0.5s; }
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@media (max-width: 600px) {
+    #alphabet-container {
+        grid-template-columns: repeat(4, 1fr);
+        padding: 10px;
+        gap: 8px;
+    }
+    .letter-box { font-size: 2em; padding: 10px 0; }
+}

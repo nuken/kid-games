@@ -1,0 +1,127 @@
+/* games/coloring/style.css */
+
+/* --- FIX: UNLOCK FULL WIDTH --- */
+/* This overrides the global 800px limit so the Coloring App has room */
+#game-stage {
+    max-width: 100% !important;
+    width: 95% !important; /* Small gutter on sides */
+    padding: 0 !important;
+    height: 85vh; /* Taller stage */
+}
+
+/* App Container */
+#game-board {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.app-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+/* Toolbar (Left) */
+.toolbar {
+    width: 250px;        /* Wide enough for buttons */
+    min-width: 250px;    /* Don't shrink */
+    flex-shrink: 0;
+    background: #f0f4f8;
+    border-right: 2px solid #ccc;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tool-label {
+    font-size: 0.85em; font-weight: bold;
+    color: #555; margin-bottom: 8px; text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tool-btn, .util-btn {
+    width: 50px; height: 50px;
+    border-radius: 12px; border: 2px solid #ddd;
+    background: white; cursor: pointer; font-size: 1.4em;
+    margin-right: 8px; color: #555;
+    transition: all 0.2s;
+}
+.tool-btn:hover, .util-btn:hover { transform: translateY(-2px); border-color: #bbb; }
+.tool-btn.active { background: #3498db; color: white; border-color: #2980b9; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+
+/* Palette */
+.palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.color-swatch {
+    width: 40px; height: 40px; border-radius: 50%;
+    cursor: pointer; border: 3px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.active { border-color: #333; transform: scale(1.15); z-index: 2; }
+
+/* Main Area (Right) */
+.main-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #e0e0e0;
+}
+
+#image-selector {
+    height: 100px;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 20px;
+    overflow-x: auto;
+    border-bottom: 2px solid #ccc;
+    flex-shrink: 0; /* Don't shrink vertically */
+}
+
+.thumb {
+    height: 70px; width: 70px; object-fit: cover;
+    border: 3px solid #eee; border-radius: 10px; cursor: pointer;
+    transition: all 0.2s;
+}
+.thumb:hover { transform: scale(1.1); border-color: #bbb; }
+.thumb.active { border-color: #3498db; transform: scale(1.05); }
+
+#canvas-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: #f0f0f0; /* Grey background to contrast with white page */
+}
+
+/* Mobile Responsive */
+@media (max-width: 850px) {
+    .app-container { flex-direction: column-reverse; }
+
+    .toolbar {
+        width: 100%;
+        min-width: 0;
+        height: 140px;
+        flex-direction: row;
+        align-items: center;
+        border-right: none; border-top: 2px solid #ccc;
+        gap: 20px;
+    }
+
+    .palette { display: flex; overflow-x: auto; padding-bottom: 5px; }
+
+    .main-area { height: calc(100% - 140px); }
+    #image-selector { height: 80px; }
+    .thumb { height: 60px; width: 60px; }
+}
