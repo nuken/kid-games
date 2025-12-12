@@ -2,7 +2,6 @@
 (function() {
     let score = 0;
     let questionsAnswered = 0;
-    const QUESTIONS_TO_WIN = 26; // Full alphabet for badge
     let difficulty = 1;
     let startTime = Date.now();
 
@@ -10,8 +9,8 @@
     const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     let lettersToFind = [];
     let currentTarget = null;
-    let caseMode = 'upper'; // 'upper' or 'lower'
-    let speechMode = 'letter'; // 'letter' or 'word'
+    let caseMode = 'upper';
+    let speechMode = 'letter';
     let sessionMistakes = 0;
 
     const EXAMPLE_WORDS = {
@@ -42,12 +41,26 @@
 
                 renderGrid();
 
+                // Get the speech button to toggle visibility
+                const speechBtn = document.getElementById('speech-toggle-btn');
+                const prompt = document.getElementById('alphabet-prompt');
+
                 if (difficulty === 2) {
+                    // --- LEVEL 2 SETUP ---
                     lettersToFind = [...ALPHABET];
-                    document.getElementById('alphabet-prompt').style.display = 'block';
+                    prompt.style.display = 'block';
+
+                    // FIX: Hide the "Word/Letter" toggle in Level 2
+                    if(speechBtn) speechBtn.style.display = 'none';
+
                     pickNextTarget();
                 } else {
-                    document.getElementById('alphabet-prompt').style.display = 'none';
+                    // --- LEVEL 1 SETUP ---
+                    prompt.style.display = 'none';
+
+                    // FIX: Show the "Word/Letter" toggle in Level 1
+                    if(speechBtn) speechBtn.style.display = 'inline-block';
+
                     GameBridge.speak("Touch any letter.");
                 }
             }
@@ -63,9 +76,6 @@
             btn.className = 'letter-box';
             btn.dataset.char = char;
             btn.innerText = (caseMode === 'upper') ? char : char.toLowerCase();
-
-            // Random color on init for fun look
-            // btn.style.color = getRandomColor();
 
             btn.onclick = () => handleInput(char, btn);
             container.appendChild(btn);
@@ -83,7 +93,7 @@
         // --- LEVEL 2: CHALLENGE ---
         if (char === currentTarget) {
             // Correct
-            score += 10; // Simple scoring
+            score += 10;
             questionsAnswered++;
 
             highlight(btn);
@@ -94,9 +104,9 @@
             lettersToFind = lettersToFind.filter(c => c !== char);
 
             if (lettersToFind.length === 0) {
-                // WIN CONDITION
+                // WIN CONDITION - Awards Badge
                 GameBridge.saveScore({
-                    score: score + 50, // Bonus
+                    score: 100,
                     duration: Math.floor((Date.now() - startTime) / 1000),
                     mistakes: sessionMistakes
                 });
@@ -114,7 +124,6 @@
     }
 
     function pickNextTarget() {
-        // Pick random from remaining
         const idx = Math.floor(Math.random() * lettersToFind.length);
         currentTarget = lettersToFind[idx];
 
@@ -124,7 +133,6 @@
     }
 
     function highlight(btn) {
-        // Visual feedback
         const colors = ['#FFCDD2', '#C8E6C9', '#BBDEFB', '#FFF9C4', '#E1BEE7'];
         btn.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     }
@@ -137,13 +145,11 @@
         GameBridge.speak(text);
     }
 
-    // Toggles
     function toggleCase() {
         caseMode = (caseMode === 'upper') ? 'lower' : 'upper';
         document.getElementById('case-toggle-btn').innerText = (caseMode === 'upper') ? "a / A" : "A / a";
-        renderGrid(); // Re-render text
+        renderGrid();
 
-        // Re-apply 'found' state if in level 2
         if (difficulty === 2) {
             const all = document.querySelectorAll('.letter-box');
             all.forEach(b => {
