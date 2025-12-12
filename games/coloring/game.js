@@ -3,7 +3,7 @@
     const imageFiles = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg', '10.jpg'];
     const colors = ['#000000', '#575757', '#ffffff', '#DC2323', '#FF9233', '#FFEE33', '#1D6914', '#2A4BD7', '#8126C0', '#FFCDF3', '#814A19', '#A0522D', '#FF69B4', '#00FFFF', '#008080'];
 
-    let stage, layer;
+    let stage, layer, contentGroup;
     let currentTool = 'brush';
     let currentColor = '#DC2323';
     let currentSize = 10;
@@ -24,7 +24,6 @@
         const container = document.getElementById('canvas-wrapper');
         if (stage) stage.destroy();
 
-        // 1. Initialize Stage
         stage = new Konva.Stage({
             container: 'canvas-wrapper',
             width: container.clientWidth,
@@ -34,25 +33,28 @@
         layer = new Konva.Layer();
         stage.add(layer);
 
-        setupUI();
+        // --- THE FIX: Content Group ---
+        // This group acts as the "Piece of Paper".
+        // We will scale and move THIS group, not the image inside it.
+        // Lines added to this group will stick to the image.
+        contentGroup = new Konva.Group();
+        layer.add(contentGroup);
 
-        // 2. Load Image
+        setupUI();
         loadImage('1.jpg');
 
-        // 3. Force Resize Check (Fixes "pushed to right" issue on load)
-        setTimeout(() => {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            stage.width(width);
-            stage.height(height);
-            if(currentImageNode) fitImage(currentImageNode);
-        }, 100);
+        // Initial Resize Check
+        setTimeout(() => handleResize(), 100);
 
         // --- DRAWING HANDLERS ---
         stage.on('mousedown touchstart', (e) => {
             if (currentTool !== 'brush') return;
             isDrawing = true;
-            const pos = stage.getPointerPosition();
+
+            // FIX: Get pointer position RELATIVE to the group (the paper)
+            // This ensures drawing works even if the paper is scaled or moved.
+            const pos = contentGroup.getRelativePointerPosition();
+
             currentLine = new Konva.Line({
                 stroke: currentColor,
                 strokeWidth: parseInt(currentSize),
@@ -60,13 +62,16 @@
                 lineCap: 'round', lineJoin: 'round',
                 points: [pos.x, pos.y, pos.x, pos.y]
             });
-            layer.add(currentLine);
+
+            contentGroup.add(currentLine);
         });
 
         stage.on('mousemove touchmove', (e) => {
             if (!isDrawing || currentTool !== 'brush') return;
             e.evt.preventDefault();
-            const pos = stage.getPointerPosition();
+
+            // FIX: Use relative position here too
+            const pos = contentGroup.getRelativePointerPosition();
             const newPoints = currentLine.points().concat([pos.x, pos.y]);
             currentLine.points(newPoints);
             layer.batchDraw();
@@ -79,20 +84,22 @@
             }
         });
 
-        // Flood Fill Handler
+        // --- FLOOD FILL HANDLER ---
         stage.on('click tap', (e) => {
             if (currentTool !== 'fill' || !currentImageNode) return;
-            const pos = stage.getPointerPosition();
-            const relativeX = (pos.x - currentImageNode.x()) / currentImageNode.width();
-            const relativeY = (pos.y - currentImageNode.y()) / currentImageNode.height();
 
-            if (relativeX >= 0 && relativeX <= 1 && relativeY >= 0 && relativeY <= 1) {
+            // FIX: Use relative position.
+            // Because the group is scaled, 'pos' is already in the image's coordinate space!
+            // No need for complex math.
+            const pos = contentGroup.getRelativePointerPosition();
+            const pixelX = Math.floor(pos.x);
+            const pixelY = Math.floor(pos.y);
+
+            // Bounds check
+            if (pixelX >= 0 && pixelX < currentImageNode.width() && pixelY >= 0 && pixelY < currentImageNode.height()) {
                 const sourceCanvas = currentImageNode.image();
                 const ctx = sourceCanvas.getContext('2d');
                 const beforeImageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-
-                const pixelX = Math.floor(relativeX * sourceCanvas.width);
-                const pixelY = Math.floor(relativeY * sourceCanvas.height);
                 const fillColorRgb = hexToRgb(currentColor);
 
                 floodFill(pixelX, pixelY, fillColorRgb, ctx);
@@ -101,26 +108,43 @@
             }
         });
 
-        // Responsive Resize
-        const resizeObserver = new ResizeObserver(() => {
-            if (!stage || !container) return;
-            stage.width(container.clientWidth);
-            stage.height(container.clientHeight);
-            if(currentImageNode) fitImage(currentImageNode);
-        });
+        // Responsive Resize Listener
+        const resizeObserver = new ResizeObserver(() => handleResize());
         resizeObserver.observe(container);
     }
 
-    function fitImage(imgNode) {
-        const stageW = stage.width();
-        const stageH = stage.height();
+    function handleResize() {
+        if (!stage || !currentImageNode) return;
 
-        // Use 95% of available space to keep it nicely centered with a border
-        const ratio = Math.min(stageW / imgNode.width(), stageH / imgNode.height()) * 0.95;
+        const container = document.getElementById('canvas-wrapper');
+        const stageW = container.clientWidth;
+        const stageH = container.clientHeight;
 
-        imgNode.scale({ x: ratio, y: ratio });
-        imgNode.x((stageW - (imgNode.width() * ratio)) / 2);
-        imgNode.y((stageH - (imgNode.height() * ratio)) / 2);
+        stage.width(stageW);
+        stage.height(stageH);
+
+        // --- THE FIX: Scale the GROUP, not the Image ---
+        const imgW = currentImageNode.width();
+        const imgH = currentImageNode.height();
+
+        // Calculate ratio to fit image into stage with 95% margin
+        const ratio = Math.min(stageW / imgW, stageH / imgH) * 0.95;
+
+        const centerX = (stageW - (imgW * ratio)) / 2;
+        const centerY = (stageH - (imgH * ratio)) / 2;
+
+        // Move and Scale the "Paper"
+        contentGroup.position({ x: centerX, y: centerY });
+        contentGroup.scale({ x: ratio, y: ratio });
+
+        // Clip the group so brush strokes don't go off the paper
+        contentGroup.clip({
+            x: 0,
+            y: 0,
+            width: imgW,
+            height: imgH
+        });
+
         layer.batchDraw();
     }
 
@@ -173,8 +197,8 @@
 
         document.getElementById('clear-btn').onclick = () => {
             if(confirm('Clear all colors?')) {
-                layer.destroyChildren();
-                historyStack = [];
+                // To clear, we destroy all children EXCEPT the image
+                // Or simply reload the image and wipe the group
                 const activeThumb = document.querySelector('.thumb.active');
                 const fname = activeThumb ? activeThumb.src.split('/').pop() : '1.jpg';
                 loadImage(fname);
@@ -182,8 +206,9 @@
         };
 
         document.getElementById('save-btn').onclick = () => {
-            // Save against white background
-            const uri = stage.toDataURL({ pixelRatio: 2, mimeType: "image/jpeg", quality: 0.9 });
+            // Save the group contents
+            // pixelRatio 3 ensures high quality save even if zoomed out
+            const uri = contentGroup.toDataURL({ pixelRatio: 3, mimeType: "image/jpeg", quality: 0.9 });
             const link = document.createElement('a');
             link.download = 'my-art.jpg';
             link.href = uri;
@@ -209,31 +234,38 @@
     }
 
     function loadImage(filename) {
-        layer.destroyChildren();
+        contentGroup.destroyChildren(); // Wipe the "paper"
         historyStack = [];
 
         Konva.Image.fromURL('games/coloring/images/' + filename, (imgNode) => {
             const img = imgNode.image();
             const offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = img.naturalWidth || img.width;
-            offscreenCanvas.height = img.naturalHeight || img.height;
+            // Use natural dimensions
+            offscreenCanvas.width = img.naturalWidth;
+            offscreenCanvas.height = img.naturalHeight;
             const ctx = offscreenCanvas.getContext('2d');
 
-            // Fill background white so JPGs aren't transparent
+            // White background for JPG save
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
             ctx.drawImage(img, 0, 0);
 
             imgNode.image(offscreenCanvas);
+            imgNode.width(img.naturalWidth);
+            imgNode.height(img.naturalHeight);
+
+            // Image sits at 0,0 on the "paper"
+            imgNode.position({x:0, y:0});
+
             currentImageNode = imgNode;
+            contentGroup.add(imgNode);
 
-            fitImage(imgNode);
-
-            layer.add(imgNode);
-            layer.batchDraw();
+            // Fit the "paper" to the screen
+            handleResize();
         });
     }
 
+    // --- HELPER: FLOOD FILL ---
     function floodFill(startX, startY, fillColorRgb, ctx) {
         const { width, height } = ctx.canvas;
         const imageData = ctx.getImageData(0, 0, width, height);
@@ -242,7 +274,7 @@
         const startIndex = (startY * width + startX) * 4;
         const startColor = [data[startIndex], data[startIndex + 1], data[startIndex + 2]];
 
-        if (colorsMatch(data, startIndex, blackColor, 60)) return; // Increased tolerance for lines
+        if (colorsMatch(data, startIndex, blackColor, 60)) return;
         if (colorsMatch(data, startIndex, fillColorRgb, 10)) return;
 
         const stack = [[startX, startY]];
