@@ -72,7 +72,7 @@ $jsConfig = [
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo htmlspecialchars($game['default_title']); ?></title>
     <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
