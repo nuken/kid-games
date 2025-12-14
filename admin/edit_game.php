@@ -1,25 +1,29 @@
 <?php
+// admin/edit_game.php
 session_start();
-require_once '../includes/db.php'; //
-
+require_once '../includes/db.php'; 
 require_once 'auth_check.php';
 
 $id = $_GET['id'] ?? null;
 if (!$id) { header("Location: games.php"); exit; }
 
 $message = "";
+$subjects = ['Math', 'Reading', 'Logic', 'Creativity', 'Science', 'General'];
 
 // 2. HANDLE UPDATE
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title      = trim($_POST['title']);
     $folder     = trim($_POST['folder']);
     $icon       = $_POST['icon'];
+    $subject    = $_POST['subject']; // New Field
     $min        = $_POST['min_grade'];
     $max        = $_POST['max_grade'];
     $active     = isset($_POST['active']) ? 1 : 0;
 
-    $stmt = $pdo->prepare("UPDATE games SET default_title=?, folder_path=?, default_icon=?, min_grade=?, max_grade=?, active=? WHERE id=?");
-    if ($stmt->execute([$title, $folder, $icon, $min, $max, $active, $id])) {
+    // Updated SQL to include 'subject'
+    $stmt = $pdo->prepare("UPDATE games SET default_title=?, folder_path=?, default_icon=?, min_grade=?, max_grade=?, active=?, subject=? WHERE id=?");
+    
+    if ($stmt->execute([$title, $folder, $icon, $min, $max, $active, $subject, $id])) {
         $message = "<div class='alert success'>Game updated! <a href='games.php' style='color:white;'>Go Back</a></div>";
     } else {
         $message = "<div class='alert error'>Update failed.</div>";
@@ -31,7 +35,7 @@ $stmt = $pdo->prepare("SELECT * FROM games WHERE id = ?");
 $stmt->execute([$id]);
 $game = $stmt->fetch();
 
-$icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚'];
+$icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚', '🕷️', '🧪', '🥚', '🎈', '🚦', '🚂'];
 ?>
 
 <!DOCTYPE html>
@@ -39,8 +43,8 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 <head>
     <meta charset="UTF-8">
     <title>Edit Game</title>
-    <link rel="stylesheet" href="../assets/css/style.css"> <style>
-        /* ADMIN THEME OVERRIDES */
+    <link rel="stylesheet" href="../assets/css/style.css"> 
+    <style>
         body { background: #f4f6f8; color: #333 !important; font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background-image: none; }
         .edit-card { background: white; padding: 30px; border-radius: 10px; width: 450px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #333; }
         
@@ -68,6 +72,15 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 
         <label>Folder Path</label>
         <input type="text" name="folder" value="<?php echo htmlspecialchars($game['folder_path']); ?>" required>
+
+        <label>Subject</label>
+        <select name="subject">
+            <?php foreach($subjects as $s): ?>
+                <option value="<?php echo $s; ?>" <?php if(($game['subject'] ?? 'General') == $s) echo 'selected'; ?>>
+                    <?php echo $s; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
 
         <label>Default Icon</label>
         <select name="icon">
