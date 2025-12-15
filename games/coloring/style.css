@@ -105,23 +105,96 @@
     background: #f0f0f0; /* Grey background to contrast with white page */
 }
 
-/* Mobile Responsive */
-@media (max-width: 850px) {
-    .app-container { flex-direction: column-reverse; }
+/* UPDATED: Tablet & Mobile Optimization */
+@media (max-width: 1024px) {
+    /* 1. LAYOUT: Move Toolbar to Bottom */
+    .app-container {
+        flex-direction: column-reverse; /* Stacks items from bottom to top */
+    }
 
+    /* 2. TOOLBAR: Bottom Navigation with Smooth Scroll */
     .toolbar {
         width: 100%;
         min-width: 0;
-        height: 140px;
+        height: auto;
+        max-height: 35vh;      /* Cap height so it doesn't cover the whole screen */
         flex-direction: row;
-        align-items: center;
-        border-right: none; border-top: 2px solid #ccc;
-        gap: 20px;
+        align-items: flex-start;
+        flex-wrap: wrap;       /* Allow buttons to wrap nicely */
+        justify-content: center;
+        border-right: none;
+        border-top: 3px solid var(--star-gold);
+        padding: 10px 5px;
+        gap: 15px;
+        flex-shrink: 0;        /* Don't let the toolbar shrink */
+
+        /* --- THE SCROLL FIX --- */
+        overflow-y: auto;                  /* Allow vertical scrolling */
+        -webkit-overflow-scrolling: touch; /* Enables smooth "momentum" scrolling on iOS */
+        touch-action: pan-y;               /* Allows scrolling even if you touch a button */
     }
 
-    .palette { display: flex; overflow-x: auto; padding-bottom: 5px; }
+    /* 3. MAIN AREA: Canvas + Image Selector */
+    .main-area {
+        flex: 1;               /* Fill the remaining space above the toolbar */
+        min-height: 0;         /* Critical preventing layout break */
+        width: 100%;
+    }
 
-    .main-area { height: calc(100% - 140px); }
-    #image-selector { height: 80px; }
-    .thumb { height: 60px; width: 60px; }
+    /* 4. IMAGE SELECTOR: Top Strip */
+    #image-selector {
+        height: 80px;
+        flex-shrink: 0;        /* Keep this visible */
+        background: #fff;
+        border-bottom: 2px solid #ccc;
+
+        /* Smooth Horizontal Scrolling */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #canvas-wrapper {
+    margin: 0 40px;
+    }
+
+    /* 5. LARGER TOUCH TARGETS */
+    .tool-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        background: rgba(255,255,255,0.5);
+        border-radius: 10px;
+        padding: 5px;
+        margin-bottom: 0;
+    }
+
+    .tool-btn, .util-btn {
+        width: 50px;
+        height: 50px;
+        margin: 3px;
+        font-size: 1.4em;
+    }
+
+    .palette {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .color-swatch {
+        width: 45px;
+        height: 45px;
+        margin: 0;
+    }
+
+    .tool-label {
+        width: 100%;
+        text-align: center;
+        font-size: 0.7em;
+        margin-bottom: 2px;
+        color: #333;
+    }
 }
