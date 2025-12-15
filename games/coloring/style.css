@@ -1,12 +1,11 @@
 /* games/coloring/style.css */
 
 /* --- FIX: UNLOCK FULL WIDTH --- */
-/* This overrides the global 800px limit so the Coloring App has room */
 #game-stage {
     max-width: 100% !important;
-    width: 95% !important; /* Small gutter on sides */
+    width: 98% !important;
     padding: 0 !important;
-    height: 85vh; /* Taller stage */
+    height: 85vh;
 }
 
 /* App Container */
@@ -25,10 +24,11 @@
     width: 100%;
 }
 
-/* Toolbar (Left) */
+/* --- DEFAULT (DESKTOP) LAYOUT --- */
+/* Toolbar on Left, Canvas on Right */
 .toolbar {
-    width: 250px;        /* Wide enough for buttons */
-    min-width: 250px;    /* Don't shrink */
+    width: 250px;
+    min-width: 250px;
     flex-shrink: 0;
     background: #f0f4f8;
     border-right: 2px solid #ccc;
@@ -84,7 +84,7 @@
     padding: 0 20px;
     overflow-x: auto;
     border-bottom: 2px solid #ccc;
-    flex-shrink: 0; /* Don't shrink vertically */
+    flex-shrink: 0;
 }
 
 .thumb {
@@ -102,62 +102,42 @@
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    background: #f0f0f0; /* Grey background to contrast with white page */
+    background: #f0f0f0;
 }
 
-/* UPDATED: Tablet & Mobile Optimization */
-@media (max-width: 1024px) {
-    /* 1. LAYOUT: Move Toolbar to Bottom */
+/* --- MOBILE PORTRAIT MODE (Toolbar at Bottom) --- */
+@media (max-width: 1024px) and (orientation: portrait) {
     .app-container {
-        flex-direction: column-reverse; /* Stacks items from bottom to top */
+        flex-direction: column-reverse; /* Stack: Canvas on Top, Toolbar on Bottom */
     }
 
-    /* 2. TOOLBAR: Bottom Navigation with Smooth Scroll */
     .toolbar {
         width: 100%;
         min-width: 0;
         height: auto;
-        max-height: 35vh;      /* Cap height so it doesn't cover the whole screen */
-        flex-direction: row;
+        max-height: 35vh;
+        flex-direction: row; /* Horizontal scrolling strip */
         align-items: flex-start;
-        flex-wrap: wrap;       /* Allow buttons to wrap nicely */
+        flex-wrap: wrap;
         justify-content: center;
         border-right: none;
         border-top: 3px solid var(--star-gold);
         padding: 10px 5px;
-        gap: 15px;
-        flex-shrink: 0;        /* Don't let the toolbar shrink */
 
-        /* --- THE SCROLL FIX --- */
-        overflow-y: auto;                  /* Allow vertical scrolling */
-        -webkit-overflow-scrolling: touch; /* Enables smooth "momentum" scrolling on iOS */
-        touch-action: pan-y;               /* Allows scrolling even if you touch a button */
+        /* Smooth Scroll */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
     }
 
-    /* 3. MAIN AREA: Canvas + Image Selector */
     .main-area {
-        flex: 1;               /* Fill the remaining space above the toolbar */
-        min-height: 0;         /* Critical preventing layout break */
+        flex: 1;
+        min-height: 0;
         width: 100%;
     }
 
-    /* 4. IMAGE SELECTOR: Top Strip */
-    #image-selector {
-        height: 80px;
-        flex-shrink: 0;        /* Keep this visible */
-        background: #fff;
-        border-bottom: 2px solid #ccc;
+    #image-selector { height: 80px; }
 
-        /* Smooth Horizontal Scrolling */
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    #canvas-wrapper {
-    margin: 0 40px;
-    }
-
-    /* 5. LARGER TOUCH TARGETS */
     .tool-group {
         display: flex;
         flex-wrap: wrap;
@@ -165,36 +145,71 @@
         background: rgba(255,255,255,0.5);
         border-radius: 10px;
         padding: 5px;
-        margin-bottom: 0;
+        margin: 0 5px 10px 5px;
+    }
+}
+
+/* --- MOBILE LANDSCAPE MODE (Slim Sidebar on Left) --- */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .app-container {
+        flex-direction: row; /* Side-by-side */
+    }
+
+    .toolbar {
+        width: 90px; /* Fixed Slim Width */
+        min-width: 90px;
+        height: 100%;
+        max-height: 100%;
+        flex-direction: column; /* Stack Vertical */
+        flex-wrap: nowrap;
+        border-right: 2px solid #ccc;
+        border-top: none;
+        overflow-y: auto; /* Scrollable if too tall */
+        padding: 10px 2px;
+    }
+
+    /* Force canvas to take remaining width */
+    .main-area {
+        flex: 1;
+        width: calc(100% - 90px);
+    }
+
+    #image-selector {
+        height: 70px; /* Shorter strip */
+    }
+
+    .thumb { height: 50px; width: 50px; }
+
+    /* Shrink UI Elements for Sidebar */
+    .tool-group {
+        background: none;
+        padding: 0;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+
+    .tool-label { font-size: 0.6em; text-align: center; margin-bottom: 5px;}
+
+    .palette {
+        grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+        gap: 5px;
     }
 
     .tool-btn, .util-btn {
-        width: 50px;
-        height: 50px;
-        margin: 3px;
-        font-size: 1.4em;
-    }
-
-    .palette {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        padding: 0;
-        max-width: 100%;
+        width: 35px; height: 35px; font-size: 1em;
+        margin: 2px 0;
     }
 
     .color-swatch {
-        width: 45px;
-        height: 45px;
-        margin: 0;
+        width: 30px; height: 30px;
     }
 
-    .tool-label {
-        width: 100%;
-        text-align: center;
-        font-size: 0.7em;
-        margin-bottom: 2px;
-        color: #333;
+    /* Fix Slider Width */
+    input[type=range] {
+        width: 70px;
     }
 }

@@ -33,26 +33,24 @@
         layer = new Konva.Layer();
         stage.add(layer);
 
-        // --- THE FIX: Content Group ---
-        // This group acts as the "Piece of Paper".
-        // We will scale and move THIS group, not the image inside it.
-        // Lines added to this group will stick to the image.
+        // Group acts as the "Piece of Paper"
         contentGroup = new Konva.Group();
         layer.add(contentGroup);
 
         setupUI();
         loadImage('1.jpg');
 
-        // Initial Resize Check
         setTimeout(() => handleResize(), 100);
 
         // --- DRAWING HANDLERS ---
         stage.on('mousedown touchstart', (e) => {
+            // FIX: Ignore multi-touch (pinching/scrolling)
+            if (e.evt.touches && e.evt.touches.length > 1) return;
+
             if (currentTool !== 'brush') return;
             isDrawing = true;
 
-            // FIX: Get pointer position RELATIVE to the group (the paper)
-            // This ensures drawing works even if the paper is scaled or moved.
+            // Get pointer relative to the scaled/moved paper group
             const pos = contentGroup.getRelativePointerPosition();
 
             currentLine = new Konva.Line({
@@ -67,10 +65,12 @@
         });
 
         stage.on('mousemove touchmove', (e) => {
-            if (!isDrawing || currentTool !== 'brush') return;
-            e.evt.preventDefault();
+            // FIX: Ignore multi-touch
+            if (e.evt.touches && e.evt.touches.length > 1) return;
 
-            // FIX: Use relative position here too
+            if (!isDrawing || currentTool !== 'brush') return;
+            e.evt.preventDefault(); // Prevent scroll only when actually drawing
+
             const pos = contentGroup.getRelativePointerPosition();
             const newPoints = currentLine.points().concat([pos.x, pos.y]);
             currentLine.points(newPoints);
@@ -88,14 +88,10 @@
         stage.on('click tap', (e) => {
             if (currentTool !== 'fill' || !currentImageNode) return;
 
-            // FIX: Use relative position.
-            // Because the group is scaled, 'pos' is already in the image's coordinate space!
-            // No need for complex math.
             const pos = contentGroup.getRelativePointerPosition();
             const pixelX = Math.floor(pos.x);
             const pixelY = Math.floor(pos.y);
 
-            // Bounds check
             if (pixelX >= 0 && pixelX < currentImageNode.width() && pixelY >= 0 && pixelY < currentImageNode.height()) {
                 const sourceCanvas = currentImageNode.image();
                 const ctx = sourceCanvas.getContext('2d');
@@ -108,7 +104,6 @@
             }
         });
 
-        // Responsive Resize Listener
         const resizeObserver = new ResizeObserver(() => handleResize());
         resizeObserver.observe(container);
     }
@@ -123,27 +118,19 @@
         stage.width(stageW);
         stage.height(stageH);
 
-        // --- THE FIX: Scale the GROUP, not the Image ---
         const imgW = currentImageNode.width();
         const imgH = currentImageNode.height();
 
-        // Calculate ratio to fit image into stage with 95% margin
+        // Fit paper to screen with margin
         const ratio = Math.min(stageW / imgW, stageH / imgH) * 0.95;
 
         const centerX = (stageW - (imgW * ratio)) / 2;
         const centerY = (stageH - (imgH * ratio)) / 2;
 
-        // Move and Scale the "Paper"
         contentGroup.position({ x: centerX, y: centerY });
         contentGroup.scale({ x: ratio, y: ratio });
 
-        // Clip the group so brush strokes don't go off the paper
-        contentGroup.clip({
-            x: 0,
-            y: 0,
-            width: imgW,
-            height: imgH
-        });
+        contentGroup.clip({ x: 0, y: 0, width: imgW, height: imgH });
 
         layer.batchDraw();
     }
@@ -197,8 +184,6 @@
 
         document.getElementById('clear-btn').onclick = () => {
             if(confirm('Clear all colors?')) {
-                // To clear, we destroy all children EXCEPT the image
-                // Or simply reload the image and wipe the group
                 const activeThumb = document.querySelector('.thumb.active');
                 const fname = activeThumb ? activeThumb.src.split('/').pop() : '1.jpg';
                 loadImage(fname);
@@ -206,8 +191,6 @@
         };
 
         document.getElementById('save-btn').onclick = () => {
-            // Save the group contents
-            // pixelRatio 3 ensures high quality save even if zoomed out
             const uri = contentGroup.toDataURL({ pixelRatio: 3, mimeType: "image/jpeg", quality: 0.9 });
             const link = document.createElement('a');
             link.download = 'my-art.jpg';
@@ -234,18 +217,16 @@
     }
 
     function loadImage(filename) {
-        contentGroup.destroyChildren(); // Wipe the "paper"
+        contentGroup.destroyChildren();
         historyStack = [];
 
         Konva.Image.fromURL('games/coloring/images/' + filename, (imgNode) => {
             const img = imgNode.image();
             const offscreenCanvas = document.createElement('canvas');
-            // Use natural dimensions
             offscreenCanvas.width = img.naturalWidth;
             offscreenCanvas.height = img.naturalHeight;
             const ctx = offscreenCanvas.getContext('2d');
 
-            // White background for JPG save
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
             ctx.drawImage(img, 0, 0);
@@ -253,19 +234,15 @@
             imgNode.image(offscreenCanvas);
             imgNode.width(img.naturalWidth);
             imgNode.height(img.naturalHeight);
-
-            // Image sits at 0,0 on the "paper"
             imgNode.position({x:0, y:0});
 
             currentImageNode = imgNode;
             contentGroup.add(imgNode);
 
-            // Fit the "paper" to the screen
             handleResize();
         });
     }
 
-    // --- HELPER: FLOOD FILL ---
     function floodFill(startX, startY, fillColorRgb, ctx) {
         const { width, height } = ctx.canvas;
         const imageData = ctx.getImageData(0, 0, width, height);
