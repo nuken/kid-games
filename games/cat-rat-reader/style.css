@@ -1,0 +1,100 @@
+#book-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.book-container {
+    display: flex;
+    width: 100%;
+    max-width: 850px;
+    background-color: white;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    border-radius: 15px;
+    overflow: hidden;
+    min-height: 450px;
+    border: 1px solid #ddd;
+}
+
+.page-side {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Image Styling */
+.image-frame {
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    /* Use the blue border color from your original file */
+    border: 4px solid #88c0d0; 
+    transform: rotate(-2deg);
+}
+
+#story-image {
+    max-width: 100%;
+    max-height: 350px;
+    display: block;
+    border-radius: 5px;
+}
+
+/* Text Styling */
+.text-side {
+    background: #fcfcfc;
+}
+
+#story-text {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Kept from your file */
+    font-size: 2.2em;
+    line-height: 1.5;
+    color: #333;
+    text-align: left;
+}
+
+/* Interactive Words */
+.word-interactive {
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.word-interactive:hover {
+    background-color: #f0f8ff; /* AliceBlue from your file */
+    transform: scale(1.1);
+    color: #2980b9; /* The rhyme blue color */
+}
+
+/* Controls */
+.controls-bar {
+    margin-top: 25px;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-btn, .action-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+}
+
+.nav-btn { background: #3498db; color: white; }
+.action-btn { background: #2ecc71; color: white; }
+.nav-btn:active, .action-btn:active { transform: translateY(4px); box-shadow: none; }
+.nav-btn:disabled { background: #ccc; cursor: default; transform: none; box-shadow: none; }
+
+/* Mobile Stack */
+@media (max-width: 700px) {
+    .book-container { flex-direction: column; }
+    .image-frame { transform: none; margin-bottom: 20px; }
+}
