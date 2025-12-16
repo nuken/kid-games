@@ -94,6 +94,14 @@ try {
     $stmt->execute([$user_id]);
     $my_badges = $stmt->fetchAll();
 
+    // --- EASTER EGG LOGIC ---
+    $greeting_text = "Hello " . $user['username']; // Default
+    if (strpos($theme_css, 'princess') !== false) {
+        $greeting_text = "Hello Princess " . $user['username'];
+    } elseif (strpos($theme_css, 'space') !== false) {
+        $greeting_text = "Hello Cadet " . $user['username'];
+    }
+
 } catch (PDOException $e) {
     die("System Error: " . $e->getMessage());
 }
@@ -221,7 +229,7 @@ try {
 
     <div class="profile-bar">
         <div class="user-info">
-            <div class="avatar" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5);">
+            <div class="avatar" onclick='speakText(<?php echo json_encode($greeting_text); ?>)' style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5); cursor: pointer; user-select: none;">
                 <?php
                     $user_avatar = $user['avatar'] ?? '👤';
                     if (strpos($user_avatar, '.') !== false) echo '👤';
