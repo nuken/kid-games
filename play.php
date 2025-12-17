@@ -2,8 +2,18 @@
 // play.php
 ini_set('display_errors', 1);
 session_start();
-require_once 'includes/db.php'; 
+require_once 'includes/db.php';
 require_once 'includes/header.php'; // Checks login & sets $theme_path
+
+// --- NEW: CACHE BUSTER HELPER FUNCTION ---
+// This function checks the file's last modified time and adds it to the URL
+function auto_version($file) {
+    if (file_exists($file)) {
+        return $file . '?v=' . filemtime($file);
+    }
+    return $file;
+}
+// -----------------------------------------
 
 // 1. Get Game Details & Apply Theme Overrides
 $game_id = $_GET['game_id'] ?? null;
@@ -18,12 +28,12 @@ $theme_id = $stmt->fetchColumn();
 
 // Fetch game details with overrides
 $sql = "
-    SELECT 
-        g.*, 
+    SELECT
+        g.*,
         COALESCE(ov.display_name, g.default_title) as final_title,
         COALESCE(ov.display_icon, g.default_icon) as final_icon
     FROM games g
-    LEFT JOIN game_theme_overrides ov 
+    LEFT JOIN game_theme_overrides ov
         ON g.id = ov.game_id AND ov.theme_id = :tid
     WHERE g.id = :gid
 ";
@@ -40,20 +50,15 @@ $game['default_title'] = $game['final_title'];
 // ---------------------------------------------------------
 // NEW: LOAD LANGUAGE FILE
 // ---------------------------------------------------------
-// 1. Load the Default Language first (as a fallback)
 require_once 'includes/lang/default.php';
-$default_lang = $LANG; // Keep a copy of defaults
+$default_lang = $LANG;
 
-// 2. Determine if we need a theme-specific language file
-// We assume the theme CSS filename matches the PHP lang filename (e.g., 'princess.css' -> 'princess.php')
-$theme_css = basename($theme_path); // e.g., "princess.css"
-$lang_file = str_replace('.css', '.php', $theme_css); // "princess.php"
+$theme_css = basename($theme_path);
+$lang_file = str_replace('.css', '.php', $theme_css);
 $lang_path = 'includes/lang/' . $lang_file;
 
-// 3. If a specific language file exists, load it and merge with defaults
 if ($lang_file !== 'default.php' && file_exists($lang_path)) {
-    include $lang_path; // This overwrites $LANG with specific keys
-    // Merge: specific theme strings overwrite defaults, missing ones stay default
+    include $lang_path;
     $LANG = array_merge($default_lang, $LANG);
 }
 // ---------------------------------------------------------
@@ -62,8 +67,7 @@ if ($lang_file !== 'default.php' && file_exists($lang_path)) {
 $jsConfig = [
     'userId' => $_SESSION['user_id'],
     'gameId' => $game['id'],
-    'themePath' => $theme_path, 
-    // Pass the setting (Default to true if not set)
+    'themePath' => $theme_path,
     'confetti' => (bool)($current_user['confetti_enabled'] ?? true),
     'root' => './'
 ];
@@ -75,22 +79,24 @@ $jsConfig = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo htmlspecialchars($game['default_title']); ?></title>
     <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-<link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
-<meta name="theme-color" content="#2c3e50">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="<?php echo $theme_path; ?>">
-    
-    <?php 
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="<?php echo auto_version('assets/css/style.css'); ?>">
+    <link rel="stylesheet" href="<?php echo auto_version($theme_path); ?>">
+
+    <?php
         $game_css = $game['folder_path'] . '/style.css';
         if (file_exists($game_css)) {
-            echo '<link rel="stylesheet" href="' . $game_css . '">';
+            // APPLY TO GAME SPECIFIC CSS
+            echo '<link rel="stylesheet" href="' . auto_version($game_css) . '">';
         }
     ?>
-    
+
     <style>
         /* Responsive Game Stage */
         #game-stage {
@@ -100,7 +106,7 @@ $jsConfig = [
             min-height: 500px;
             padding: 10px;
         }
-        
+
         /* Global Nav Styles override */
         .game-nav {
             display: flex;
@@ -154,7 +160,7 @@ $jsConfig = [
     </div>
 
     <div id="game-stage">
-        <?php 
+        <?php
             $view_file = $game['folder_path'] . '/view.php';
             if (file_exists($view_file)) {
                 include $view_file;
@@ -166,12 +172,12 @@ $jsConfig = [
 
     <script>
         window.gameConfig = <?php echo json_encode($jsConfig); ?>;
-        window.LANG = <?php echo json_encode($LANG); ?>; 
+        window.LANG = <?php echo json_encode($LANG); ?>;
     </script>
 
-    <script src="assets/js/speech-module.js"></script>
-    <script src="assets/js/game-bridge.js"></script>
-    <script src="<?php echo $game['folder_path']; ?>/game.js"></script>
+    <script src="<?php echo auto_version('assets/js/speech-module.js'); ?>"></script>
+    <script src="<?php echo auto_version('assets/js/game-bridge.js'); ?>"></script>
+    <script src="<?php echo auto_version($game['folder_path'] . '/game.js'); ?>"></script>
 
 </body>
 </html>
