@@ -4,6 +4,30 @@
     let currentStoryData = [];
     let isReading = false; // Prevent double clicks
 
+    // --- SMART DECK SHUFFLE LOGIC ---
+    // The master list of phrases
+    const imagePhrases = [
+        "Great picture!",
+        "Look at that!",
+        "What do you see?",
+        "Keep reading!",
+        "You are doing great!",
+        "Nice job!",
+        "Wow, look at the colors!"
+    ];
+
+    // The current "deck" we draw from
+    let phraseDeck = [];
+
+    // Helper to shuffle the deck (Fisher-Yates Shuffle)
+    function shuffleDeck() {
+        phraseDeck = [...imagePhrases]; // Refill from master list
+        for (let i = phraseDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [phraseDeck[i], phraseDeck[j]] = [phraseDeck[j], phraseDeck[i]];
+        }
+    }
+
     // Define multiple stories (Levels)
     const library = {
         'level1': [
@@ -24,6 +48,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const instructionsText = "Let's read a story! Click words to hear them.";
+
+        // Initialize the phrase deck on load
+        shuffleDeck();
 
         GameBridge.setupGame({
             instructions: instructionsText,
@@ -65,7 +92,6 @@
         if (textContainer) {
             textContainer.innerHTML = '';
 
-            // We use a flat index for word identification in "Karaoke Mode"
             let globalWordIndex = 0;
 
             const lines = page.text.split('\n');
@@ -75,15 +101,14 @@
 
                 words.forEach(word => {
                     const span = document.createElement('span');
-                    span.innerText = word + ' '; // Add space for visual layout
+                    span.innerText = word + ' ';
                     span.className = 'word-interactive';
-                    span.id = `word-${globalWordIndex}`; // Unique ID for highlighting
+                    span.id = `word-${globalWordIndex}`;
 
                     const cleanWord = word.replace(/[.,!?'"]/g, "");
-                    span.dataset.clean = cleanWord; // Store clean version
+                    span.dataset.clean = cleanWord;
 
                     span.onclick = () => {
-                        // "Pop" animation
                         span.style.transform = "scale(1.3)";
                         setTimeout(() => span.style.transform = "scale(1.1)", 200);
                         GameBridge.speak(cleanWord);
@@ -111,9 +136,9 @@
         }
     }
 
-    // --- NEW KARAOKE FEATURE ---
+    // --- KARAOKE FEATURE ---
     window.readPageKaraoke = function() {
-        if (isReading) return; // Don't start twice
+        if (isReading) return;
         isReading = true;
 
         const page = currentStoryData[currentPage];
@@ -121,13 +146,11 @@
         let index = 0;
 
         function speakNextWord() {
-            // Stop if we ran out of words
             if (index >= wordSpans.length) {
                 isReading = false;
                 return;
             }
 
-            // Safety check: if user turned page while reading, stops crashing
             if (currentPage !== currentStoryData.indexOf(page)) {
                 isReading = false;
                 return;
@@ -136,16 +159,11 @@
             const span = wordSpans[index];
             const textToSpeak = span.dataset.clean;
 
-            // 1. Highlight
             span.classList.add('word-reading');
 
-            // 2. Speak with Callback
-            // FIX APPLIED: Passed callback as 2nd argument (GameBridge handles arguments intelligently)
             GameBridge.speak(textToSpeak, () => {
-                // 3. Remove Highlight & Move Next
                 span.classList.remove('word-reading');
                 index++;
-                // Small delay between words for better pacing
                 setTimeout(speakNextWord, 50);
             });
         }
@@ -154,11 +172,16 @@
     };
 
     window.interactWithImage = function() {
-        // Simple logic: say a fun phrase.
-        const phrases = ["Great picture!", "Look at that!", "What do you see?", "Keep reading!"];
-        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        // --- SMART DECK LOGIC ---
+        // If the deck is empty, refill and reshuffle
+        if (phraseDeck.length === 0) {
+            shuffleDeck();
+        }
 
-        GameBridge.speak(randomPhrase);
+        // Pop the last card from the deck
+        const smartPhrase = phraseDeck.pop();
+
+        GameBridge.speak(smartPhrase);
 
         // Visual bounce
         const imgFrame = document.querySelector('.image-frame');
@@ -169,7 +192,6 @@
     };
 
     window.nextPage = function() {
-        // Reset reading state if they click next while reading
         isReading = false;
 
         if (currentPage < currentStoryData.length - 1) {
