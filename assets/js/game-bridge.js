@@ -217,11 +217,39 @@ window.GameBridge = (function() {
             }
         },
 
-        celebrate: function(text) {
-            this.playAudio('correct');
-            if (window.playConfettiEffect) window.playConfettiEffect();
-            if (text && window.speakText) window.speakText(text);
-        },
+        /* assets/js/game-bridge.js - Updated celebrate function */
+celebrate: function(text, videoUrl) {
+    this.playAudio('correct');
+    if (window.playConfettiEffect) window.playConfettiEffect();
+    if (text && window.speakText) window.speakText(text);
+
+    // NEW: If a video URL is provided, show the reward video
+    if (videoUrl) {
+        const videoOverlay = document.createElement('div');
+        Object.assign(videoOverlay.style, {
+            position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+        });
+
+        videoOverlay.innerHTML = `
+            <video id="reward-video" width="90%" style="max-width: 600px; border-radius: 20px; border: 5px solid #f1c40f;">
+                <source src="${videoUrl}" type="video/mp4">
+            </video>
+            <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
+                Great Reading! ⭐
+            </button>
+        `;
+
+        document.body.appendChild(videoOverlay);
+        const v = document.getElementById('reward-video');
+        v.play();
+
+        document.getElementById('close-video').onclick = () => {
+            document.body.removeChild(videoOverlay);
+        };
+    }
+},
 
         // --- UPDATED SPEAK FUNCTION ---
         speak: function(text, arg2, arg3) {
