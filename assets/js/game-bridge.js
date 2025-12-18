@@ -106,7 +106,7 @@ window.GameBridge = (function() {
             style.innerHTML = `
                 .badge-overlay {
                     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.85); z-index: 10000;
+                    background: rgba(0,0,0,0.5); z-index: 10000;
                     display: flex; align-items: center; justify-content: center;
                     backdrop-filter: blur(5px);
                 }
@@ -233,12 +233,12 @@ celebrate: function(text, videoUrl) {
         });
 
         videoOverlay.innerHTML = `
-            <video id="reward-video" width="90%" style="max-width: 600px; border-radius: 20px; border: 5px solid #f1c40f;">
-                <source src="${videoUrl}" type="video/mp4">
-            </video>
-            <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
-                Great Reading! ⭐
-            </button>
+            <video id="reward-video" width="90%" style="max-width: 600px; aspect-ratio: 16/9; background: black; border-radius: 20px; border: 5px solid #f1c40f;">
+                        <source src="${videoUrl}" type="video/mp4">
+                    </video>
+                    <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
+                        Great Reading! ⭐
+                    </button>
         `;
 
         document.body.appendChild(videoOverlay);
