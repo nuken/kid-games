@@ -315,7 +315,7 @@ try {
         <div class="daily-quest-container">
             <div class="quest-info">
                 <?php if ($is_quest_complete): ?>
-                    <h2>🌟 Quest Complete!</h2>
+                    <h2>⭐ Quest Complete!</h2>
                     <p>You earned the Daily Star! Come back tomorrow.</p>
                 <?php else: ?>
                     <h2>🚀 Daily Mission</h2>
@@ -336,7 +336,7 @@ try {
                     <div style="font-size: 40px; margin-bottom: 5px;"><?php echo $quest_game['default_icon']; ?></div>
                     <a href="<?php echo $q_link; ?>" class="quest-btn">PLAY NOW</a>
                 <?php else: ?>
-                    <div style="font-size: 50px;">🌟</div>
+                    <div style="font-size: 50px;">⭐</div>
                 <?php endif; ?>
             </div>
         </div>
