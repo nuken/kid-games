@@ -155,6 +155,7 @@
     }
 
     function checkAnswer(val, btn) {
+		GameBridge.stopSpeech();
         if (val === currentAnswer) {
             GameBridge.playAudio('correct');
             // Speak the name of the correct item
@@ -194,7 +195,9 @@
     }
 
     function finishGame() {
-        GameBridge.celebrate("All aboard! Pattern complete!");
+        // CHANGE: Add your video filename here (e.g., 'assets/videos/train_win.mp4')
+        GameBridge.celebrate("All aboard! Pattern complete!", "assets/videos/train_win.mp4");
+        
         GameBridge.saveScore({
             score: score,
             duration: Math.floor((Date.now() - startTime) / 1000),

@@ -152,15 +152,21 @@
                 score += 10;
                 questionsAnswered++;
                 GameBridge.updateScore(score);
-                GameBridge.celebrate(window.LANG.correct_short + " " + currentWordLetters.join(''));
-                document.getElementById('next-btn').classList.remove('hidden');
 
+                // CHECK WIN CONDITION FIRST
                 if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                    // CHANGE: Add your video filename here
+                    GameBridge.celebrate("You are a Spelling Star!", "assets/videos/spell_win.mp4");
+                    
                     GameBridge.saveScore({
                         score: score,
                         duration: Math.floor((Date.now() - startTime)/1000),
                         mistakes: sessionMistakes
                     });
+                } else {
+                    // NORMAL ROUND WIN
+                    GameBridge.celebrate(window.LANG.correct_short + " " + currentWordLetters.join(''));
+                    document.getElementById('next-btn').classList.remove('hidden');
                 }
             }
         } else {

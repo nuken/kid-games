@@ -70,15 +70,20 @@ function checkPurchase() {
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
-        GameBridge.celebrate(window.LANG.game_rocket_shop_sold);
 
+        // CHECK IF GAME IS OVER
         if (questionsAnswered >= totalQuestions) {
+            // CHANGE: Add your video filename here
+            GameBridge.celebrate("Mission Accomplished! You bought all the parts!", "assets/videos/rocket_win.mp4");
+            
             GameBridge.saveScore({
                 score: score,
                 duration: Math.floor((Date.now() - startTime)/1000),
                 mistakes: sessionMistakes
             });
         } else {
+            // NORMAL ROUND WIN
+            GameBridge.celebrate(window.LANG.game_rocket_shop_sold);
             setTimeout(() => spawnItem(false), 1500);
         }
     } else if (currentTotal > targetPrice) {
