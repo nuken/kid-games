@@ -98,7 +98,7 @@
 
             highlight(btn);
             btn.classList.add('found');
-            GameBridge.playAudio('correct');
+            GameBridge.handleCorrect();
 
             // Remove from pool
             lettersToFind = lettersToFind.filter(c => c !== char);
@@ -117,7 +117,7 @@
         } else {
             // Wrong
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+           GameBridge.handleWrong();
             btn.classList.add('shake');
             setTimeout(() => btn.classList.remove('shake'), 500);
         }

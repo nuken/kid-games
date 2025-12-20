@@ -157,7 +157,7 @@
     function checkAnswer(val, btn) {
 		GameBridge.stopSpeech();
         if (val === currentAnswer) {
-            GameBridge.playAudio('correct');
+           GameBridge.handleCorrect();
             // Speak the name of the correct item
             let name = emojiNames[val] || "That";
             GameBridge.speak(name + "! Correct!");
@@ -187,7 +187,7 @@
 
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
             GameBridge.speak("Not that one. Try again.");

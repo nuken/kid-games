@@ -157,7 +157,7 @@
 
             btn.style.backgroundColor = "#d4edda";
             btn.style.borderColor = "#28a745";
-            GameBridge.playAudio('correct');
+            GameBridge.handleCorrect();
 
             // Show result in Magnifying Glass
             const clueIconDiv = document.getElementById('clue-display');
@@ -181,7 +181,7 @@
             }
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
             GameBridge.speak("Try again.");
