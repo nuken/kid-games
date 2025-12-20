@@ -6,6 +6,8 @@ error_reporting(E_ALL);
 
 // 1. LOAD HEADER
 require_once 'includes/header.php';
+// NEW: Load quest logic
+require_once 'includes/quest_logic.php';
 
 $user = $current_user;
 $user_id = $_SESSION['user_id'];
@@ -51,6 +53,28 @@ try {
         include $current_lang_path;
         $LANG = array_merge($default_lang, $LANG);
     }
+
+    // --- NEW: FETCH DAILY QUEST INFO ---
+    // PASS THE USER'S GRADE LEVEL HERE
+    $daily_id = getDailyGameId($pdo, $user['grade_level']);
+    
+    $quest_game = null;
+    $is_quest_complete = false;
+
+    if ($daily_id) {
+        $stmt = $pdo->prepare("SELECT * FROM games WHERE id = ?");
+        $stmt->execute([$daily_id]);
+        $quest_game = $stmt->fetch();
+
+        // Check if completed today
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 25 AND DATE(earned_at) = CURDATE()");
+        $stmt->execute([$user_id]);
+        $is_quest_complete = ($stmt->fetchColumn() > 0);
+    }
+    
+    // Calculate Streak
+    $streak = getStreakCount($pdo, $user_id);
+    // -----------------------------------
 
     // 3. GET GAMES (With Favorites Logic)
     $sql = "
@@ -223,32 +247,100 @@ try {
         /* Ensure card fills wrapper */
         .mission-card { height: 100%; display: block; box-sizing: border-box; }
         .mission-card:hover { transform: none !important; } /* Disable default card hover */
+        
+        /* NEW QUEST STYLES */
+        .daily-quest-container {
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 3px solid #fff;
+            animation: pulse-glow 2s infinite alternate;
+        }
+        @keyframes pulse-glow { from { box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); } to { box-shadow: 0 4px 25px rgba(243, 156, 18, 0.6); } }
+
+        .quest-info h2 { margin: 0 0 5px 0; font-size: 1.4em; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .quest-info p { margin: 0; font-size: 1em; }
+        
+        .quest-action { text-align: right; }
+        .quest-btn {
+            background: #fff; color: #d35400; text-decoration: none;
+            padding: 10px 20px; border-radius: 20px; font-weight: bold;
+            display: inline-block; margin-top: 5px; box-shadow: 0 3px 0 #e67e22;
+            transition: transform 0.1s;
+        }
+        .quest-btn:active { transform: translateY(3px); box-shadow: none; }
+        
+        .streak-display { margin-top: 5px; font-size: 20px; }
+        .streak-fire { filter: grayscale(100%) opacity(0.5); transition: all 0.5s; }
+        .streak-fire.active { filter: none; transform: scale(1.2); }
+
+        @media (max-width: 600px) {
+            .daily-quest-container { flex-direction: column; text-align: center; gap: 15px; }
+            .quest-action { text-align: center; }
+        }
     </style>
 </head>
 <body>
 
     <div class="profile-bar">
-    <div class="user-info">
-        <div class="avatar" onclick='speakText(<?php echo json_encode($greeting_text); ?>)' style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5); cursor: pointer; user-select: none;">
-            <?php
-                $user_avatar = $user['avatar'] ?? '👤';
-                if (strpos($user_avatar, '.') !== false) echo '👤';
-                else echo $user_avatar;
-            ?>
+        <div class="user-info">
+            <div class="avatar" onclick='speakText(<?php echo json_encode($greeting_text); ?>)' style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5); cursor: pointer; user-select: none;">
+                <?php
+                    $user_avatar = $user['avatar'] ?? '👤';
+                    if (strpos($user_avatar, '.') !== false) echo '👤';
+                    else echo $user_avatar;
+                ?>
+            </div>
+            <div class="details">
+                <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
+                <p>Grade Level: <?php echo $grade_display; ?></p>
+            </div>
         </div>
-        <div class="details">
-            <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
-            <p>Grade Level: <?php echo $grade_display; ?></p>
-        </div>
-    </div>
 
-    <div style="display: flex; gap: 10px;">
-        <a href="sticker_book.php" class="logout-btn" style="background: var(--nebula-green);">Sticker Book</a>
-        <a href="logout.php" class="logout-btn">Log Out</a>
+        <div style="display: flex; gap: 10px;">
+            <a href="sticker_book.php" class="logout-btn" style="background: var(--nebula-green);">Sticker Book</a>
+            <a href="logout.php" class="logout-btn">Log Out</a>
+        </div>
     </div>
-</div>
 
     <div class="container">
+
+        <?php if ($quest_game): ?>
+        <div class="daily-quest-container">
+            <div class="quest-info">
+                <?php if ($is_quest_complete): ?>
+                    <h2>🌟 Quest Complete!</h2>
+                    <p>You earned the Daily Star! Come back tomorrow.</p>
+                <?php else: ?>
+                    <h2>🚀 Daily Mission</h2>
+                    <p>Play <strong><?php echo htmlspecialchars($quest_game['default_title']); ?></strong> to earn a Star!</p>
+                <?php endif; ?>
+                
+                <div class="streak-display">
+                    Streak: 
+                    <?php for($i=1; $i<=3; $i++): ?>
+                        <span class="streak-fire <?php echo ($i <= $streak) ? 'active' : ''; ?>">🔥</span>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="quest-action">
+                <?php if (!$is_quest_complete): 
+                     $q_link = (file_exists($quest_game['folder_path'] . '/view.php')) ? "play.php?game_id=" . $quest_game['id'] : $quest_game['folder_path'] . "/index.php";
+                ?>
+                    <div style="font-size: 40px; margin-bottom: 5px;"><?php echo $quest_game['default_icon']; ?></div>
+                    <a href="<?php echo $q_link; ?>" class="quest-btn">PLAY NOW</a>
+                <?php else: ?>
+                    <div style="font-size: 50px;">🌟</div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div class="badge-section">
             <h3 style="margin:0; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); opacity:0.8;">
