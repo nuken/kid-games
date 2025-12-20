@@ -194,6 +194,7 @@ function createButtons(opts) {
 
 function checkAnswer(ans, btn) {
     if (ans === currentCorrectAnswer) {
+		GameBridge.handleCorrect();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
@@ -222,7 +223,7 @@ function checkAnswer(ans, btn) {
         }
     } else {
         sessionMistakes++; // Track mistake
-        GameBridge.playAudio('wrong');
+        GameBridge.handleWrong();
         btn.style.borderColor = "var(--danger-btn)";
         GameBridge.speak(window.LANG.try_again);
     }

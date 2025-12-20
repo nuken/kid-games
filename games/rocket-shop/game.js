@@ -67,6 +67,7 @@ function resetCoins() {
 
 function checkPurchase() {
     if (currentTotal === targetPrice) {
+		GameBridge.handleCorrect();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
@@ -87,9 +88,11 @@ function checkPurchase() {
             setTimeout(() => spawnItem(false), 1500);
         }
     } else if (currentTotal > targetPrice) {
+		GameBridge.handleWrong();
         sessionMistakes++; // Overpaid is a mistake
         GameBridge.speak(window.LANG.game_rocket_shop_too_much);
     } else {
+		GameBridge.handleWrong();
         sessionMistakes++; // Underpaid is a mistake
         GameBridge.speak(window.LANG.game_rocket_shop_not_enough);
     }
