@@ -228,21 +228,25 @@ try {
 <body>
 
     <div class="profile-bar">
-        <div class="user-info">
-            <div class="avatar" onclick='speakText(<?php echo json_encode($greeting_text); ?>)' style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5); cursor: pointer; user-select: none;">
-                <?php
-                    $user_avatar = $user['avatar'] ?? '👤';
-                    if (strpos($user_avatar, '.') !== false) echo '👤';
-                    else echo $user_avatar;
-                ?>
-            </div>
-            <div class="details">
-                <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
-                <p>Grade Level: <?php echo $grade_display; ?></p>
-            </div>
+    <div class="user-info">
+        <div class="avatar" onclick='speakText(<?php echo json_encode($greeting_text); ?>)' style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 0 10px rgba(255,255,255,0.5); cursor: pointer; user-select: none;">
+            <?php
+                $user_avatar = $user['avatar'] ?? '👤';
+                if (strpos($user_avatar, '.') !== false) echo '👤';
+                else echo $user_avatar;
+            ?>
         </div>
+        <div class="details">
+            <h2><?php echo $LANG['profile_title']; ?> <?php echo htmlspecialchars($user['username']); ?></h2>
+            <p>Grade Level: <?php echo $grade_display; ?></p>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <a href="sticker_book.php" class="logout-btn" style="background: var(--nebula-green);">Sticker Book</a>
         <a href="logout.php" class="logout-btn">Log Out</a>
     </div>
+</div>
 
     <div class="container">
 
@@ -263,8 +267,9 @@ try {
                 <?php else: ?>
                     <div style="color: #ccc; padding: 10px; font-style: italic;">
                         <?php echo $LANG['no_patches']; ?>
-                    </div>
+                        </div>
                 <?php endif; ?>
+
             </div>
         </div>
 
