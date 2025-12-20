@@ -32,13 +32,11 @@ $score    = $data['score'];
 $duration = $data['duration'];
 $mistakes = isset($data['mistakes']) ? (int)$data['mistakes'] : 0; 
 
-// --- NEW STEP: FETCH USER GRADE ---
-// We need this to verify if the game played was their specific Daily Quest
+// Fetch user grade for Quest Logic
 try {
     $stmt = $pdo->prepare("SELECT grade_level FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user_grade = $stmt->fetchColumn();
-    // Default to 0 if something goes wrong, though user should exist
     if ($user_grade === false) $user_grade = 0;
 } catch (Exception $e) {
     $user_grade = 0; 
@@ -59,12 +57,10 @@ try {
 
     $new_badges = [];
 
-    // --- DAILY QUEST LOGIC ---
-    // Pass the fetched grade level here
+    // --- DAILY QUEST LOGIC (Keep strictly once per day) ---
     $daily_game_id = getDailyGameId($pdo, $user_grade);
     
     if ($game_id == $daily_game_id) {
-        // 1. Award Daily Star (Badge ID 25) if not already earned TODAY
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 25 AND DATE(earned_at) = CURDATE()");
         $stmt->execute([$user_id]);
         
@@ -72,7 +68,7 @@ try {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 25)")->execute([$user_id]);
             $new_badges[] = ['name' => 'Daily Star', 'icon' => '🌟'];
             
-            // 2. Check for 3-Day Streak (Badge ID 26)
+            // Streak Logic
             if (getStreakCount($pdo, $user_id) >= 3) {
                 $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 26");
                 $stmt->execute([$user_id]);
@@ -84,7 +80,7 @@ try {
         }
     }
 
-    // A. "First Flight" (Badge ID 1)
+    // A. "First Flight" (Badge ID 1) - Keep unique (Only once ever)
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 1");
     $stmt->execute([$user_id]);
     if ($stmt->fetchColumn() == 0) {
@@ -92,16 +88,15 @@ try {
         $new_badges[] = ['name' => 'First Flight', 'icon' => '✨'];
     }
 
-    // B. Game-Specific Badges
+    // B. Check Game-Specific Badges (ALLOW MULTIPLES!)
     $stmt = $pdo->prepare("SELECT * FROM badges WHERE criteria_game_id = ?");
     $stmt->execute([$game_id]);
     $game_badges = $stmt->fetchAll();
 
     foreach ($game_badges as $badge) {
-        $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?");
-        $check->execute([$user_id, $badge['id']]);
-        
-        if ($check->fetchColumn() == 0 && $score >= $badge['criteria_score']) {
+        // REMOVED the check for existing badges.
+        // Now we only check if they attained the score.
+        if ($score >= $badge['criteria_score']) {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")
                 ->execute([$user_id, $badge['id']]);
 
