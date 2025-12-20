@@ -89,6 +89,7 @@
         const container = document.getElementById('shape-choices-container');
 
         if (selectedShape === currentShape.name) {
+			GameBridge.handleCorrect();
             score += 20;
             questionsAnswered++;
             GameBridge.updateScore(score);
@@ -115,7 +116,7 @@
 
         } else {
             sessionMistakes++; // Track mistake
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             messageEl.innerText = window.LANG.try_again;
             messageEl.style.color = "var(--danger-btn)";
             btnElement.style.opacity = "0.5";

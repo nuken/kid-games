@@ -167,7 +167,7 @@
         robot.innerText = "🤖👍"; 
         setTimeout(() => robot.innerText = "🤖", 1000);
 
-        GameBridge.playAudio('correct');
+        GameBridge.handleCorrect();
         
         if (questionsAnswered >= QUESTIONS_TO_WIN) {
             GameBridge.saveScore({
@@ -182,7 +182,7 @@
 
     function handleFail(reason) {
         sessionMistakes++;
-        GameBridge.playAudio('wrong');
+        GameBridge.handleWrong();
         const robot = document.getElementById('robot-avatar');
         robot.classList.add('mad');
         robot.innerText = "🤖⚡"; 

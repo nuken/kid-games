@@ -149,6 +149,7 @@
 
             const remaining = document.querySelectorAll('.blank:not(.filled)').length;
             if (remaining === 0) {
+				GameBridge.handleCorrect();
                 score += 10;
                 questionsAnswered++;
                 GameBridge.updateScore(score);
@@ -171,7 +172,7 @@
             }
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             btn.style.background = '#ffcccc';
             setTimeout(() => btn.style.background = '', 500);
             

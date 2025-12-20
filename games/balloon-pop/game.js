@@ -119,11 +119,12 @@
                 }
             } else {
                 if (numberValue === level2Answer) {
+					GameBridge.handleCorrect();
                     popVisual(el);
                     handleWin();
                 } else {
                     sessionMistakes++;
-                    GameBridge.playAudio('wrong');
+                    GameBridge.handleWrong();
                     el.style.opacity = '0.5';
                 }
             }
@@ -133,7 +134,6 @@
     }
 
     function popVisual(el) {
-        GameBridge.playAudio('correct'); 
         el.classList.add('pop-anim');
         setTimeout(() => el.remove(), 200);
     }
@@ -154,10 +154,12 @@
             btn.className = 'num-btn';
             btn.innerText = num;
             btn.onclick = () => {
-                if (num === correctAnswer) handleWin();
-                else {
+                if (num === correctAnswer) {
+                    GameBridge.handleCorrect(); // STREAK: Add fire!
+                    handleWin();
+                } else {
                     sessionMistakes++;
-                    GameBridge.playAudio('wrong');
+                    GameBridge.handleWrong();   // STREAK: Reset
                 }
             };
             pad.appendChild(btn);

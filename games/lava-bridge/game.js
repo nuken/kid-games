@@ -88,7 +88,7 @@
     function checkAnswer(val, btn) {
         if (val === currentAnswer) {
             // Correct
-            GameBridge.playAudio('correct');
+            GameBridge.handleCorrect();
             btn.style.background = "#2ecc71";
             btn.style.color = "white";
             
@@ -97,7 +97,7 @@
         } else {
             // Wrong
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
             GameBridge.speak("Oops! The lava is hot!");

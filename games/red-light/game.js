@@ -163,7 +163,7 @@
         if (val === currentAnswer) {
             // --- GREEN LIGHT ---
             setLight('green');
-            GameBridge.playAudio('correct');
+            GameBridge.handleCorrect();
             GameBridge.speak("Green Light!");
             
             // Animations
@@ -190,7 +190,7 @@
         } else {
             // --- RED LIGHT ---
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
             GameBridge.speak("Try again.");
