@@ -238,3 +238,54 @@ body[style*="princess"] .fav-btn,
     /* Fallback for light themes if not handled by CSS variables */
     -webkit-text-stroke: 1px rgba(0,0,0,0.1);
 }
+
+/* --- MYSTERY GIFT ANIMATIONS --- */
+.gift-box {
+    font-size: 100px;
+    cursor: pointer;
+    animation: shake 2s infinite;
+    transition: transform 0.2s;
+    user-select: none;
+}
+.gift-box:active { transform: scale(0.9) rotate(0deg); }
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+.flash-reveal {
+    animation: flash 0.5s;
+}
+@keyframes flash {
+    0% { filter: brightness(100%); transform: scale(0.5); }
+    50% { filter: brightness(200%); transform: scale(1.2); }
+    100% { filter: brightness(100%); transform: scale(1); }
+}
+
+/* --- STREAK FIRE MODE --- */
+body.on-fire {
+    animation: border-pulse 1s infinite alternate;
+}
+
+@keyframes border-pulse {
+    from { box-shadow: inset 0 0 20px #e74c3c; }
+    to { box-shadow: inset 0 0 50px #f1c40f; }
+}
+
+/* Little flame icon in the corner */
+body.on-fire::after {
+    content: '🔥';
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 50px;
+    animation: bounce 0.5s infinite;
+    z-index: 9000;
+    pointer-events: none;
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}

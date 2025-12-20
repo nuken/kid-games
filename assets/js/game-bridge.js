@@ -1,6 +1,7 @@
 /* assets/js/game-bridge.js */
 window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
+	let currentStreak = 0; // NEW: Track streaks locally
 
     // --- Audio Objects ---
     const sounds = {
@@ -97,8 +98,8 @@ window.GameBridge = (function() {
     /**
      * BADGE MODAL LOGIC (New Styling)
      */
-    function showBadgeModal(badges) {
-        // 1. Create Styles
+   function showBadgeModal(badges) {
+        // 1. Create Styles (if missing)
         const styleId = 'badge-modal-style';
         if (!document.getElementById(styleId)) {
             const style = document.createElement('style');
@@ -106,7 +107,7 @@ window.GameBridge = (function() {
             style.innerHTML = `
                 .badge-overlay {
                     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.5); z-index: 10000;
+                    background: rgba(0,0,0,0.5); z-index: 10000; /* Below Video (10001) */
                     display: flex; align-items: center; justify-content: center;
                     backdrop-filter: blur(5px);
                 }
@@ -117,13 +118,11 @@ window.GameBridge = (function() {
                     box-shadow: 0 0 50px rgba(241, 196, 15, 0.6);
                     font-family: 'Comic Neue', sans-serif;
                     max-width: 90%; width: 320px;
-                    /* Elastic Bounce Animation */
                     animation: badgeBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
                 }
                 @keyframes badgeBounce {
                     0% { transform: scale(0); opacity: 0; }
                     60% { transform: scale(1.1); opacity: 1; }
-                    80% { transform: scale(0.95); }
                     100% { transform: scale(1); }
                 }
                 .badge-icon-lg { font-size: 100px; margin: 10px 0; display: block; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
@@ -136,46 +135,64 @@ window.GameBridge = (function() {
                     box-shadow: 0 6px 0 #219150; transition: transform 0.1s;
                 }
                 .badge-btn:hover { transform: scale(1.05); background: #27ae60; }
-                .badge-btn:active { transform: scale(0.95) translateY(6px); box-shadow: none; }
             `;
             document.head.appendChild(style);
         }
 
-        // 2. Create Elements
-        const overlay = document.createElement('div');
-        overlay.className = 'badge-overlay';
-
-        // Support multiple badges if earned at once
-        let contentHtml = '';
+        // 2. Prepare Data
+        // The "Real" Badge Content (Hidden at first)
+        let badgeHtml = '';
         badges.forEach(b => {
-            contentHtml += `
-                <div class="badge-icon-lg">${b.icon}</div>
-                <div class="badge-title">${b.name}</div>
+            badgeHtml += `
+                <div class="badge-icon-lg flash-reveal">${b.icon}</div>
+                <div class="badge-title flash-reveal">${b.name}</div>
                 <div class="badge-desc">Mission Complete!</div>
             `;
         });
 
+        // The "Gift Box" Content (Shown first)
+        const giftHtml = `
+            <div id="gift-box-trigger" class="gift-box">🎁</div>
+            <div id="gift-text" class="badge-title" style="color:#e74c3c;">You found a gift!</div>
+            <div class="badge-desc">Tap to open!</div>
+        `;
+
+        // 3. Render Overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'badge-overlay';
         overlay.innerHTML = `
-            <div class="badge-card">
-                ${contentHtml}
-                <button class="badge-btn" onclick="window.location.href='index.php'">Awesome!</button>
+            <div class="badge-card" id="badge-card-container">
+                ${giftHtml}
             </div>
         `;
 
         document.body.appendChild(overlay);
-        
-        // Extra celebration effect
-        window.playConfettiEffect();
+
+        // 4. Handle "Unboxing"
+        const trigger = document.getElementById('gift-box-trigger');
+        if(trigger) {
+            trigger.onclick = function() {
+                // Play Sound
+                sounds.correct.play().catch(()=>{});
+                
+                // Swap Content
+                const container = document.getElementById('badge-card-container');
+                container.innerHTML = badgeHtml + `<button class="badge-btn" onclick="window.location.href='index.php'">Awesome!</button>`;
+                
+                // Fire Confetti
+                if(window.playConfettiEffect) window.playConfettiEffect();
+            };
+        }
     }
 
     return {
         init: function() {
-            console.log("System: GameBridge Online");
             sounds.correct.load();
             sounds.wrong.load();
         },
 
         setupGame: function(config) {
+            // (Keep existing setupGame logic...)
             const overlay = document.getElementById('system-overlay');
             const desc = document.getElementById('overlay-desc');
             const levels = document.getElementById('level-select');
@@ -200,6 +217,32 @@ window.GameBridge = (function() {
             }
         },
 
+        // --- NEW: STREAK LOGIC ---
+        handleCorrect: function() {
+            currentStreak++;
+            this.updateStreakVisuals();
+            this.playAudio('correct');
+        },
+
+        handleWrong: function() {
+            currentStreak = 0;
+            this.updateStreakVisuals();
+            this.playAudio('wrong');
+        },
+
+        updateStreakVisuals: function() {
+            const body = document.body;
+            if (currentStreak >= 3) {
+                if (!body.classList.contains('on-fire')) {
+                    body.classList.add('on-fire');
+                    if(window.speakText) window.speakText("You are on fire!");
+                }
+            } else {
+                body.classList.remove('on-fire');
+            }
+        },
+        // -------------------------
+
         updateScore: function(val) {
             const el = document.getElementById('score-display');
             if(el) el.innerText = val;
@@ -207,58 +250,62 @@ window.GameBridge = (function() {
 
         playAudio: function(key) {
             if (sounds[key]) {
-                // FIX: Use cloneNode() to allow overlapping sounds.
-                // This prevents iOS from blocking rapid replays.
-                const soundClone = sounds[key].cloneNode();
-                
-                // Optional: Slightly vary pitch for fun (randomness) if you wanted, 
-                // but for now we just play the clone.
-                soundClone.play().catch(e => console.warn("Audio play blocked:", e));
+                const s = sounds[key].cloneNode();
+                s.play().catch(e => {});
             }
         },
+        
+        stopSpeech: function() {
+             if (window.stopSpeech) window.stopSpeech();
+        },
 
-        /* assets/js/game-bridge.js - Updated celebrate function */
-celebrate: function(text, videoUrl) {
-    this.playAudio('correct');
-    if (window.playConfettiEffect) window.playConfettiEffect();
-    if (text && window.speakText) window.speakText(text);
-
-    // NEW: If a video URL is provided, show the reward video
-    if (videoUrl) {
-        const videoOverlay = document.createElement('div');
-        Object.assign(videoOverlay.style, {
-            position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: '10001',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
-        });
-
-        videoOverlay.innerHTML = `
-            <video id="reward-video" width="90%" style="max-width: 600px; aspect-ratio: 16/9; background: black; border-radius: 20px; border: 5px solid #f1c40f;">
-                        <source src="${videoUrl}" type="video/mp4">
-                    </video>
-                    <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
-                        Great Job! ⭐
-                    </button>
-        `;
-
-        document.body.appendChild(videoOverlay);
-        const v = document.getElementById('reward-video');
-        v.play();
-
-        document.getElementById('close-video').onclick = () => {
-            document.body.removeChild(videoOverlay);
-			window.location.href = "index.php";
-        };
-    }
-},
-
-        // --- UPDATED SPEAK FUNCTION ---
         speak: function(text, arg2, arg3) {
             if (window.speakText) window.speakText(text, arg2, arg3);
         },
-		
-		stopSpeech: function() {
-            if (window.stopSpeech) window.stopSpeech();
+
+        // --- UPDATED CELEBRATE (With Smart Redirect) ---
+        celebrate: function(text, videoUrl) {
+            // Audio/Visuals
+            this.playAudio('correct');
+            if (window.playConfettiEffect) window.playConfettiEffect();
+            if (text && window.speakText) window.speakText(text);
+
+            if (videoUrl) {
+                const videoOverlay = document.createElement('div');
+                videoOverlay.id = 'video-reward-overlay'; // ID for easy finding
+                Object.assign(videoOverlay.style, {
+                    position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001', // Higher than badge
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                });
+
+                videoOverlay.innerHTML = `
+                    <video id="reward-video" width="90%" style="max-width: 600px; aspect-ratio: 16/9; background: black; border-radius: 20px; border: 5px solid #f1c40f;" autoplay>
+                        <source src="${videoUrl}" type="video/mp4">
+                    </video>
+                    <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
+                        Great Job! ➡
+                    </button>
+                `;
+
+                document.body.appendChild(videoOverlay);
+
+                // FIX: "Smart" Close Button
+                document.getElementById('close-video').onclick = () => {
+                    document.body.removeChild(videoOverlay);
+                    
+                    // CHECK: Is a badge/gift waiting underneath?
+                    // We look for the badge overlay class
+                    const badgeWaiting = document.querySelector('.badge-overlay');
+                    
+                    if (!badgeWaiting) {
+                        // No badge? Okay, go to menu
+                        window.location.href = "index.php";
+                    }
+                    // If badgeWaiting is true, we do nothing. 
+                    // The video disappears, revealing the Gift Box underneath!
+                };
+            }
         },
 
         saveScore: function(data) {
@@ -279,13 +326,15 @@ celebrate: function(text, videoUrl) {
             })
             .then(response => response.json())
             .then(result => {
-                // Use new Custom Modal instead of Alert
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
+                    // SHOW MYSTERY GIFT
                     showBadgeModal(result.new_badges);
                 } else {
-                    if (!document.getElementById('reward-video')) {
-        setTimeout(() => window.location.href = "index.php", 2000);
-    }
+                    // NO BADGE
+                    // Only redirect if NO video is playing.
+                    if (!document.getElementById('video-reward-overlay')) {
+                        setTimeout(() => window.location.href = "index.php", 2000);
+                    }
                 }
             })
             .catch(error => console.error("Save Error:", error));
