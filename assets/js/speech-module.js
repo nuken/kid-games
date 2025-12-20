@@ -144,6 +144,16 @@
         speechQueue.push({ text: text, lang: lang, callback: callback });
         processQueue();
     };
+	window.stopSpeech = function() {
+        // 1. Cancel the browser's current speech
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        
+        // 2. Clear the queue so it doesn't say the next thing
+        speechQueue = []; 
+        isSpeaking = false;
+        activeUtterance = null;
+        clearTimeout(watchdogTimer);
+    };
 
     window.unlockAudio = function() {
         if (hasUserInteracted) return;

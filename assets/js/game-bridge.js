@@ -228,7 +228,7 @@ celebrate: function(text, videoUrl) {
         const videoOverlay = document.createElement('div');
         Object.assign(videoOverlay.style, {
             position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001',
+            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: '10001',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
         });
 
@@ -237,7 +237,7 @@ celebrate: function(text, videoUrl) {
                         <source src="${videoUrl}" type="video/mp4">
                     </video>
                     <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
-                        Great Reading! ⭐
+                        Great Job! ⭐
                     </button>
         `;
 
@@ -247,15 +247,18 @@ celebrate: function(text, videoUrl) {
 
         document.getElementById('close-video').onclick = () => {
             document.body.removeChild(videoOverlay);
+			window.location.href = "index.php";
         };
     }
 },
 
         // --- UPDATED SPEAK FUNCTION ---
         speak: function(text, arg2, arg3) {
-            // Pass arguments intelligently to the global speech module
-            // This supports speak(text, 'es') or speak(text, callback)
             if (window.speakText) window.speakText(text, arg2, arg3);
+        },
+		
+		stopSpeech: function() {
+            if (window.stopSpeech) window.stopSpeech();
         },
 
         saveScore: function(data) {
@@ -280,7 +283,9 @@ celebrate: function(text, videoUrl) {
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
                     showBadgeModal(result.new_badges);
                 } else {
-                    setTimeout(() => window.location.href = "index.php", 2000);
+                    if (!document.getElementById('reward-video')) {
+        setTimeout(() => window.location.href = "index.php", 2000);
+    }
                 }
             })
             .catch(error => console.error("Save Error:", error));
