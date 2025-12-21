@@ -12,6 +12,12 @@
     let currentImageNode = null;
     let historyStack = [];
 
+    // Timer Variables
+    let startTime = Date.now();
+    let timeInterval = null;
+    let hasWon = false;
+    const SECONDS_TO_WIN = 60; // 1 minute to complete quest
+
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
             instructions: "Pick a color and draw!",
@@ -21,6 +27,12 @@
     });
 
     function initCanvas() {
+        // Reset Timer
+        startTime = Date.now();
+        hasWon = false;
+        if (timeInterval) clearInterval(timeInterval);
+        timeInterval = setInterval(checkTimeWin, 1000);
+
         const container = document.getElementById('canvas-wrapper');
         if (stage) stage.destroy();
 
@@ -44,15 +56,11 @@
 
         // --- DRAWING HANDLERS ---
         stage.on('mousedown touchstart', (e) => {
-            // FIX: Ignore multi-touch (pinching/scrolling)
             if (e.evt.touches && e.evt.touches.length > 1) return;
-
             if (currentTool !== 'brush') return;
             isDrawing = true;
 
-            // Get pointer relative to the scaled/moved paper group
             const pos = contentGroup.getRelativePointerPosition();
-
             currentLine = new Konva.Line({
                 stroke: currentColor,
                 strokeWidth: parseInt(currentSize),
@@ -60,16 +68,13 @@
                 lineCap: 'round', lineJoin: 'round',
                 points: [pos.x, pos.y, pos.x, pos.y]
             });
-
             contentGroup.add(currentLine);
         });
 
         stage.on('mousemove touchmove', (e) => {
-            // FIX: Ignore multi-touch
             if (e.evt.touches && e.evt.touches.length > 1) return;
-
             if (!isDrawing || currentTool !== 'brush') return;
-            e.evt.preventDefault(); // Prevent scroll only when actually drawing
+            e.evt.preventDefault();
 
             const pos = contentGroup.getRelativePointerPosition();
             const newPoints = currentLine.points().concat([pos.x, pos.y]);
@@ -87,7 +92,6 @@
         // --- FLOOD FILL HANDLER ---
         stage.on('click tap', (e) => {
             if (currentTool !== 'fill' || !currentImageNode) return;
-
             const pos = contentGroup.getRelativePointerPosition();
             const pixelX = Math.floor(pos.x);
             const pixelY = Math.floor(pos.y);
@@ -107,21 +111,35 @@
         const resizeObserver = new ResizeObserver(() => handleResize());
         resizeObserver.observe(container);
     }
+    
+    // NEW: Check for time-based win BUT do not redirect
+    function checkTimeWin() {
+        if (hasWon) return;
+        
+        if (Date.now() - startTime >= SECONDS_TO_WIN * 1000) {
+            hasWon = true;
+            clearInterval(timeInterval);
+            
+            GameBridge.saveScore({ 
+                score: 100, 
+                duration: SECONDS_TO_WIN, 
+                mistakes: 0,
+                noRedirect: true // <--- Stay in game!
+            });
+            GameBridge.celebrate("Mission Complete! Keep having fun!");
+        }
+    }
 
     function handleResize() {
         if (!stage || !currentImageNode) return;
-
         const container = document.getElementById('canvas-wrapper');
         const stageW = container.clientWidth;
         const stageH = container.clientHeight;
-
         stage.width(stageW);
         stage.height(stageH);
 
         const imgW = currentImageNode.width();
         const imgH = currentImageNode.height();
-
-        // Fit paper to screen with margin
         const ratio = Math.min(stageW / imgW, stageH / imgH) * 0.95;
 
         const centerX = (stageW - (imgW * ratio)) / 2;
@@ -129,16 +147,13 @@
 
         contentGroup.position({ x: centerX, y: centerY });
         contentGroup.scale({ x: ratio, y: ratio });
-
         contentGroup.clip({ x: 0, y: 0, width: imgW, height: imgH });
-
         layer.batchDraw();
     }
 
     function setupUI() {
         const p = document.getElementById('color-palette');
         p.innerHTML = '';
-
         colors.forEach((c, idx) => {
             let d = document.createElement('div');
             d.className = 'color-swatch';
@@ -160,7 +175,6 @@
             brushBtn.classList.add('active');
             fillBtn.classList.remove('active');
         };
-
         fillBtn.onclick = () => {
             currentTool = 'fill';
             fillBtn.classList.add('active');
@@ -168,7 +182,6 @@
         };
 
         document.getElementById('brush-size').oninput = (e) => currentSize = e.target.value;
-
         document.getElementById('undo-btn').onclick = () => {
             if (historyStack.length === 0) return;
             const lastAction = historyStack.pop();
@@ -226,19 +239,15 @@
             offscreenCanvas.width = img.naturalWidth;
             offscreenCanvas.height = img.naturalHeight;
             const ctx = offscreenCanvas.getContext('2d');
-
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
             ctx.drawImage(img, 0, 0);
-
             imgNode.image(offscreenCanvas);
             imgNode.width(img.naturalWidth);
             imgNode.height(img.naturalHeight);
             imgNode.position({x:0, y:0});
-
             currentImageNode = imgNode;
             contentGroup.add(imgNode);
-
             handleResize();
         });
     }
@@ -260,7 +269,6 @@
         while (stack.length > 0) {
             const [x, y] = stack.pop();
             if (x < 0 || x >= width || y < 0 || y >= height) continue;
-
             const idx = (y * width + x) * 4;
             if (!colorsMatch(data, idx, startColor, 35)) continue;
             if (data[idx] === fillColor[0] && data[idx+1] === fillColor[1] && data[idx+2] === fillColor[2]) continue;
