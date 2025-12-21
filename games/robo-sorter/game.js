@@ -74,6 +74,7 @@ function checkAnswer(type) {
     let isCorrect = (type === 'even' && isEven) || (type === 'odd' && !isEven);
 
     if (isCorrect) {
+		GameBridge.handleCorrect();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
@@ -94,7 +95,7 @@ function checkAnswer(type) {
         }
     } else {
         sessionMistakes++; // Track mistake
-        GameBridge.playAudio('wrong');
+        GameBridge.handleWrong();
         message.innerText = window.LANG.try_again;
         message.style.color = "var(--danger-btn)";
         message.style.display = "block";
