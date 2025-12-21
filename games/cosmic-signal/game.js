@@ -194,7 +194,7 @@ function createButtons(opts) {
 
 function checkAnswer(ans, btn) {
     if (ans === currentCorrectAnswer) {
-		GameBridge.handleCorrect();
+		GameBridge.handleCorrectSilent();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);

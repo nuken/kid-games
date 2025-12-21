@@ -174,7 +174,7 @@
         const targetMix = [...targetColorData.mix].sort().join('+');
 
         if (userMix === targetMix) {
-			GameBridge.handleCorrect();
+			GameBridge.handleCorrectSilent();
             // CORRECT
             const liquid = document.getElementById('liquid');
             liquid.style.backgroundColor = targetColorData.hex;

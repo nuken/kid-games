@@ -195,7 +195,7 @@
 
     function checkAnswer(selected, btn) {
         if (selected === currentTarget) {
-			GameBridge.handleCorrect();
+			GameBridge.handleCorrectSilent();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
