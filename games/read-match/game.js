@@ -101,6 +101,7 @@
 
             btn.onclick = () => {
                 if (txt === item.correct) {
+					GameBridge.handleCorrect();
                     btn.classList.add('correct');
                     score += 10;
                     questionsAnswered++;
@@ -119,7 +120,7 @@
                     }
                 } else {
                     sessionMistakes++;
-                    GameBridge.playAudio('wrong');
+                    GameBridge.handleWrong();
                     btn.classList.add('wrong');
                     GameBridge.speak(window.LANG.try_again);
                     setTimeout(() => btn.classList.remove('wrong'), 500);
