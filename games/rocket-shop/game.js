@@ -67,7 +67,7 @@ function resetCoins() {
 
 function checkPurchase() {
     if (currentTotal === targetPrice) {
-		GameBridge.handleCorrect();
+		GameBridge.handleCorrectSilent();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);

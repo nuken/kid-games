@@ -149,7 +149,7 @@
 
             const remaining = document.querySelectorAll('.blank:not(.filled)').length;
             if (remaining === 0) {
-				GameBridge.handleCorrect();
+				GameBridge.handleCorrectSilent();
                 score += 10;
                 questionsAnswered++;
                 GameBridge.updateScore(score);
