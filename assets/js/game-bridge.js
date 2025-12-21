@@ -223,6 +223,12 @@ window.GameBridge = (function() {
             this.updateStreakVisuals();
             this.playAudio('correct');
         },
+		
+		        // --- NEW: STREAK LOGIC ---
+        handleCorrectSilent: function() {
+            currentStreak++;
+            this.updateStreakVisuals();
+        },
 
         handleWrong: function() {
             currentStreak = 0;
