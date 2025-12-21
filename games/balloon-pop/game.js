@@ -119,7 +119,7 @@
                 }
             } else {
                 if (numberValue === level2Answer) {
-					GameBridge.handleCorrect();
+					GameBridge.handleCorrectSilent();
                     popVisual(el);
                     handleWin();
                 } else {
@@ -134,6 +134,7 @@
     }
 
     function popVisual(el) {
+		GameBridge.playAudio('correct');
         el.classList.add('pop-anim');
         setTimeout(() => el.remove(), 200);
     }
@@ -155,7 +156,7 @@
             btn.innerText = num;
             btn.onclick = () => {
                 if (num === correctAnswer) {
-                    GameBridge.handleCorrect(); // STREAK: Add fire!
+                    GameBridge.handleCorrectSilent(); // STREAK: Add fire!
                     handleWin();
                 } else {
                     sessionMistakes++;
