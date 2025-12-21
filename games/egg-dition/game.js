@@ -16,7 +16,7 @@
     
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
-            instructions: "Count the eggs or solve the math!",
+            instructions: "Count the eggs!",
             levels: [
                 { id: 1, label: "Counting (Pre-K)" },
                 { id: 2, label: "Addition (Grades 1-2)" }
@@ -102,6 +102,7 @@
 
     function checkAnswer(selected) {
         if (selected === currentAnswer) {
+			GameBridge.handleCorrect();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
@@ -119,7 +120,7 @@
             }
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             GameBridge.speak("Try again.");
         }
     }

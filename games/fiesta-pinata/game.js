@@ -195,6 +195,7 @@
 
     function checkAnswer(selected, btn) {
         if (selected === currentTarget) {
+			GameBridge.handleCorrect();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
@@ -216,7 +217,7 @@
             }
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             GameBridge.speak("Try again");
             btn.style.opacity = "0.5";
         }
