@@ -33,13 +33,13 @@
         { obj: "🎁", shape: "🟥", name: "Gift" },
         { obj: "🖼️", shape: "🟥", name: "Frame" },
         { obj: "💾", shape: "🟥", name: "Disk" },
-        { obj: "🥪", shape: "🟥", name: "Sandwich" }, // Moved to Square
+        { obj: "🥪", shape: "🟥", name: "Sandwich" },
 
         // Triangles
         { obj: "🍕", shape: "🔺", name: "Pizza" },
         { obj: "⛺", shape: "🔺", name: "Tent" },
         { obj: "🍦", shape: "🔺", name: "Ice Cream" },
-        { obj: "📐", shape: "🔺", name: "Ruler" }, // Added Ruler to replace Sandwich
+        { obj: "📐", shape: "🔺", name: "Ruler" },
 
         // Rectangles (These map to the stretched 🟧)
         { obj: "🚪", shape: "🟧", name: "Door" },
@@ -169,13 +169,15 @@
                 }
             }
 
+            // CHANGED: Video win logic
             if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                GameBridge.celebrate("Case Closed! Great job Detective!", "assets/videos/shape_win.mp4");
+                
                 GameBridge.saveScore({
                     score: score,
                     duration: Math.floor((Date.now() - startTime) / 1000),
                     mistakes: sessionMistakes
                 });
-                GameBridge.celebrate("Case Closed! Great job Detective!");
             } else {
                 setTimeout(nextRound, 1000);
             }
