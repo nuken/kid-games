@@ -174,6 +174,7 @@
         const targetMix = [...targetColorData.mix].sort().join('+');
 
         if (userMix === targetMix) {
+			GameBridge.handleCorrect();
             // CORRECT
             const liquid = document.getElementById('liquid');
             liquid.style.backgroundColor = targetColorData.hex;
@@ -201,7 +202,7 @@
         } else {
             // WRONG
             sessionMistakes++; // Track mistake
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             document.getElementById('message').innerText = window.LANG.oops;
             document.getElementById('message').style.color = "var(--danger-btn)";
             document.getElementById('liquid').style.backgroundColor = "#5d4037"; // Brown
