@@ -102,7 +102,7 @@
 
     function checkAnswer(selected) {
         if (selected === currentAnswer) {
-			GameBridge.handleCorrect();
+			GameBridge.handleCorrectSilent();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
