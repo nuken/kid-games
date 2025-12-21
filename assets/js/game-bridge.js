@@ -1,7 +1,7 @@
 /* assets/js/game-bridge.js */
 window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
-	let currentStreak = 0; // NEW: Track streaks locally
+    let currentStreak = 0; // NEW: Track streaks locally
 
     // --- Audio Objects ---
     const sounds = {
@@ -97,8 +97,9 @@ window.GameBridge = (function() {
 
     /**
      * BADGE MODAL LOGIC (New Styling)
+     * UPDATED: Accepts an optional callback to stay in the game instead of redirecting
      */
-   function showBadgeModal(badges) {
+   function showBadgeModal(badges, onCloseCallback) {
         // 1. Create Styles (if missing)
         const styleId = 'badge-modal-style';
         if (!document.getElementById(styleId)) {
@@ -177,10 +178,23 @@ window.GameBridge = (function() {
                 
                 // Swap Content
                 const container = document.getElementById('badge-card-container');
-                container.innerHTML = badgeHtml + `<button class="badge-btn" onclick="window.location.href='index.php'">Awesome!</button>`;
+                // Added ID to button for click handler
+                container.innerHTML = badgeHtml + `<button id="badge-close-btn" class="badge-btn">Awesome!</button>`;
                 
                 // Fire Confetti
                 if(window.playConfettiEffect) window.playConfettiEffect();
+
+                // Handle Close Click
+                document.getElementById('badge-close-btn').onclick = function() {
+                    if (onCloseCallback) {
+                        // User wants to stay in the game (Quest Logic)
+                        document.body.removeChild(overlay);
+                        onCloseCallback();
+                    } else {
+                        // Default behavior: Redirect to menu
+                        window.location.href = 'index.php';
+                    }
+                };
             };
         }
     }
@@ -223,8 +237,8 @@ window.GameBridge = (function() {
             this.updateStreakVisuals();
             this.playAudio('correct');
         },
-		
-		        // --- NEW: STREAK LOGIC ---
+        
+        // --- NEW: STREAK LOGIC (SILENT) ---
         handleCorrectSilent: function() {
             currentStreak++;
             this.updateStreakVisuals();
@@ -332,13 +346,19 @@ window.GameBridge = (function() {
             })
             .then(response => response.json())
             .then(result => {
+                // CHECK IF BADGE WAS EARNED
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
                     // SHOW MYSTERY GIFT
-                    showBadgeModal(result.new_badges);
+                    // If noRedirect is requested, we pass an empty callback () => {} to keep them in game
+                    // Otherwise pass null, which defaults to redirect
+                    const callback = data.noRedirect ? () => {} : null;
+                    showBadgeModal(result.new_badges, callback);
                 } else {
                     // NO BADGE
-                    // Only redirect if NO video is playing.
-                    if (!document.getElementById('video-reward-overlay')) {
+                    // Only redirect if:
+                    // 1. NO video is playing
+                    // 2. AND we are NOT specifically asked to stay in the game (noRedirect)
+                    if (!document.getElementById('video-reward-overlay') && !data.noRedirect) {
                         setTimeout(() => window.location.href = "index.php", 2000);
                     }
                 }
