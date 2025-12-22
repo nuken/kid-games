@@ -67,16 +67,11 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             background: rgba(0,0,0,0.8);
             display: flex; align-items: center; gap: 20px; padding: 0 20px;
             border-top: 4px solid var(--star-gold);
-            
             overflow-x: auto; 
         }
         
-        /* Mobile scrollbar hidden */
-        @media (pointer: coarse) {
-            #sticker-drawer::-webkit-scrollbar { display: none; }
-        }
+        @media (pointer: coarse) { #sticker-drawer::-webkit-scrollbar { display: none; } }
 
-        /* Desktop scrollbar */
         #sticker-drawer::-webkit-scrollbar { height: 8px; }
         #sticker-drawer::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
         #sticker-drawer::-webkit-scrollbar-thumb { background: var(--star-gold); border-radius: 4px; }
@@ -89,10 +84,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         }
         .drawer-item:active { transform: scale(0.9); }
 
-        /* Spacer to insure last item is reachable */
-        .drawer-spacer {
-            min-width: 50px; height: 1px;
-        }
+        .drawer-spacer { min-width: 50px; height: 1px; }
 
         .placed-sticker {
             position: absolute; font-size: 80px; cursor: grab;
@@ -102,10 +94,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         }
         .placed-sticker:active { cursor: grabbing; }
         
-        .dragging {
-            z-index: 9999 !important;
-            pointer-events: none; 
-        }
+        .dragging { z-index: 9999 !important; pointer-events: none; }
 
         .sticker-bounce { animation: popBounce 0.4s; }
         @keyframes popBounce {
@@ -120,6 +109,63 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             color: white; border-radius: 30px; text-decoration: none; font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
+
+        /* --- NEW KID FRIENDLY POPUP MODAL --- */
+        #custom-modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); /* Dim background */
+            z-index: 2000;
+            justify-content: center; align-items: center;
+            pointer-events: auto;
+            backdrop-filter: blur(5px); /* Blurs the background scene */
+        }
+
+        #custom-modal {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            border: 6px solid var(--planet-red);
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy enter */
+            max-width: 90%;
+            width: 400px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .modal-title { 
+            font-size: 36px; color: #333; margin-bottom: 10px; 
+            font-weight: 900; 
+        }
+        
+        .modal-desc {
+            font-size: 20px; color: #666; margin-bottom: 25px;
+        }
+
+        .modal-btns { 
+            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            padding: 15px 25px; border-radius: 50px; font-size: 20px; border: none; cursor: pointer;
+            font-weight: bold; color: white; transition: transform 0.1s;
+            font-family: 'Comic Neue', cursive;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+        }
+
+        .modal-btn:active { 
+            transform: translateY(6px); 
+            box-shadow: none; 
+        }
+
+        .btn-yes { background: #e74c3c; /* Red */ }
+        .btn-no { background: #2ecc71; /* Green */ }
 
         @media (orientation: portrait) {
             #sticker-canvas {
@@ -143,7 +189,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             <button class="scene-btn <?php echo $current_scene=='space'?'active':''; ?>" onclick="switchScene('space')">🚀</button>
             <button class="scene-btn <?php echo $current_scene=='fairy'?'active':''; ?>" onclick="switchScene('fairy')">🏰</button>
             <button class="scene-btn <?php echo $current_scene=='ocean'?'active':''; ?>" onclick="switchScene('ocean')">🐠</button>
-            <button class="scene-btn" style="background:#e74c3c; border-color:#c0392b;" onclick="clearCanvas()">🗑️</button>
+            <button class="scene-btn" style="background:#e74c3c; border-color:#c0392b;" onclick="openClearModal()">🗑️</button>
         </div>
 
         <div id="sticker-drawer">
@@ -156,6 +202,18 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             <?php endforeach; ?>
             <div class="drawer-spacer"></div>
         </div>
+
+        <div id="custom-modal-overlay">
+            <div id="custom-modal">
+                <div class="modal-title">Start Over? 😲</div>
+                <div class="modal-desc">Do you want to clear your sticker page?</div>
+                <div class="modal-btns">
+                    <button class="modal-btn btn-no" onclick="closeModal()">Keep It! 🛡️</button>
+                    <button class="modal-btn btn-yes" onclick="confirmClear()">Wipe It! 💣</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 <script>
@@ -163,6 +221,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
     const canvas = document.getElementById('sticker-canvas');
     const drawer = document.getElementById('sticker-drawer');
     const SAVE_KEY = `sticker_save_<?php echo $user_id; ?>_<?php echo $current_scene; ?>`;
+    const modal = document.getElementById('custom-modal-overlay');
 
     // 1. Sounds
     const sounds = {
@@ -188,8 +247,25 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         setTimeout(() => { window.location.href = `?scene=${sceneName}`; }, 300);
     }
 
-    // --- DRAG LOGIC ---
+    // --- MODAL LOGIC ---
+    function openClearModal() {
+        modal.style.display = 'flex';
+        // Play a little sound to grab attention
+        sounds.pop.play().catch(e=>{});
+    }
 
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function confirmClear() {
+        closeModal();
+        sounds.crumple.play().catch(e=>{});
+        canvas.innerHTML = '';
+        localStorage.removeItem(SAVE_KEY);
+    }
+
+    // --- DRAG LOGIC ---
     function startMouseDrag(e, icon) {
         e.preventDefault();
         createSticker(icon, e.clientX, e.clientY);
@@ -214,13 +290,11 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         const diffX = Math.abs(moveX - touchStartX);
         const diffY = Math.abs(moveY - touchStartY);
 
-        // Scroll
         if (diffX > diffY) {
             document.removeEventListener('touchmove', decideGesture);
             return;
         }
 
-        // Drag
         if (diffY > 10 && diffY > diffX) {
             e.preventDefault();
             isDraggingFromDrawer = true;
@@ -268,7 +342,6 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
         activeSticker.classList.remove('dragging');
         
-        // Just play pop sound and animate
         sounds.pop.currentTime = 0;
         sounds.pop.play().catch(e=>{});
 
@@ -303,14 +376,6 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             s.style.top = data.top;
             canvas.appendChild(s);
         });
-    }
-
-    function clearCanvas() {
-        if(confirm("Do you want to clear your sticker page?")) {
-            sounds.crumple.play().catch(e=>{});
-            canvas.innerHTML = '';
-            localStorage.removeItem(SAVE_KEY);
-        }
     }
 
     window.addEventListener('mousemove', moveSticker);
