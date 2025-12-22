@@ -148,6 +148,7 @@
     }
 
     function playLetterSound(char) {
+		GameBridge.stopSpeech();
         let text = (caseMode === 'upper' ? char : char.toLowerCase());
         if (speechMode === 'word') {
             text += ". " + EXAMPLE_WORDS[char];
