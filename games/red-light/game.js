@@ -212,7 +212,7 @@
             score: score,
             duration: Math.floor((Date.now() - startTime) / 1000),
             mistakes: sessionMistakes,
-            noRedirect: true // Keep user on screen while video plays
+            noRedirect: false // Keep user on screen while video plays
         });
     }
 
