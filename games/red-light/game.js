@@ -203,11 +203,16 @@
     }
 
     function finishGame() {
-        GameBridge.celebrate("You finished the race!");
+        // --- UPDATED: Use GameBridge for video ending ---
+        const videoPath = "assets/videos/traffic_reward.mp4";
+
+        GameBridge.celebrate("You finished the race!", videoPath);
+
         GameBridge.saveScore({
             score: score,
             duration: Math.floor((Date.now() - startTime) / 1000),
-            mistakes: sessionMistakes
+            mistakes: sessionMistakes,
+            noRedirect: true // Keep user on screen while video plays
         });
     }
 
