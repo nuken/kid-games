@@ -282,6 +282,10 @@ window.GameBridge = (function() {
         speak: function(text, arg2, arg3) {
             if (window.speakText) window.speakText(text, arg2, arg3);
         },
+		
+		speakNow: function(text, arg2, arg3) {
+            if (window.speakNow) window.speakNow(text, arg2, arg3);
+        },
 
         // --- UPDATED CELEBRATE (With Smart Redirect) ---
         celebrate: function(text, videoUrl) {

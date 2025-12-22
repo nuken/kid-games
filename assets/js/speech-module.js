@@ -154,6 +154,18 @@
         activeUtterance = null;
         clearTimeout(watchdogTimer);
     };
+	window.speakNow = function(text, arg2, arg3) {
+        // 1. Stop everything immediately
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        speechQueue = [];
+        isSpeaking = false;
+        clearTimeout(watchdogTimer);
+
+        // 2. Wait 50ms for the browser to "clear its throat" before speaking again
+        setTimeout(() => {
+            window.speakText(text, arg2, arg3);
+        }, 50);
+    };
 
     window.unlockAudio = function() {
         if (hasUserInteracted) return;
