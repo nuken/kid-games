@@ -109,7 +109,7 @@
                     span.onclick = () => {
                         span.style.transform = "scale(1.3)";
                         setTimeout(() => span.style.transform = "scale(1.1)", 200);
-                        GameBridge.speak(cleanWord);
+                        GameBridge.speakNow(cleanWord);
                     };
                     
                     lineDiv.appendChild(span);
@@ -169,7 +169,7 @@
         if (phraseDeck.length === 0) shuffleDeck();
         const smartPhrase = phraseDeck.pop();
         
-        GameBridge.speak(smartPhrase);
+        GameBridge.speakNow(smartPhrase);
         
         const imgFrame = document.querySelector('.image-frame');
         if(imgFrame) {

@@ -96,7 +96,7 @@
 
             btn.querySelector('.audio-icon').onclick = (e) => {
                 e.stopPropagation();
-                GameBridge.speak(txt);
+                GameBridge.speakNow(txt);
             };
 
             btn.onclick = () => {
