@@ -28,11 +28,28 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>My Sticker Book</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        body { margin: 0; overflow: hidden; touch-action: none; font-family: 'Comic Neue', sans-serif; background: #333; }
+        /* --- IOS FIXES START --- */
+        * {
+            -webkit-tap-highlight-color: transparent; /* No gray box on tap */
+            -webkit-touch-callout: none; /* No long-press menu */
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; /* No scrollbars on body */
+            position: fixed; /* Locks body in place on iOS */
+            width: 100%; height: 100%;
+            touch-action: none; /* Disables browser handling of gestures */
+            font-family: 'Comic Neue', sans-serif; 
+            background: #333; 
+            -webkit-user-select: none; /* Safari specific select disable */
+            user-select: none;
+        }
+        /* --- IOS FIXES END --- */
 
         #sticker-canvas {
             width: 100vw; height: 100vh;
@@ -40,6 +57,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             background-size: cover;
             position: relative;
             transition: background 0.5s ease;
+            z-index: 1;
         }
 
         #ui-layer {
@@ -68,6 +86,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             display: flex; align-items: center; gap: 20px; padding: 0 20px;
             border-top: 4px solid var(--star-gold);
             overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; /* Smooth scroll for drawer */
         }
         
         @media (pointer: coarse) { #sticker-drawer::-webkit-scrollbar { display: none; } }
@@ -77,9 +96,9 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         #sticker-drawer::-webkit-scrollbar-thumb { background: var(--star-gold); border-radius: 4px; }
 
         .drawer-item {
-            font-size: 60px; cursor: pointer; user-select: none;
+            font-size: 60px; cursor: pointer; 
+            user-select: none; -webkit-user-select: none;
             transition: transform 0.2s; 
-            -webkit-tap-highlight-color: transparent;
             flex-shrink: 0; 
         }
         .drawer-item:active { transform: scale(0.9); }
@@ -88,9 +107,13 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
         .placed-sticker {
             position: absolute; font-size: 80px; cursor: grab;
-            user-select: none; transform: translate(-50%, -50%);
-            z-index: 5; touch-action: none;
+            user-select: none; -webkit-user-select: none; /* CRITICAL FOR IOS */
+            transform: translate(-50%, -50%);
+            z-index: 5; 
+            touch-action: none;
             transition: transform 0.1s;
+            /* Remove any borders or outlines */
+            outline: none; border: none;
         }
         .placed-sticker:active { cursor: grabbing; }
         
@@ -110,27 +133,20 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* --- NEW KID FRIENDLY POPUP MODAL --- */
+        /* --- CUSTOM MODAL --- */
         #custom-modal-overlay {
-            display: none; /* Hidden by default */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); /* Dim background */
-            z-index: 2000;
-            justify-content: center; align-items: center;
-            pointer-events: auto;
-            backdrop-filter: blur(5px); /* Blurs the background scene */
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000;
+            justify-content: center; align-items: center; pointer-events: auto;
+            backdrop-filter: blur(5px);
         }
 
         #custom-modal {
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
-            border: 6px solid var(--planet-red);
-            text-align: center;
+            background: white; padding: 30px; border-radius: 25px;
+            border: 6px solid var(--planet-red); text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy enter */
-            max-width: 90%;
-            width: 400px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%; width: 400px;
         }
 
         @keyframes popIn {
@@ -138,34 +154,19 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
             100% { transform: scale(1) rotate(0deg); }
         }
 
-        .modal-title { 
-            font-size: 36px; color: #333; margin-bottom: 10px; 
-            font-weight: 900; 
-        }
-        
-        .modal-desc {
-            font-size: 20px; color: #666; margin-bottom: 25px;
-        }
-
-        .modal-btns { 
-            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;
-        }
+        .modal-title { font-size: 36px; color: #333; margin-bottom: 10px; font-weight: 900; }
+        .modal-desc { font-size: 20px; color: #666; margin-bottom: 25px; }
+        .modal-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 
         .modal-btn {
             padding: 15px 25px; border-radius: 50px; font-size: 20px; border: none; cursor: pointer;
             font-weight: bold; color: white; transition: transform 0.1s;
-            font-family: 'Comic Neue', cursive;
-            display: flex; align-items: center; gap: 10px;
+            font-family: 'Comic Neue', cursive; display: flex; align-items: center; gap: 10px;
             box-shadow: 0 6px 0 rgba(0,0,0,0.2);
         }
-
-        .modal-btn:active { 
-            transform: translateY(6px); 
-            box-shadow: none; 
-        }
-
-        .btn-yes { background: #e74c3c; /* Red */ }
-        .btn-no { background: #2ecc71; /* Green */ }
+        .modal-btn:active { transform: translateY(6px); box-shadow: none; }
+        .btn-yes { background: #e74c3c; }
+        .btn-no { background: #2ecc71; }
 
         @media (orientation: portrait) {
             #sticker-canvas {
@@ -213,7 +214,6 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
                 </div>
             </div>
         </div>
-
     </div>
 
 <script>
@@ -223,17 +223,80 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
     const SAVE_KEY = `sticker_save_<?php echo $user_id; ?>_<?php echo $current_scene; ?>`;
     const modal = document.getElementById('custom-modal-overlay');
 
-    // 1. Sounds
-    const sounds = {
-        pop: new Audio('assets/sounds/pop.mp3'),
-        crumple: new Audio('assets/sounds/crumple.mp3'),
-        sparkle: new Audio('assets/sounds/sparkle.mp3')
-    };
-    document.addEventListener('click', () => { if(sounds.pop.context) sounds.pop.context.resume(); }, {once:true});
+    // --- ROBUST WEB AUDIO SYSTEM (SELF-HEALING) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = new AudioContext();
+    const soundBuffers = {};
+
+    // 1. Loader
+    async function loadSound(name, url) {
+        try {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            soundBuffers[name] = audioBuffer;
+        } catch (e) {
+            console.warn(`Audio Load Error (${name}):`, e);
+        }
+    }
+
+    // Load sounds immediately
+    loadSound('pop', 'assets/sounds/pop.mp3');
+    loadSound('crumple', 'assets/sounds/crumple.mp3');
+    loadSound('sparkle', 'assets/sounds/sparkle.mp3');
+
+    // 2. The "Healer" - Wakes up audio on EVERY interaction if needed
+    function checkAudioState() {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // Attach Healer to all relevant user interactions
+    ['touchstart', 'touchend', 'mousedown', 'keydown', 'click'].forEach(evt => {
+        document.addEventListener(evt, checkAudioState, { passive: true });
+    });
+
+    // 3. Handle "Back Button" Cache Restore (bfcache)
+    // This runs if you navigate away and come back
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+            // Force a context reset if page was frozen
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+    });
+
+    // 4. Player
+    function playSound(name) {
+        // If sound isn't loaded yet, or context is dead, skip safely
+        if (!soundBuffers[name] || !audioCtx) return;
+
+        // Ensure context is running before playing
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        try {
+            const source = audioCtx.createBufferSource();
+            source.buffer = soundBuffers[name];
+            source.connect(audioCtx.destination);
+            source.start(0);
+        } catch(e) {
+            console.error("Audio Play Error:", e);
+        }
+    }
+
+
+    // --- STANDARD APP LOGIC ---
 
     window.onload = loadStickers;
 
-    // 2. Desktop Mouse Wheel Scroll
+    // IOS FIX: Prevent background scrolling/rubber-banding
+    document.body.addEventListener('touchmove', function(e) {
+        // If we are NOT in the drawer, prevent default
+        if (!e.target.closest('#sticker-drawer') && !e.target.closest('.modal-btn')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
     drawer.addEventListener('wheel', (e) => {
         if (e.deltaY !== 0) {
             e.preventDefault();
@@ -242,16 +305,14 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
     });
 
     function switchScene(sceneName) {
-        sounds.sparkle.currentTime = 0;
-        sounds.sparkle.play().catch(e => {});
+        playSound('sparkle');
         setTimeout(() => { window.location.href = `?scene=${sceneName}`; }, 300);
     }
 
     // --- MODAL LOGIC ---
     function openClearModal() {
         modal.style.display = 'flex';
-        // Play a little sound to grab attention
-        sounds.pop.play().catch(e=>{});
+        playSound('pop');
     }
 
     function closeModal() {
@@ -260,7 +321,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
     function confirmClear() {
         closeModal();
-        sounds.crumple.play().catch(e=>{});
+        playSound('crumple');
         canvas.innerHTML = '';
         localStorage.removeItem(SAVE_KEY);
     }
@@ -278,6 +339,9 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         touchStartY = e.touches[0].clientY;
         touchIcon = icon;
         isDraggingFromDrawer = false;
+        
+        // We do NOT call preventDefault here, so scroll calculations work
+        
         document.addEventListener('touchmove', decideGesture, { passive: false });
         document.addEventListener('touchend', cleanUpTouch, { once: true });
     }
@@ -290,11 +354,13 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         const diffX = Math.abs(moveX - touchStartX);
         const diffY = Math.abs(moveY - touchStartY);
 
+        // Horizontal Move -> Scroll -> Let browser handle it
         if (diffX > diffY) {
             document.removeEventListener('touchmove', decideGesture);
             return;
         }
 
+        // Vertical Move -> Drag Sticker -> Take Control
         if (diffY > 10 && diffY > diffX) {
             e.preventDefault();
             isDraggingFromDrawer = true;
@@ -342,8 +408,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
         activeSticker.classList.remove('dragging');
         
-        sounds.pop.currentTime = 0;
-        sounds.pop.play().catch(e=>{});
+        playSound('pop');
 
         activeSticker.classList.remove('sticker-bounce');
         void activeSticker.offsetWidth; 
@@ -378,6 +443,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
         });
     }
 
+    // --- EVENT LISTENERS ---
     window.addEventListener('mousemove', moveSticker);
     window.addEventListener('mouseup', endDrag);
     window.addEventListener('touchmove', moveSticker, { passive: false });
@@ -385,6 +451,11 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
     const pickUp = (e) => {
         if (e.target.classList.contains('placed-sticker')) {
+            e.stopPropagation(); // Stop bubbling
+            
+            // On iPad, preventDefault at start of touch prevents text selection/magifying glass
+            if(e.type === 'touchstart') e.preventDefault();
+            
             activeSticker = e.target;
             activeSticker.classList.add('dragging');
             activeSticker.classList.remove('sticker-bounce');
@@ -392,7 +463,7 @@ $bg_image = $scenes[$current_scene] ?? $scenes['space'];
     };
 
     canvas.addEventListener('mousedown', pickUp);
-    canvas.addEventListener('touchstart', pickUp);
+    canvas.addEventListener('touchstart', pickUp, { passive: false });
 
 </script>
 </body>
