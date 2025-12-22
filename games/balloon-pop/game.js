@@ -174,6 +174,7 @@
         GameBridge.celebrate("Correct!");
 
         if (questionsAnswered >= QUESTIONS_TO_WIN) {
+			GameBridge.celebrate("Great job! You win", "assets/videos/ballon_win.mp4");
             // CALCULATE DURATION
             GameBridge.saveScore({
                 score: score,
