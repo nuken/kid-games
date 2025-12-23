@@ -65,7 +65,7 @@ function spawnTime(silent) {
 
     if (!silent) {
         let timeText = (targetMin === 0) ? targetHour + " O'Clock" : targetHour + " " + targetMin;
-        GameBridge.speak(window.LANG.game_launch_time_speak_set + " " + timeText);
+        GameBridge.speakNow(window.LANG.game_launch_time_speak_set + " " + timeText);
     }
 }
 
@@ -74,7 +74,7 @@ function changeHour(amt) {
     if (currentHour > 12) currentHour = 1;
     if (currentHour < 1) currentHour = 12;
     updateClockVisuals();
-    GameBridge.speak(currentHour.toString());
+    GameBridge.speakNow(currentHour.toString());
 }
 
 function changeMinute(amt) {
@@ -90,7 +90,7 @@ function changeMinute(amt) {
     }
 
     updateClockVisuals();
-    GameBridge.speak(currentMin === 0 ? "O'Clock" : currentMin);
+    GameBridge.speakNow(currentMin === 0 ? "O'Clock" : currentMin);
 }
 
 function updateClockVisuals() {
@@ -119,6 +119,6 @@ function checkTime() {
     } else {
         sessionMistakes++; // Track mistake
         document.getElementById('message').innerText = window.LANG.game_launch_time_check;
-        GameBridge.speak(window.LANG.try_again);
+        GameBridge.speakNow(window.LANG.try_again);
     }
 }
