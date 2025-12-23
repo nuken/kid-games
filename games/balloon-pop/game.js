@@ -112,10 +112,7 @@
                         GameBridge.speak("How many are left?");
                         document.getElementById('question-text').innerText = "How many left?";
                         showNumberPad(level1State.total - level1State.toPop);
-                    } else {
-                        let remaining = level1State.toPop - level1State.popped;
-                        if(remaining > 0) GameBridge.speak(remaining.toString());
-                    }
+                    } 
                 }
             } else {
                 if (numberValue === level2Answer) {
