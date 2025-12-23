@@ -171,7 +171,7 @@
     }
 
     function finishGame() {
-        GameBridge.celebrate("You crossed the lava!");
+        GameBridge.celebrate("You crossed the lava!", "assets/videos/lava_win.mp4");
         document.getElementById('message').innerText = "SAFE!";
         
         GameBridge.saveScore({
@@ -182,6 +182,6 @@
     }
 
     window.explainRules = function() {
-        GameBridge.speak("Answer the question to add a stone. Don't fall in the lava!");
+        GameBridge.speakNow("Answer the question to add a stone. Don't fall in the lava!");
     };
 })();
