@@ -100,7 +100,7 @@
             deckLvl1.splice(idx, 1);
 
             sign.innerText = "Find: " + currentTarget.name;
-            GameBridge.speak("Find the " + currentTarget.name);
+            GameBridge.speakNow("Find the " + currentTarget.name);
 
             let options = [currentTarget];
             while(options.length < 3) {
@@ -117,7 +117,7 @@
             deckLvl2.splice(idx, 1); 
 
             sign.innerText = currentTarget.q;
-            GameBridge.speak(currentTarget.q);
+            GameBridge.speakNow(currentTarget.q);
 
             let options = [currentTarget];
             while(options.length < 3) {
@@ -152,32 +152,41 @@
 
     function checkAnswer(selected, card) {
         if (selected === currentTarget) {
+            GameBridge.handleCorrectSilent();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
-            
-            card.style.background = "#c8e6c9"; 
-            GameBridge.celebrate("Correct!");
+
+            card.style.background = "#c8e6c9";
+
+            // FIX 1: Pass 'null' so it doesn't speak "Correct!" immediately.
+            // This lets the "You are on fire!" message wait in the buffer
+            // and merge seamlessly with the next animal prompt.
+            GameBridge.celebrate(null);
 
             if (questionsAnswered >= QUESTIONS_TO_WIN) {
-                // CALCULATE DURATION
                 GameBridge.saveScore({
                     score: score,
+                    // FIX 2: Fixed duration math (was dividing by 400, should be 1000 for seconds)
                     duration: Math.floor((Date.now() - startTime) / 1000),
                     mistakes: sessionMistakes
                 });
             } else {
-                setTimeout(nextRound, 1500);
+                // The 400ms delay now works perfectly with the buffer
+                setTimeout(nextRound, 400);
             }
         } else {
             sessionMistakes++;
-            GameBridge.playAudio('wrong');
+            GameBridge.handleWrong();
             card.style.opacity = '0.5';
+
+            // Use speakNow to interrupt any previous speech
+            GameBridge.speakNow("Try again!");
             document.getElementById('message').innerText = "Try again!";
         }
     }
 
     window.explainRules = function() {
-        GameBridge.speak("Read the sign and click the matching animal.");
+        GameBridge.speakNow("Read the sign and click the matching animal.");
     }
 })();

@@ -45,7 +45,7 @@ function spawnNumber(silent) {
 
     showHint();
 
-    if (!silent) GameBridge.speak(currentNumber.toString());
+    if (!silent) GameBridge.speakNow(currentNumber.toString());
 
     // Trigger Reflow
     void box.offsetWidth;
@@ -105,10 +105,10 @@ function checkAnswer(type) {
         box.style.transition = 'none';
         box.style.top = currentTop;
 
-        GameBridge.speak(window.LANG.oops + " " + window.LANG.try_again);
+        GameBridge.speakNow(window.LANG.oops + " " + window.LANG.try_again);
     }
 }
 
 function explainRules() {
-    GameBridge.speak(window.LANG.game_robo_sorter_rule_explain);
+    GameBridge.speakNow(window.LANG.game_robo_sorter_rule_explain);
 }

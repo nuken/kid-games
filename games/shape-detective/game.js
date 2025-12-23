@@ -91,7 +91,7 @@
 
             clueText.innerText = target.name;
             clueIconDiv.innerText = "❓";
-            GameBridge.speak("Find the " + target.name);
+            GameBridge.speakNow("Find the " + target.name);
 
             let opts = [target];
             while (opts.length < 3) {
@@ -113,7 +113,7 @@
 
             clueText.innerText = "What shape is this?";
             clueIconDiv.innerHTML = puzzle.obj;
-            GameBridge.speak("What shape is a " + puzzle.name + "?");
+            GameBridge.speakNow("What shape is a " + puzzle.name + "?");
 
             let opts = [puzzle.shape];
             while (opts.length < 3) {
@@ -179,18 +179,18 @@
                     mistakes: sessionMistakes
                 });
             } else {
-                setTimeout(nextRound, 1000);
+                setTimeout(nextRound, 400);
             }
         } else {
             sessionMistakes++;
             GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
-            GameBridge.speak("Try again.");
+            GameBridge.speakNow("Try again.");
         }
     }
 
     window.explainRules = function() {
-        GameBridge.speak("Look at the clue and click the matching shape.");
+        GameBridge.speakNow("Look at the clue and click the matching shape.");
     };
 })();

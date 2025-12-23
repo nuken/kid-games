@@ -57,14 +57,14 @@
             // Level 1: Number Recognition / Counting
             currentAnswer = Math.floor(Math.random() * 10) + 1;
             problemEl.innerText = "Find number " + currentAnswer;
-            GameBridge.speak("Find number " + currentAnswer);
+            GameBridge.speakNow("Find number " + currentAnswer);
         } else {
             // Level 2: Addition
             let a = Math.floor(Math.random() * 10) + 1;
             let b = Math.floor(Math.random() * 10) + 1;
             currentAnswer = a + b;
             problemEl.innerText = `${a} + ${b} = ?`;
-            GameBridge.speak(`${a} plus ${b}`);
+            GameBridge.speakNow(`${a} plus ${b}`);
         }
 
         // --- Generate Choices ---
@@ -100,7 +100,7 @@
             GameBridge.handleWrong();
             btn.style.opacity = "0.5";
             btn.disabled = true;
-            GameBridge.speak("Oops! The lava is hot!");
+            GameBridge.speakNow("Oops! The lava is hot!");
         }
     }
 
@@ -124,13 +124,13 @@
             setTimeout(() => {
                 movePlayerTo(TOTAL_STONES + 1); // Goal Bank
                 finishGame();
-            }, 600);
+            }, 400);
         } else {
             // Next Question
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, 400);
         }
     }
 
