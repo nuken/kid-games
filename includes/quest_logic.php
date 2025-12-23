@@ -35,14 +35,26 @@ function getDailyGameId($pdo, $grade_level) {
  * within the last 3 days.
  */
 function getStreakCount($pdo, $user_id) {
-    $stmt = $pdo->prepare("
-        SELECT COUNT(DISTINCT DATE(earned_at)) 
-        FROM user_badges 
-        WHERE user_id = ? 
-        AND badge_id = 25 
+    // Count distinct days we earned a Star (25)
+    // BUT only look at Stars earned AFTER our last Streak Badge (26)
+    // AND within the last 3 days window.
+    $sql = "
+        SELECT COUNT(DISTINCT DATE(earned_at))
+        FROM user_badges
+        WHERE user_id = ?
+        AND badge_id = 25
         AND earned_at >= DATE_SUB(CURDATE(), INTERVAL 2 DAY)
-    ");
-    $stmt->execute([$user_id]);
+        AND earned_at > (
+            SELECT COALESCE(MAX(earned_at), '1970-01-01')
+            FROM user_badges
+            WHERE user_id = ?
+            AND badge_id = 26
+        )
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    // We pass user_id twice now because of the subquery
+    $stmt->execute([$user_id, $user_id]);
     return (int)$stmt->fetchColumn();
 }
 ?>

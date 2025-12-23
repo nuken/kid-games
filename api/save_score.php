@@ -70,12 +70,8 @@ try {
             
             // Streak Logic
             if (getStreakCount($pdo, $user_id) >= 3) {
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 26");
-                $stmt->execute([$user_id]);
-                if ($stmt->fetchColumn() == 0) {
-                    $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 26)")->execute([$user_id]);
-                    $new_badges[] = ['name' => 'Streak Master', 'icon' => '🔥'];
-                }
+                $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 26)")->execute([$user_id]);
+                $new_badges[] = ['name' => 'Streak Master', 'icon' => '🔥'];
             }
         }
     }
