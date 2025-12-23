@@ -3,6 +3,10 @@ window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
     let currentStreak = 0; // NEW: Track streaks locally
 
+    // --- NEW: Audio Buffer Variables ---
+    let pendingStreakMessage = null;
+    let pendingStreakTimer = null;
+
     // --- Audio Objects ---
     const sounds = {
         correct: new Audio('assets/sounds/correct.mp3'),
@@ -52,11 +56,11 @@ window.GameBridge = (function() {
         for(let i=0; i<50; i++) {
             const el = document.createElement('div');
             el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-            
+
             // Random start position
             const startX = Math.random() * 100; // vw
             const startRotation = Math.random() * 360;
-            
+
             Object.assign(el.style, {
                 position: 'absolute',
                 left: startX + 'vw',
@@ -65,11 +69,11 @@ window.GameBridge = (function() {
                 // Initial State: No vertical movement yet, just rotation
                 transform: `translate3d(0, 0, 0) rotate(${startRotation}deg)`,
                 // Apple Fix: Hint to the browser to prepare for changes
-                willChange: 'transform' 
+                willChange: 'transform'
             });
 
             const duration = Math.random() * 2 + 3;
-            
+
             // We only animate 'transform' now, which handles BOTH position (fall) and rotation (tumble)
             // 'ease-in' makes it start slow and speed up (gravity effect)
             el.style.transition = `transform ${duration}s ease-in`;
@@ -83,7 +87,7 @@ window.GameBridge = (function() {
                     const endRotation = startRotation + (Math.random() * 360 + 360);
                     // Fall down 120vh (to ensure it clears the screen) while rotating
                     el.style.transform = `translate3d(0, 120vh, 0) rotate(${endRotation}deg)`;
-                }, 50); 
+                }, 50);
             });
         }
 
@@ -175,12 +179,12 @@ window.GameBridge = (function() {
             trigger.onclick = function() {
                 // Play Sound
                 sounds.correct.play().catch(()=>{});
-                
+
                 // Swap Content
                 const container = document.getElementById('badge-card-container');
                 // Added ID to button for click handler
                 container.innerHTML = badgeHtml + `<button id="badge-close-btn" class="badge-btn">Awesome!</button>`;
-                
+
                 // Fire Confetti
                 if(window.playConfettiEffect) window.playConfettiEffect();
 
@@ -237,7 +241,7 @@ window.GameBridge = (function() {
             this.updateStreakVisuals();
             this.playAudio('correct');
         },
-        
+
         // --- NEW: STREAK LOGIC (SILENT) ---
         handleCorrectSilent: function() {
             currentStreak++;
@@ -255,7 +259,20 @@ window.GameBridge = (function() {
             if (currentStreak >= 3) {
                 if (!body.classList.contains('on-fire')) {
                     body.classList.add('on-fire');
-                    if(window.speakText) window.speakText("You are on fire!");
+
+                    // FIX: Buffer the message.
+                    // Do NOT speak immediately if another speech event is coming.
+                    pendingStreakMessage = "You are on fire!";
+
+                    if(pendingStreakTimer) clearTimeout(pendingStreakTimer);
+
+                    // Fallback: If the game DOESN'T speak anything else in 150ms, say it anyway.
+                    pendingStreakTimer = setTimeout(() => {
+                        if(pendingStreakMessage && window.speakText) {
+                            window.speakText(pendingStreakMessage);
+                            pendingStreakMessage = null;
+                        }
+                    }, 500);
                 }
             } else {
                 body.classList.remove('on-fire');
@@ -274,16 +291,28 @@ window.GameBridge = (function() {
                 s.play().catch(e => {});
             }
         },
-        
+
         stopSpeech: function() {
              if (window.stopSpeech) window.stopSpeech();
         },
 
         speak: function(text, arg2, arg3) {
+            // Check if we have a pending streak message
+            if (pendingStreakMessage) {
+                text = pendingStreakMessage + ". " + text;
+                pendingStreakMessage = null;
+                if(pendingStreakTimer) clearTimeout(pendingStreakTimer);
+            }
             if (window.speakText) window.speakText(text, arg2, arg3);
         },
-		
+
 		speakNow: function(text, arg2, arg3) {
+            // Check if we have a pending streak message
+            if (pendingStreakMessage) {
+                text = pendingStreakMessage + ". " + text;
+                pendingStreakMessage = null;
+                if(pendingStreakTimer) clearTimeout(pendingStreakTimer);
+            }
             if (window.speakNow) window.speakNow(text, arg2, arg3);
         },
 
@@ -292,7 +321,7 @@ window.GameBridge = (function() {
             // Audio/Visuals
             this.playAudio('correct');
             if (window.playConfettiEffect) window.playConfettiEffect();
-            if (text && window.speakText) window.speakText(text);
+            if (text) this.speak(text);
 
             if (videoUrl) {
                 const videoOverlay = document.createElement('div');
@@ -317,16 +346,16 @@ window.GameBridge = (function() {
                 // FIX: "Smart" Close Button
                 document.getElementById('close-video').onclick = () => {
                     document.body.removeChild(videoOverlay);
-                    
+
                     // CHECK: Is a badge/gift waiting underneath?
                     // We look for the badge overlay class
                     const badgeWaiting = document.querySelector('.badge-overlay');
-                    
+
                     if (!badgeWaiting) {
                         // No badge? Okay, go to menu
                         window.location.href = "index.php";
                     }
-                    // If badgeWaiting is true, we do nothing. 
+                    // If badgeWaiting is true, we do nothing.
                     // The video disappears, revealing the Gift Box underneath!
                 };
             }
