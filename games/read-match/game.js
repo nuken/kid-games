@@ -106,7 +106,16 @@
                     score += 10;
                     questionsAnswered++;
                     GameBridge.updateScore(score);
-                    GameBridge.celebrate(window.LANG.game_read_match_correct);
+
+                    // --- FIX START ---
+                    // 1. Cut off instructions and speak "Correct" immediately
+                    GameBridge.speakNow(window.LANG.game_read_match_correct);
+                    
+                    // 2. Call celebrate with NO text (null) so it doesn't double-speak
+                    //    This still handles the confetti and sound effects.
+                    GameBridge.celebrate(null);
+                    // --- FIX END ---
+
                     list.style.pointerEvents = 'none';
 
                     if (questionsAnswered >= QUESTIONS_TO_WIN) {
@@ -122,7 +131,12 @@
                     sessionMistakes++;
                     GameBridge.handleWrong();
                     btn.classList.add('wrong');
-                    GameBridge.speak(window.LANG.try_again);
+                    
+                    // --- FIX START ---
+                    // Use speakNow so "Try Again" cuts off the instructions
+                    GameBridge.speakNow(window.LANG.try_again);
+                    // --- FIX END ---
+                    
                     setTimeout(() => btn.classList.remove('wrong'), 500);
                 }
             };
