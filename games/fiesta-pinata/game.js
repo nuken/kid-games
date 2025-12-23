@@ -37,7 +37,7 @@
         { t: 'Nueve',     type: 'number', val: '9' },
         { t: 'Diez',      type: 'number', val: '10' },
 
-        // NEW: Shapes (Using Emojis as values)
+        // Shapes (Using Emojis as values)
         { t: 'Círculo',   type: 'shape', val: '🔴' },
         { t: 'Cuadrado',  type: 'shape', val: '🟦' },
         { t: 'Estrella',  type: 'shape', val: '⭐' },
@@ -147,20 +147,16 @@
         targetPool.splice(randIndex, 1);
 
         if (difficulty === 1) {
-            // Level 1: "Find Rojo"
-            GameBridge.speak(currentTarget.t, 'es');
+            GameBridge.speakNow(currentTarget.t, 'es');
             document.getElementById('message').innerText = "Find: " + currentTarget.t;
         } else {
-            // Level 2: "Find the word for CAT"
-            GameBridge.speak("Find the word for " + currentTarget.eng);
+            GameBridge.speakNow("Find the word for " + currentTarget.eng);
             document.getElementById('message').innerText = "Translate: " + currentTarget.eng;
         }
 
-        // Generate Options
         let options = [currentTarget];
         while (options.length < 3) {
             let r = masterList[Math.floor(Math.random() * masterList.length)];
-            // Avoid duplicates AND ensure Level 1 options are same type (don't mix colors with numbers)
             if (!options.includes(r)) {
                 if (difficulty === 1) {
                     if (r.type === currentTarget.type) options.push(r);
@@ -182,7 +178,7 @@
                     if(opt.val === '#ffffff') btn.style.border = "3px solid #ccc";
                     btn.innerText = ""; 
                 } else {
-                    btn.innerText = opt.val; // Number or Emoji Shape
+                    btn.innerText = opt.val; 
                 }
             } else {
                 btn.innerText = opt.span;
@@ -195,7 +191,7 @@
 
     function checkAnswer(selected, btn) {
         if (selected === currentTarget) {
-			GameBridge.handleCorrectSilent();
+            GameBridge.handleCorrect();
             score += 10;
             questionsAnswered++;
             GameBridge.updateScore(score);
@@ -204,26 +200,28 @@
             pinata.classList.add('hit-anim');
             setTimeout(() => pinata.classList.remove('hit-anim'), 500);
 
-            GameBridge.celebrate("Muy bien!"); 
-
+            // CHANGED: Video win logic
             if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                 GameBridge.celebrate("Fiesta Time! You broke the Piñata!", "assets/videos/pinata_win.mp4");
                  GameBridge.saveScore({
                     score: score,
                     duration: Math.floor((Date.now() - startTime) / 1000), 
                     mistakes: sessionMistakes
                 });
             } else {
+                // Normal correct answer
+                GameBridge.celebrate("Muy bien!"); 
                 setTimeout(nextQuestion, 1500);
             }
         } else {
             sessionMistakes++;
             GameBridge.handleWrong();
-            GameBridge.speak("Try again");
+            GameBridge.speakNow("Try again");
             btn.style.opacity = "0.5";
         }
     }
 
     window.explainRules = function() {
-        GameBridge.speak("Listen to the word and click the matching candy to break the piñata.");
+        GameBridge.speakNow("Listen to the word and click the matching candy to break the piñata.");
     }
 })();
