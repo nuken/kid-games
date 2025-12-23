@@ -415,7 +415,7 @@ try {
 
             if (typeof GameBridge !== 'undefined') GameBridge.init();
 
-            if (!lastVisit || (now - lastVisit) > 300000) {
+            if (!lastVisit || (now - lastVisit) > 10000) {
                 setTimeout(() => {
                     if (window.speakText) window.speakText(welcomeText + " " + username);
                 }, 1000);
