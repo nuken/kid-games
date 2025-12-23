@@ -119,6 +119,7 @@
                     list.style.pointerEvents = 'none';
 
                     if (questionsAnswered >= QUESTIONS_TO_WIN) {
+                        GameBridge.celebrate("Great Job!", "assets/videos/read_match_win.mp4");
                         GameBridge.saveScore({
                             score: score,
                             duration: Math.floor((Date.now() - startTime)/1000),
