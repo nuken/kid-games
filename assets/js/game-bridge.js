@@ -173,10 +173,36 @@ window.GameBridge = (function() {
 
         document.body.appendChild(overlay);
 
+        // --- NEW: TIMER CONTROL ---
+        let autoOpenTimer = null;
+
+        const startGiftTimer = () => {
+            // Prevent double-start
+            if (autoOpenTimer) return;
+            
+            autoOpenTimer = setTimeout(() => {
+                const t = document.getElementById('gift-box-trigger');
+                if (t) t.click();
+            }, 5000); // 5 seconds to click gift
+        };
+
+        // Attach timer function to DOM so the Video Closer can find it
+        overlay.startGiftTimer = startGiftTimer;
+
+        // --- IMPORTANT: ONLY START TIMER IF NO VIDEO IS PLAYING ---
+        if (document.getElementById('video-reward-overlay')) {
+            console.log("Video is playing. Pausing badge timer until video ends.");
+        } else {
+            startGiftTimer();
+        }
+
         // 4. Handle "Unboxing"
         const trigger = document.getElementById('gift-box-trigger');
         if(trigger) {
             trigger.onclick = function() {
+                // Stop the auto-open timer if clicked manually
+                if(autoOpenTimer) clearTimeout(autoOpenTimer);
+                
                 // Play Sound
                 sounds.correct.play().catch(()=>{});
 
@@ -188,8 +214,17 @@ window.GameBridge = (function() {
                 // Fire Confetti
                 if(window.playConfettiEffect) window.playConfettiEffect();
 
+                // --- NEW: Auto-Close Badge Timer (5 seconds after reveal) ---
+                let autoCloseTimer = setTimeout(() => {
+                    const c = document.getElementById('badge-close-btn');
+                    if (c) c.click();
+                }, 5000);
+
                 // Handle Close Click
                 document.getElementById('badge-close-btn').onclick = function() {
+                    // Stop the timer if clicked manually
+                    clearTimeout(autoCloseTimer);
+                    
                     if (onCloseCallback) {
                         // User wants to stay in the game (Quest Logic)
                         document.body.removeChild(overlay);
@@ -316,7 +351,7 @@ window.GameBridge = (function() {
             if (window.speakNow) window.speakNow(text, arg2, arg3);
         },
 
-        // --- UPDATED CELEBRATE (With Smart Redirect) ---
+        // --- UPDATED CELEBRATE (With Smart Redirect and Timer Sync) ---
         celebrate: function(text, videoUrl) {
             // Audio/Visuals
             this.playAudio('correct');
@@ -343,21 +378,38 @@ window.GameBridge = (function() {
 
                 document.body.appendChild(videoOverlay);
 
-                // FIX: "Smart" Close Button
-                document.getElementById('close-video').onclick = () => {
-                    document.body.removeChild(videoOverlay);
+                // --- DEFINE CLOSE LOGIC ---
+                const closeVideoAndProceed = () => {
+                     // Check if already closed to avoid errors
+                     if(!document.body.contains(videoOverlay)) return;
 
-                    // CHECK: Is a badge/gift waiting underneath?
-                    // We look for the badge overlay class
-                    const badgeWaiting = document.querySelector('.badge-overlay');
+                     document.body.removeChild(videoOverlay);
 
-                    if (!badgeWaiting) {
-                        // No badge? Okay, go to menu
-                        window.location.href = "index.php";
-                    }
-                    // If badgeWaiting is true, we do nothing.
-                    // The video disappears, revealing the Gift Box underneath!
+                     // CHECK: Is a badge/gift waiting underneath?
+                     const badgeOverlay = document.querySelector('.badge-overlay');
+
+                     if (badgeOverlay) {
+                         // FOUND BADGE.
+                         // Manually trigger the badge timer NOW.
+                         if (badgeOverlay.startGiftTimer) {
+                             badgeOverlay.startGiftTimer();
+                         }
+                     } else {
+                         // No badge? Okay, go to menu
+                         window.location.href = "index.php";
+                     }
                 };
+
+                // --- NEW: Auto-Close Video Timer (2s after end) ---
+                const vid = document.getElementById('reward-video');
+                if (vid) {
+                    vid.onended = function() {
+                        setTimeout(closeVideoAndProceed, 2000);
+                    };
+                }
+
+                // FIX: "Smart" Close Button
+                document.getElementById('close-video').onclick = closeVideoAndProceed;
             }
         },
 
