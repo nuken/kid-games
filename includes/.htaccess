@@ -1,0 +1,4 @@
+# /includes/.htaccess
+# Completely block anyone from visiting this folder directly
+Order Allow,Deny
+Deny from all
