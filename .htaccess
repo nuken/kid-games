@@ -1,0 +1,18 @@
+# 1. Disable Directory Browsing
+# Prevents strangers from seeing a list of all your files if they visit a folder path
+Options -Indexes
+
+# 2. Block Access to Sensitive Files
+# This prevents anyone from downloading your SQL backups or reading config files directly
+<FilesMatch "\.(sql|log|ini|env)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 3. Protect the Includes Directory
+# (Optional) prevents direct access to PHP files inside 'includes'
+# Users should only enter via login.php or index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^includes/ - [F,L]
+</IfModule>
