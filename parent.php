@@ -31,31 +31,57 @@ $avatar_options = [
     '🦄' => 'Unicorn',
     '🧙‍♂️' => 'Wizard',
     '👽' => 'Alien',
+    '🚀' => 'Rocket',
+    '⚾' => 'Baseball',
     '👾' => 'Space Invader'
 ];
 
 // --------------------------------------------------------
-// 2. HANDLE SETTINGS UPDATES (POST)
+// 2. HANDLE UPDATES (POST)
 // --------------------------------------------------------
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
-    if ($_POST['action'] === 'update_settings') {
+    // --- NEW: HANDLE ADD CHILD ---
+    if ($_POST['action'] === 'add_child') {
+        $child_name = trim($_POST['child_name']);
+        $child_pin  = trim($_POST['child_pin']);
+        $child_grade = $_POST['child_grade'];
+
+        if (!empty($child_name) && !empty($child_pin)) {
+            // Create user linked to THIS parent
+            // Default avatar is set to '👤'
+            $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
+            if ($stmt->execute([$child_name, $child_pin, $child_grade, $_SESSION['user_id']])) {
+                $message = "<div class='alert success'>Added $child_name!</div>";
+                // No redirect needed; the query below will pick up the new child immediately
+            } else {
+                $message = "<div class='alert error'>Error adding child.</div>";
+            }
+        } else {
+            $message = "<div class='alert error'>Name and PIN required.</div>";
+        }
+    }
+
+    // --- EXISTING: UPDATE SETTINGS ---
+    elseif ($_POST['action'] === 'update_settings') {
         $u_id = $_POST['student_id'];
         $u_grade = $_POST['grade_level'];
         $u_theme = $_POST['theme_id'];
-        $u_avatar = $_POST['avatar']; 
-        
+        $u_avatar = $_POST['avatar'];
+
         // Checkbox logic: if present, it's 1, else 0
         $u_confetti = isset($_POST['confetti']) ? 1 : 0;
+
         // Check ownership before updating
-if ($_SESSION['role'] === 'parent') {
-    $check = $pdo->prepare("SELECT id FROM users WHERE id = ? AND parent_id = ?");
-    $check->execute([$u_id, $_SESSION['user_id']]);
-    if (!$check->fetch()) {
-        die("Error: You do not have permission to edit this student.");
-    }
-}
+        if ($_SESSION['role'] === 'parent') {
+            $check = $pdo->prepare("SELECT id FROM users WHERE id = ? AND parent_id = ?");
+            $check->execute([$u_id, $_SESSION['user_id']]);
+            if (!$check->fetch()) {
+                die("Error: You do not have permission to edit this student.");
+            }
+        }
+
         $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ?, confetti_enabled = ? WHERE id = ?");
         if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_confetti, $u_id])) {
             $message = "<div class='alert success'>Settings Updated! Go check the dashboard.</div>";
@@ -68,11 +94,6 @@ if ($_SESSION['role'] === 'parent') {
 // --------------------------------------------------------
 // 3. FETCH DATA (Only Students for THIS Parent)
 // --------------------------------------------------------
-// Security Check: Ensure user is a parent (or admin)
-if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'parent' && $_SESSION['role'] !== 'admin')) {
-    header("Location: login.php"); exit;
-}
-
 $students = [];
 if ($_SESSION['role'] === 'admin') {
     // Admins see all students
@@ -240,9 +261,35 @@ if ($current_student) {
                                 </option>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <option>No children found</option>
+                            <option value="">No children found</option>
                         <?php endif; ?>
                     </select>
+                </form>
+            </div>
+
+            <div class="card" style="background: #e3f2fd; border: 1px solid #90caf9;">
+                <h2>➕ Add a Child</h2>
+                <form method="POST" action="parent.php">
+                    <input type="hidden" name="action" value="add_child">
+
+                    <label>Child's Name:</label>
+                    <input type="text" name="child_name" placeholder="e.g. Timmy" required>
+
+                    <label>Child's PIN:</label>
+                    <input type="text" name="child_pin" placeholder="Simple PIN (e.g. 1111)" required>
+
+                    <label>Grade Level:</label>
+                    <select name="child_grade">
+                        <option value="0">Preschool (Age 3-4)</option>
+                        <option value="1">Kindergarten (Age 5-6)</option>
+                        <option value="2">1st Grade (Age 6-7)</option>
+                        <option value="3">2nd Grade (Age 7-8)</option>
+                        <option value="4">3rd Grade (Age 8-9)</option>
+                        <option value="5">4th Grade (Age 9-10)</option>
+                        <option value="6">5th Grade (Age 10-11)</option>
+                    </select>
+
+                    <button type="submit" class="save-btn" style="background: #3498db;">Add Child</button>
                 </form>
             </div>
 
@@ -306,7 +353,7 @@ if ($current_student) {
                     </div>
 
                     <label style="display:flex; align-items:center; margin-top:20px; cursor:pointer; background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                        <input type="checkbox" name="confetti" value="1" style="width:auto; margin-right:15px; transform:scale(1.5);" 
+                        <input type="checkbox" name="confetti" value="1" style="width:auto; margin-right:15px; transform:scale(1.5);"
                             <?php if(!isset($current_student['confetti_enabled']) || $current_student['confetti_enabled'] == 1) echo 'checked'; ?>>
                         <span style="font-size:1.1em; color:#2c3e50;">🎉 Enable Confetti</span>
                     </label>
@@ -394,7 +441,7 @@ if ($current_student) {
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="card"><p>No students found.</p></div>
+                <div class="card"><p>No students found. Add your first child using the form on the left!</p></div>
             <?php endif; ?>
         </div>
     </div>

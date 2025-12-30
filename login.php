@@ -167,6 +167,18 @@ $users = $stmt->fetchAll();
     
     <div id="grid-screen">
         <h1>Who is playing?</h1>
+        <a href="register.php" style="
+    display: inline-block;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+    color: #f1c40f;
+    text-decoration: none;
+    font-size: 0.9em;">
+    ✨ New Family? Join Here!
+</a>
         
         <?php if(isset($error)) echo "<div class='error-msg'>$error</div>"; ?>
 
