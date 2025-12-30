@@ -6,4 +6,5 @@ define('DB_NAME', 'dbs15032043');
 define('DB_USER', 'dbu875104');
 define('DB_PASS', 'Myahgrace5');
 define('DB_CHARSET', 'utf8mb4');
+define('INVITE_CODE', 'FAMILYFUN');
 ?>
