@@ -10,7 +10,6 @@ require_once 'includes/header.php';
 // --------------------------------------------------------
 // 2. ROLE SECURITY CHECK
 // --------------------------------------------------------
-// We do this AFTER header.php has had a chance to restore the session from the cookie
 if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'parent' && $_SESSION['role'] !== 'admin')) {
     header("Location: login.php"); exit;
 }
@@ -18,8 +17,8 @@ if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'parent' && $_SESSION['r
 // --------------------------------------------------------
 // DEFINITIONS
 // --------------------------------------------------------
-// Define available avatars (Using Emojis)
-$avatar_options = [
+// Kid Avatars
+$kid_avatars = [
     '👤' => 'Default',
     '👨‍🚀' => 'Astronaut',
     '👸' => 'Princess',
@@ -36,34 +35,59 @@ $avatar_options = [
     '👾' => 'Space Invader'
 ];
 
+// Adult Avatars
+$adult_avatars = [
+    '👤' => 'Default',
+    '👩' => 'Mom / Woman',
+    '👨' => 'Dad / Man',
+    '👵' => 'Grandma',
+    '👴' => 'Grandpa',
+    '👮' => 'Officer',
+    '🕵️' => 'Detective',
+    '🤠' => 'Cowboy/girl',
+    '👑' => 'Royal',
+    '🎩' => 'Top Hat',
+    '👓' => 'Glasses',
+    '☕' => 'Coffee Lover'
+];
+
 // --------------------------------------------------------
 // 2. HANDLE UPDATES (POST)
 // --------------------------------------------------------
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
-    // --- NEW: HANDLE ADD CHILD ---
+    // --- A. HANDLE ADD CHILD ---
     if ($_POST['action'] === 'add_child') {
         $child_name = trim($_POST['child_name']);
         $child_pin  = trim($_POST['child_pin']);
         $child_grade = $_POST['child_grade'];
 
         if (!empty($child_name) && !empty($child_pin)) {
-            // Create user linked to THIS parent
-            // Default avatar is set to '👤'
-            $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
-            if ($stmt->execute([$child_name, $child_pin, $child_grade, $_SESSION['user_id']])) {
-                $message = "<div class='alert success'>Added $child_name!</div>";
-                // No redirect needed; the query below will pick up the new child immediately
+            // 1. CHECK FOR DUPLICATES
+            $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+            $checkStmt->execute([$child_name]);
+
+            if ($checkStmt->fetch()) {
+                // Name taken
+                $message = "<div class='alert error'>The name '$child_name' is already taken. Please add a last initial (e.g. '$child_name B').</div>";
             } else {
-                $message = "<div class='alert error'>Error adding child.</div>";
+                // 2. PROCEED TO ADD
+                // Create user linked to THIS parent. Default avatar is '👤'
+                $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
+                if ($stmt->execute([$child_name, $child_pin, $child_grade, $_SESSION['user_id']])) {
+                    $message = "<div class='alert success'>Added $child_name!</div>";
+                    // No redirect needed; the query below will pick up the new child immediately
+                } else {
+                    $message = "<div class='alert error'>Error adding child.</div>";
+                }
             }
         } else {
             $message = "<div class='alert error'>Name and PIN required.</div>";
         }
     }
 
-    // --- EXISTING: UPDATE SETTINGS ---
+    // --- B. UPDATE CHILD SETTINGS ---
     elseif ($_POST['action'] === 'update_settings') {
         $u_id = $_POST['student_id'];
         $u_grade = $_POST['grade_level'];
@@ -89,11 +113,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = "<div class='alert error'>Error updating settings.</div>";
         }
     }
+
+    // --- C. UPDATE PARENT PROFILE ---
+    elseif ($_POST['action'] === 'update_parent_profile') {
+        $p_avatar = $_POST['parent_avatar'];
+        $p_id = $_SESSION['user_id']; // Update MYSELF
+
+        $stmt = $pdo->prepare("UPDATE users SET avatar = ? WHERE id = ?");
+        if ($stmt->execute([$p_avatar, $p_id])) {
+            $message = "<div class='alert success'>Your Profile Updated!</div>";
+        } else {
+            $message = "<div class='alert error'>Error updating profile.</div>";
+        }
+    }
 }
 
 // --------------------------------------------------------
-// 3. FETCH DATA (Only Students for THIS Parent)
+// 3. FETCH DATA
 // --------------------------------------------------------
+// A. Get My Children
 $students = [];
 if ($_SESSION['role'] === 'admin') {
     // Admins see all students
@@ -105,9 +143,14 @@ if ($_SESSION['role'] === 'admin') {
     $students = $stmt->fetchAll();
 }
 
+// B. Get Parent Info (Me)
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$me = $stmt->fetch();
+
 $themes = $pdo->query("SELECT * FROM themes ORDER BY name ASC")->fetchAll();
 
-// Determine which student we are looking at
+// C. Determine Selected Student
 if (isset($_GET['student_id'])) {
     $student_id = $_GET['student_id'];
 } elseif (isset($_POST['student_id'])) {
@@ -133,7 +176,7 @@ if (!$current_student && count($students) > 0) {
 }
 
 // --------------------------------------------------------
-// 4. CALCULATE STATS
+// 4. CALCULATE STATS (For selected student)
 // --------------------------------------------------------
 $stats = ['total' => 0, 'time' => 0, 'avg' => 0];
 $game_stats = [];
@@ -164,7 +207,8 @@ if ($current_student) {
 <head>
     <meta charset="UTF-8">
     <title>Parent Control Center</title>
-    <link rel="stylesheet" href="assets/css/style.css"> <style>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
         /* PARENT DASHBOARD OVERRIDES */
         body {
             background: #f0f2f5;
@@ -235,6 +279,10 @@ if ($current_student) {
         .error { background: #f8d7da; color: #721c24; }
 
         @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        /* New Styles for Profile Avatar */
+        .profile-header { display:flex; align-items:center; gap: 15px; margin-bottom: 10px; }
+        .big-avatar { font-size: 40px; background: #f0f2f5; padding: 10px; border-radius: 50%; width: 60px; height: 60px; display:flex; justify-content:center; align-items:center; }
     </style>
 </head>
 <body>
@@ -250,6 +298,30 @@ if ($current_student) {
     <div class="dashboard-grid">
 
         <div class="left-col">
+
+            <div class="card" style="border-left: 5px solid #8e44ad;">
+                <h2>👤 My Profile</h2>
+                <div class="profile-header">
+                    <div class="big-avatar"><?php echo ($me['avatar'] && strpos($me['avatar'], '.')===false) ? $me['avatar'] : '👤'; ?></div>
+                    <div>
+                        <strong><?php echo htmlspecialchars($me['username']); ?></strong><br>
+                        <small style="color:#777;">Parent Account</small>
+                    </div>
+                </div>
+
+                <form method="POST" action="parent.php">
+                    <input type="hidden" name="action" value="update_parent_profile">
+                    <label>Change My Avatar:</label>
+                    <select name="parent_avatar" onchange="this.form.submit()">
+                        <?php foreach ($adult_avatars as $emoji => $label): ?>
+                            <option value="<?php echo $emoji; ?>" <?php echo ($me['avatar'] == $emoji) ? 'selected' : ''; ?>>
+                                <?php echo $emoji . " " . $label; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
+            </div>
+
             <div class="card">
                 <h2>Select Child</h2>
                 <form method="GET" action="parent.php">
@@ -309,9 +381,9 @@ if ($current_student) {
                         <option value="1" <?php echo ($current_student['grade_level'] == 1) ? 'selected' : ''; ?>>Kindergarten (Age 5-6)</option>
                         <option value="2" <?php echo ($current_student['grade_level'] == 2) ? 'selected' : ''; ?>>1st Grade (Age 6-7)</option>
                         <option value="3" <?php echo ($current_student['grade_level'] == 3) ? 'selected' : ''; ?>>2nd Grade (Age 7-8)</option>
-						<option value="4" <?php echo ($current_student['grade_level'] == 4) ? 'selected' : ''; ?>>3rd Grade (Age 8-9)</option>
-						<option value="5" <?php echo ($current_student['grade_level'] == 5) ? 'selected' : ''; ?>>4th Grade (Age 9-10)</option>
-						<option value="6" <?php echo ($current_student['grade_level'] == 6) ? 'selected' : ''; ?>>5th Grade (Age 10-11)</option>
+                        <option value="4" <?php echo ($current_student['grade_level'] == 4) ? 'selected' : ''; ?>>3rd Grade (Age 8-9)</option>
+                        <option value="5" <?php echo ($current_student['grade_level'] == 5) ? 'selected' : ''; ?>>4th Grade (Age 9-10)</option>
+                        <option value="6" <?php echo ($current_student['grade_level'] == 6) ? 'selected' : ''; ?>>5th Grade (Age 10-11)</option>
                     </select>
 
                     <label>Theme:</label>
@@ -344,7 +416,7 @@ if ($current_student) {
                         </div>
 
                         <select name="avatar" id="avatar-select" onchange="updateAvatar()" style="flex: 1; font-size: 1.2em;">
-                            <?php foreach ($avatar_options as $emoji => $label): ?>
+                            <?php foreach ($kid_avatars as $emoji => $label): ?>
                                 <option value="<?php echo $emoji; ?>" <?php echo ($current_av == $emoji) ? 'selected' : ''; ?>>
                                     <?php echo $emoji . " " . $label; ?>
                                 </option>

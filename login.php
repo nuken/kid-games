@@ -130,16 +130,22 @@ $users = $stmt->fetchAll();
             width: 140px; padding: 20px 10px;
             cursor: pointer; transition: transform 0.2s, background 0.2s;
             backdrop-filter: blur(5px);
+            position: relative;
         }
         .user-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.2); border-color: #f1c40f; }
 
         .avatar { font-size: 60px; margin-bottom: 10px; display: block; }
         .username { color: white; font-weight: bold; font-size: 1.2em; }
-        .role-badge { 
-            font-size: 0.7em; text-transform: uppercase; 
-            background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px;
-            color: #ccc; margin-top: 5px; display: inline-block;
-        }
+
+        .role-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    line-height: 1;
+    filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.3)); /* Makes it pop */
+    cursor: default;
+}
 
         /* --- PIN PAD STYLES (Initially Hidden) --- */
         #pin-screen { display: none; background: white; padding: 30px; border-radius: 20px; max-width: 350px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -159,6 +165,7 @@ $users = $stmt->fetchAll();
         .key-enter { background: #c8e6c9; color: #2e7d32; grid-column: span 3; }
 
         .error-msg { color: #ffeb3b; background: rgba(231, 76, 60, 0.8); padding: 10px; border-radius: 5px; display: inline-block; margin-bottom: 20px; }
+
     </style>
 </head>
 <body>
@@ -183,20 +190,33 @@ $users = $stmt->fetchAll();
         <?php if(isset($error)) echo "<div class='error-msg'>$error</div>"; ?>
 
         <div class="user-grid">
-            <?php foreach($users as $u): ?>
-                <div class="user-card" onclick="selectUser(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['username']); ?>')">
-                    <span class="avatar">
-                        <?php 
-                            echo (strpos($u['avatar'], '.') !== false) ? '👤' : $u['avatar']; 
-                        ?>
-                    </span>
-                    <div class="username"><?php echo htmlspecialchars($u['username']); ?></div>
-                    <?php if($u['role'] !== 'student'): ?>
-                        <div class="role-badge"><?php echo $u['role']; ?></div>
-                    <?php endif; ?>
+    <?php foreach($users as $u): ?>
+        <div class="user-card" onclick="selectUser(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['username']); ?>')">
+
+            <?php
+
+            $badgeSymbol = '';
+            if ($u['role'] === 'admin') {
+                $badgeSymbol = '🛡️'; // Shield for admin
+            } elseif ($u['role'] === 'parent') {
+                $badgeSymbol = '🔑'; // Key for parent
+            }
+
+            if ($badgeSymbol): ?>
+                <div class="role-badge" title="<?php echo ucfirst($u['role']); ?>">
+                    <?php echo $badgeSymbol; ?>
                 </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
+
+            <span class="avatar">
+                <?php
+                    echo (strpos($u['avatar'], '.') !== false) ? '👤' : $u['avatar'];
+                ?>
+            </span>
+            <div class="username"><?php echo htmlspecialchars($u['username']); ?></div>
         </div>
+    <?php endforeach; ?>
+</div>
     </div>
 
     <div id="pin-screen">
