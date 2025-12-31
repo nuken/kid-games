@@ -17,8 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $parent_id = ($role === 'student' && !empty($_POST['parent_id'])) ? $_POST['parent_id'] : null;
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id) VALUES (?, ?, ?, ?, ?)");
+        // CHANGED: Added 'avatar' column and set it to '👤'
+        $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar) VALUES (?, ?, ?, ?, ?, '👤')");
         $stmt->execute([$username, $pin, $role, $grade, $parent_id]);
+
         $message = "<div class='alert success'>User '$username' created successfully!</div>";
     } catch (PDOException $e) {
         $message = "<div class='alert error'>Error: " . $e->getMessage() . "</div>";

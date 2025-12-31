@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             // 4. Create Parent Account
             // Role is always 'parent' for self-registration
-            $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, avatar) VALUES (?, ?, 'parent', 'default_avatar.png')");
+            $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, avatar) VALUES (?, ?, 'parent', '👤')");
             if ($stmt->execute([$username, $pin])) {
                 // Auto-Login
                 $user_id = $pdo->lastInsertId();
