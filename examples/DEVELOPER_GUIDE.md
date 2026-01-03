@@ -22,7 +22,7 @@ The platform provides a global `GameBridge` object to handle scoring, audio, and
 
 Call `setupGame` inside your `DOMContentLoaded` event.
 
-```javascript
+
 GameBridge.setupGame({
     // Text shown on the start overlay
     instructions: "Find all the red circles!", 
@@ -132,5 +132,6 @@ GameBridge.celebrate("Great Job!", "assets/videos/dance.mp4");
 ```
 
 ```
+
 
 
