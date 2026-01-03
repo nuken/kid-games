@@ -1,70 +1,109 @@
 # 🎮 Kids Game Hub (Nuken Kid Games)
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![PHP](https://img.shields.io/badge/php-7.4%2B-purple) ![Docker](https://img.shields.io/badge/docker-ready-blue)
+
 A self-hosted, safe, and ad-free educational gaming platform for children. This project allows parents to manage child accounts, track progress, and provide a curated list of educational games.
+
+Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard web hosting.
+
+## 📋 Table of Contents
+- [Features](#-features)
+- [Included Games](#-included-games)
+- [Installation](#-installation)
+- [Game Development](#-game-development)
+- [Technology Stack](#-technology-stack)
+
+---
 
 ## ✨ Features
 
-* **For Kids:** Educational games, progress tracking, badge achievements, and fun themes.
-* **For Parents:** Dashboard, report cards, and difficulty settings.
-* **Safe:** No ads, external links, or tracking.
+### 🛡️ For Parents
+* **Self-Hosted & Safe:** Zero ads, no external tracking, and no outbound links.
+* **Parent Dashboard:** Create and manage child accounts easily.
+* **Report Cards:** Track progress, mistakes, and time spent on each game.
+* **Theming:** Customize the interface with built-in themes like **Space**, **Princess**, and **Default**.
+
+### 🕹️ For Kids
+* **Progress Tracking:** Earn badges and "streak" rewards (e.g., "On Fire" visual effects).
+* **Voice Feedback:** Built-in Text-to-Speech engine guides the child through games.
+* **Fun & Educational:** Games cover math, reading, pattern recognition, and reflexes.
 
 ---
 
-## 🚀 Installation Options
+## 🎲 Included Games
+
+The platform comes pre-loaded with a variety of educational titles:
+
+| Category | Games |
+| :--- | :--- |
+| **Literacy** | Alphabet, Sight Word Reader, Read Match, Spell It, Cat-Rat Reader |
+| **Math & Logic** | Egg-dition (Math), Robo Sorter, Pattern Train, Shape Detective |
+| **Creativity** | Coloring Book, Color Mix, Rocket Shop |
+| **Reflexes** | Balloon Pop, Red Light, Cosmic Signal, Lava Bridge |
+| **Memory** | Simon Says, Spider Web, Fiesta Pinata |
+
+---
+
+## 🚀 Installation
 
 ### Option 1: Docker (Recommended)
 
-This is the easiest method for home servers (Intel N100, Raspberry Pi, Synology).
+Perfect for home labs using Portainer or Docker Compose.
 
-1.  **Prepare Files:**
-    * Clone this repository.
+1.  **Clone the Repository**
+    ```bash
+    git clone [https://github.com/yourusername/nuken-kid-games.git](https://github.com/yourusername/nuken-kid-games.git)
+    cd nuken-kid-games
+    ```
+
+2.  **Configure Environment**
     * Rename `includes/config.sample.php` to `includes/config.php`.
-    * In `config.php`, change the `DB_HOST` to `db`.
-2.  **Start Services:**
-    Run the compose file to start the Web (Apache/PHP) and Database (MariaDB) containers.
+    * Edit `includes/config.php` and change the `DB_HOST` to `db`.
+
+3.  **Start Services**
+    The included `docker-compose.yml` sets up Apache/PHP on port **8080** and MariaDB.
     ```bash
     docker-compose up -d
     ```
-3.  **Run Installer:**
-    * Open your browser to `http://localhost:8080/install.php` (or your server IP).
-    * Follow the prompts to create the Super Admin account.
+
+4.  **Run the Installer**
+    * Go to `http://localhost:8080/install.php` (or your server IP).
+    * Follow the prompts to create the **Super Admin** account.
+    * **Security:** The database creates a default user `kid_user` with password `kid_password`. You can change these in `docker-compose.yml` if exposed to the web.
     * **Important:** Delete `install.php` after installation is complete.
 
-### Option 2: Manual / Shared Hosting
+### Option 2: Standard Hosting (cPanel / LAMP)
 
-Use this method for cPanel, standard web hosting, or XAMPP/MAMP.
-
-1.  **Upload Files:**
-    * Upload the entire project folder to your web server (e.g., `public_html`).
-2.  **Database Configuration:**
-    * Create a MySQL/MariaDB database and user via your hosting control panel.
-    * Rename `includes/config.sample.php` to `includes/config.php`.
-    * Edit `includes/config.php` and enter your database credentials (Host, Name, User, Password).
-3.  **Run Installer:**
-    * Navigate to `yoursite.com/install.php`.
-    * Enter your desired Admin PINs and click **Install**.
-4.  **Cleanup:**
-    * Delete `install.php` to secure your site.
+1.  **Upload:** Upload files to your `public_html` folder.
+2.  **Database:** Create a MySQL/MariaDB database and user in your control panel.
+3.  **Config:** * Rename `includes/config.sample.php` to `includes/config.php`.
+    * Edit it with your database credentials.
+4.  **Install:** Visit `yoursite.com/install.php` to complete setup.
 
 ---
 
-## 🧩 Developing New Games
+## 🧩 Game Development
 
-Want to add your own games to the hub? The platform provides a built-in Javascript API (`GameBridge`) that handles scoring, text-to-speech, and rewards.
+Want to add your own games? The platform exposes a powerful Javascript API called **GameBridge** that handles the complex logic for you.
 
-* **[📖 Read the Developer Guide](examples/DEVELOPER_GUIDE.md)**: Learn how to use `setupGame`, `saveScore`, and `celebrate`.
+* **[📖 Read the full Developer Guide](examples/DEVELOPER_GUIDE.md)**
 
-### Quick Game Structure
+### Key API Features
+* **Scoring:** `GameBridge.saveScore({ score: 100, mistakes: 0 })` handles database syncing automatically.
+* **Audio:** `GameBridge.speak("Find the red circle")` uses the browser's TTS engine.
+* **Feedback:** `GameBridge.handleCorrect()` triggers global "ding" sounds and visual streaks.
 
-Every game lives in `games/game-name/` and requires:
-* `view.php`: The HTML interface.
-* `game.js`: Logic using `GameBridge`.
-* `style.css`: Custom styles.
+### Quick Start
+Every game resides in `games/your-game-name/` and requires just three files:
+* `view.php` (The HTML interface)
+* `game.js` (Logic using `GameBridge.setupGame({...})`)
+* `style.css` (Visuals)
 
 ---
 
 ## 🛠️ Technology Stack
 
-* **Backend:** PHP (7.4+)
-* **Database:** MySQL / MariaDB
-* **Frontend:** HTML5, Vanilla JS (No frameworks required)
+* **Backend:** PHP 7.4+ (No frameworks, lightweight)
+* **Database:** MariaDB / MySQL
+* **Frontend:** Vanilla Javascript & HTML5
+* **Containerization:** Docker & Docker Compose
