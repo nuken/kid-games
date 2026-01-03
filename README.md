@@ -15,7 +15,7 @@ Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard
 
 ---
 
-## ✨ Features
+## <a id="features"></a>✨ Features
 
 ### 🛡️ For Parents
 * **Self-Hosted & Safe:** Zero ads, no external tracking, and no outbound links.
@@ -30,7 +30,7 @@ Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard
 
 ---
 
-## 🎲 Included Games
+## <a id="included-games"></a>🎲 Included Games
 
 The platform comes pre-loaded with a variety of educational titles:
 
@@ -44,7 +44,7 @@ The platform comes pre-loaded with a variety of educational titles:
 
 ---
 
-## 🚀 Installation
+## <a id="installation"></a>🚀 Installation
 
 ### Option 1: Docker (Recommended)
 
@@ -82,7 +82,7 @@ Perfect for home labs using Portainer or Docker Compose.
 
 ---
 
-## 🧩 Game Development
+## <a id="game-development"></a>🧩 Game Development
 
 Want to add your own games? The platform exposes a powerful Javascript API called **GameBridge** that handles the complex logic for you.
 
@@ -101,7 +101,7 @@ Every game resides in `games/your-game-name/` and requires just three files:
 
 ---
 
-## 🛠️ Technology Stack
+## <a id="technology-stack"></a>🛠️ Technology Stack
 
 * **Backend:** PHP 7.4+ (No frameworks, lightweight)
 * **Database:** MariaDB / MySQL
