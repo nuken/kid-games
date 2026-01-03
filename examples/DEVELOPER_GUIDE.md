@@ -128,10 +128,3 @@ GameBridge.celebrate("Great Job!", "assets/videos/dance.mp4");
         };
     }
 })();
-
-```
-
-```
-
-
-
