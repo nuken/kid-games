@@ -7,11 +7,11 @@ A self-hosted, safe, and ad-free educational gaming platform for children. This 
 Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard web hosting.
 
 ## 📋 Table of Contents
-- [Features](#-features)
-- [Included Games](#-included-games)
-- [Installation](#-installation)
-- [Game Development](#-game-development)
-- [Technology Stack](#-technology-stack)
+- [Features](#features)
+- [Included Games](#included-games)
+- [Installation](#installation)
+- [Game Development](#game-development)
+- [Technology Stack](#technology-stack)
 
 ---
 
@@ -107,5 +107,3 @@ Every game resides in `games/your-game-name/` and requires just three files:
 * **Database:** MariaDB / MySQL
 * **Frontend:** Vanilla Javascript & HTML5
 * **Containerization:** Docker & Docker Compose
-
----
