@@ -1,8 +1,6 @@
 
 ### 1. New File: `examples/DEVELOPER_GUIDE.md`
 
-Save this file in your new `examples/` folder.
-
 ```markdown
 # 🕹️ Developer Guide: Creating a New Game
 
@@ -134,4 +132,5 @@ GameBridge.celebrate("Great Job!", "assets/videos/dance.mp4");
 ```
 
 ```
+
 
