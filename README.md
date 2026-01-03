@@ -53,7 +53,6 @@ Use this method for cPanel, standard web hosting, or XAMPP/MAMP.
 Want to add your own games to the hub? The platform provides a built-in Javascript API (`GameBridge`) that handles scoring, text-to-speech, and rewards.
 
 * **[📖 Read the Developer Guide](examples/DEVELOPER_GUIDE.md)**: Learn how to use `setupGame`, `saveScore`, and `celebrate`.
-* **[📂 View Example Structure](examples/)**: See how game folders are organized.
 
 ### Quick Game Structure
 
