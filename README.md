@@ -107,3 +107,5 @@ Every game resides in `games/your-game-name/` and requires just three files:
 * **Database:** MariaDB / MySQL
 * **Frontend:** Vanilla Javascript & HTML5
 * **Containerization:** Docker & Docker Compose
+
+---
