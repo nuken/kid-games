@@ -1,49 +1,37 @@
 /* assets/js/game-bridge.js */
 window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
-    let currentStreak = 0; // NEW: Track streaks locally
+    let currentStreak = 0; 
 
-    // --- NEW: Audio Buffer Variables ---
+    // Audio Buffer Variables
     let pendingStreakMessage = null;
     let pendingStreakTimer = null;
 
-    // --- Audio Objects ---
+    // Audio Objects
     const sounds = {
         correct: new Audio('assets/sounds/correct.mp3'),
         wrong:   new Audio('assets/sounds/wrong.mp3')
     };
 
     /**
-     * CONFETTI LOGIC (Optimized for Apple Devices)
-     * Uses translate3d to force GPU hardware acceleration.
+     * CONFETTI LOGIC
      */
     window.playConfettiEffect = function() {
-        // 1. CHECK USER PREFERENCE
         if (window.gameConfig && window.gameConfig.confetti === false) {
-            console.log("Confetti disabled by parent.");
-            return; // Stop here
+            console.log("Confetti disabled.");
+            return; 
         }
 
         let theme = 'default';
         if (window.gameConfig && window.gameConfig.themePath) {
             if (window.gameConfig.themePath.includes('princess')) theme = 'princess';
             else if (window.gameConfig.themePath.includes('space')) theme = 'space';
-        } else {
-            const links = document.querySelectorAll('link[rel="stylesheet"]');
-            links.forEach(link => {
-                if (link.href.includes('princess.css')) theme = 'princess';
-                if (link.href.includes('space.css')) theme = 'space';
-            });
         }
 
         let emojis = [];
-        if (theme === 'princess') {
-            emojis = ['👑', '💖', '✨', '🌸', '🦄', '🏰'];
-        } else if (theme === 'space') {
-            emojis = ['⭐', '🌟', '🚀', '🪐', '☄️', '🌑'];
-        } else {
-            emojis = ['🎊', '🎉', '🎈', '🟦', '🔴', '🔺', '✨'];
-        }
+        if (theme === 'princess') emojis = ['👑', '💖', '✨', '🌸', '🦄', '🏰'];
+        else if (theme === 'space') emojis = ['⭐', '🌟', '🚀', '🪐', '☄️', '🌑'];
+        else emojis = ['🎊', '🎉', '🎈', '🟦', '🔴', '🔺', '✨'];
 
         const container = document.createElement('div');
         Object.assign(container.style, {
@@ -57,54 +45,40 @@ window.GameBridge = (function() {
             const el = document.createElement('div');
             el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
 
-            // Random start position
-            const startX = Math.random() * 100; // vw
+            const startX = Math.random() * 100; 
             const startRotation = Math.random() * 360;
 
             Object.assign(el.style, {
                 position: 'absolute',
                 left: startX + 'vw',
-                top: '-10vh', // Start slightly above screen
+                top: '-10vh', 
                 fontSize: (Math.random() * 20 + 20) + 'px',
-                // Initial State: No vertical movement yet, just rotation
                 transform: `translate3d(0, 0, 0) rotate(${startRotation}deg)`,
-                // Apple Fix: Hint to the browser to prepare for changes
                 willChange: 'transform'
             });
 
             const duration = Math.random() * 2 + 3;
-
-            // We only animate 'transform' now, which handles BOTH position (fall) and rotation (tumble)
-            // 'ease-in' makes it start slow and speed up (gravity effect)
             el.style.transition = `transform ${duration}s ease-in`;
 
             container.appendChild(el);
 
-            // Trigger the animation in the next frame
             requestAnimationFrame(() => {
-                // Force a tiny delay to ensure the browser registers the start state
                 setTimeout(() => {
                     const endRotation = startRotation + (Math.random() * 360 + 360);
-                    // Fall down 120vh (to ensure it clears the screen) while rotating
                     el.style.transform = `translate3d(0, 120vh, 0) rotate(${endRotation}deg)`;
                 }, 50);
             });
         }
 
-        // Cleanup
         setTimeout(() => {
-            if(document.body.contains(container)) {
-                document.body.removeChild(container);
-            }
+            if(document.body.contains(container)) document.body.removeChild(container);
         }, 6000);
     };
 
     /**
-     * BADGE MODAL LOGIC (New Styling)
-     * UPDATED: Accepts an optional callback to stay in the game instead of redirecting
+     * BADGE MODAL LOGIC
      */
    function showBadgeModal(badges, onCloseCallback) {
-        // 1. Create Styles (if missing)
         const styleId = 'badge-modal-style';
         if (!document.getElementById(styleId)) {
             const style = document.createElement('style');
@@ -112,7 +86,7 @@ window.GameBridge = (function() {
             style.innerHTML = `
                 .badge-overlay {
                     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.5); z-index: 10000; /* Below Video (10001) */
+                    background: rgba(0,0,0,0.5); z-index: 10000; 
                     display: flex; align-items: center; justify-content: center;
                     backdrop-filter: blur(5px);
                 }
@@ -144,8 +118,6 @@ window.GameBridge = (function() {
             document.head.appendChild(style);
         }
 
-        // 2. Prepare Data
-        // The "Real" Badge Content (Hidden at first)
         let badgeHtml = '';
         badges.forEach(b => {
             badgeHtml += `
@@ -155,82 +127,57 @@ window.GameBridge = (function() {
             `;
         });
 
-        // The "Gift Box" Content (Shown first)
         const giftHtml = `
             <div id="gift-box-trigger" class="gift-box">🎁</div>
             <div id="gift-text" class="badge-title" style="color:#e74c3c;">You found a gift!</div>
             <div class="badge-desc">Tap to open!</div>
         `;
 
-        // 3. Render Overlay
         const overlay = document.createElement('div');
         overlay.className = 'badge-overlay';
-        overlay.innerHTML = `
-            <div class="badge-card" id="badge-card-container">
-                ${giftHtml}
-            </div>
-        `;
+        overlay.innerHTML = `<div class="badge-card" id="badge-card-container">${giftHtml}</div>`;
 
         document.body.appendChild(overlay);
 
-        // --- NEW: TIMER CONTROL ---
         let autoOpenTimer = null;
-
         const startGiftTimer = () => {
-            // Prevent double-start
             if (autoOpenTimer) return;
-            
             autoOpenTimer = setTimeout(() => {
                 const t = document.getElementById('gift-box-trigger');
                 if (t) t.click();
-            }, 5000); // 5 seconds to click gift
+            }, 5000); 
         };
 
-        // Attach timer function to DOM so the Video Closer can find it
         overlay.startGiftTimer = startGiftTimer;
 
-        // --- IMPORTANT: ONLY START TIMER IF NO VIDEO IS PLAYING ---
         if (document.getElementById('video-reward-overlay')) {
-            console.log("Video is playing. Pausing badge timer until video ends.");
+            console.log("Video is playing. Pausing badge timer.");
         } else {
             startGiftTimer();
         }
 
-        // 4. Handle "Unboxing"
         const trigger = document.getElementById('gift-box-trigger');
         if(trigger) {
             trigger.onclick = function() {
-                // Stop the auto-open timer if clicked manually
                 if(autoOpenTimer) clearTimeout(autoOpenTimer);
-                
-                // Play Sound
                 sounds.correct.play().catch(()=>{});
 
-                // Swap Content
                 const container = document.getElementById('badge-card-container');
-                // Added ID to button for click handler
                 container.innerHTML = badgeHtml + `<button id="badge-close-btn" class="badge-btn">Awesome!</button>`;
 
-                // Fire Confetti
                 if(window.playConfettiEffect) window.playConfettiEffect();
 
-                // --- NEW: Auto-Close Badge Timer (5 seconds after reveal) ---
                 let autoCloseTimer = setTimeout(() => {
                     const c = document.getElementById('badge-close-btn');
                     if (c) c.click();
                 }, 5000);
 
-                // Handle Close Click
                 document.getElementById('badge-close-btn').onclick = function() {
-                    // Stop the timer if clicked manually
                     clearTimeout(autoCloseTimer);
-                    
                     if (onCloseCallback) {
-                        // User wants to stay in the game (Quest Logic)
                         document.body.removeChild(overlay);
                         onCloseCallback();
                     } else {
-                        // Default behavior: Redirect to menu
                         window.location.href = 'index.php';
                     }
                 };
@@ -245,7 +192,6 @@ window.GameBridge = (function() {
         },
 
         setupGame: function(config) {
-            // (Keep existing setupGame logic...)
             const overlay = document.getElementById('system-overlay');
             const desc = document.getElementById('overlay-desc');
             const levels = document.getElementById('level-select');
@@ -270,14 +216,12 @@ window.GameBridge = (function() {
             }
         },
 
-        // --- NEW: STREAK LOGIC ---
         handleCorrect: function() {
             currentStreak++;
             this.updateStreakVisuals();
             this.playAudio('correct');
         },
 
-        // --- NEW: STREAK LOGIC (SILENT) ---
         handleCorrectSilent: function() {
             currentStreak++;
             this.updateStreakVisuals();
@@ -294,14 +238,9 @@ window.GameBridge = (function() {
             if (currentStreak >= 3) {
                 if (!body.classList.contains('on-fire')) {
                     body.classList.add('on-fire');
-
-                    // FIX: Buffer the message.
-                    // Do NOT speak immediately if another speech event is coming.
                     pendingStreakMessage = "You are on fire!";
 
                     if(pendingStreakTimer) clearTimeout(pendingStreakTimer);
-
-                    // Fallback: If the game DOESN'T speak anything else in 150ms, say it anyway.
                     pendingStreakTimer = setTimeout(() => {
                         if(pendingStreakMessage && window.speakText) {
                             window.speakText(pendingStreakMessage);
@@ -313,7 +252,6 @@ window.GameBridge = (function() {
                 body.classList.remove('on-fire');
             }
         },
-        // -------------------------
 
         updateScore: function(val) {
             const el = document.getElementById('score-display');
@@ -332,7 +270,6 @@ window.GameBridge = (function() {
         },
 
         speak: function(text, arg2, arg3) {
-            // Check if we have a pending streak message
             if (pendingStreakMessage) {
                 text = pendingStreakMessage + ". " + text;
                 pendingStreakMessage = null;
@@ -342,7 +279,6 @@ window.GameBridge = (function() {
         },
 
 		speakNow: function(text, arg2, arg3) {
-            // Check if we have a pending streak message
             if (pendingStreakMessage) {
                 text = pendingStreakMessage + ". " + text;
                 pendingStreakMessage = null;
@@ -351,19 +287,17 @@ window.GameBridge = (function() {
             if (window.speakNow) window.speakNow(text, arg2, arg3);
         },
 
-        // --- UPDATED CELEBRATE (With Smart Redirect and Timer Sync) ---
         celebrate: function(text, videoUrl) {
-            // Audio/Visuals
             this.playAudio('correct');
             if (window.playConfettiEffect) window.playConfettiEffect();
             if (text) this.speak(text);
 
             if (videoUrl) {
                 const videoOverlay = document.createElement('div');
-                videoOverlay.id = 'video-reward-overlay'; // ID for easy finding
+                videoOverlay.id = 'video-reward-overlay'; 
                 Object.assign(videoOverlay.style, {
                     position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001', // Higher than badge
+                    backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001', 
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                 });
 
@@ -378,47 +312,34 @@ window.GameBridge = (function() {
 
                 document.body.appendChild(videoOverlay);
 
-                // --- DEFINE CLOSE LOGIC ---
                 const closeVideoAndProceed = () => {
-                     // Check if already closed to avoid errors
                      if(!document.body.contains(videoOverlay)) return;
-
                      document.body.removeChild(videoOverlay);
 
-                     // CHECK: Is a badge/gift waiting underneath?
                      const badgeOverlay = document.querySelector('.badge-overlay');
-
-                     if (badgeOverlay) {
-                         // FOUND BADGE.
-                         // Manually trigger the badge timer NOW.
-                         if (badgeOverlay.startGiftTimer) {
-                             badgeOverlay.startGiftTimer();
-                         }
+                     if (badgeOverlay && badgeOverlay.startGiftTimer) {
+                         badgeOverlay.startGiftTimer();
                      } else {
-                         // No badge? Okay, go to menu
                          window.location.href = "index.php";
                      }
                 };
 
-                // --- NEW: Auto-Close Video Timer (2s after end) ---
                 const vid = document.getElementById('reward-video');
                 if (vid) {
-                    vid.onended = function() {
-                        setTimeout(closeVideoAndProceed, 2000);
-                    };
+                    vid.onended = function() { setTimeout(closeVideoAndProceed, 2000); };
                 }
-
-                // FIX: "Smart" Close Button
                 document.getElementById('close-video').onclick = closeVideoAndProceed;
             }
         },
 
+        // --- UPDATED SAVE SCORE WITH CSRF ---
         saveScore: function(data) {
             if (!window.gameConfig) return;
 
             const payload = {
                 user_id: window.gameConfig.userId,
                 game_id: window.gameConfig.gameId,
+                csrf_token: window.gameConfig.csrfToken, // CSRF ADDED HERE
                 score: data.score,
                 duration: data.duration,
                 mistakes: data.mistakes || 0
@@ -431,18 +352,10 @@ window.GameBridge = (function() {
             })
             .then(response => response.json())
             .then(result => {
-                // CHECK IF BADGE WAS EARNED
                 if (result.status === 'success' && result.new_badges && result.new_badges.length > 0) {
-                    // SHOW MYSTERY GIFT
-                    // If noRedirect is requested, we pass an empty callback () => {} to keep them in game
-                    // Otherwise pass null, which defaults to redirect
                     const callback = data.noRedirect ? () => {} : null;
                     showBadgeModal(result.new_badges, callback);
                 } else {
-                    // NO BADGE
-                    // Only redirect if:
-                    // 1. NO video is playing
-                    // 2. AND we are NOT specifically asked to stay in the game (noRedirect)
                     if (!document.getElementById('video-reward-overlay') && !data.noRedirect) {
                         setTimeout(() => window.location.href = "index.php", 2000);
                     }
