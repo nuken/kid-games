@@ -1,13 +1,14 @@
 <?php
+// admin/index.php
 session_start();
 require_once '../includes/db.php'; 
 require_once 'auth_check.php';
 
 $message = "";
 
-// 2. HANDLE ADD USER
+// 1. HANDLE ADD USER
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_user') {
-    // SECURITY: CSRF Check
+    // CSRF Check
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die("Security Error: Invalid CSRF Token.");
     }
@@ -20,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $parent_id = ($role === 'student' && !empty($_POST['parent_id'])) ? $_POST['parent_id'] : null;
 
     try {
+        // Default avatar set to silhouette
         $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar) VALUES (?, ?, ?, ?, ?, '👤')");
         $stmt->execute([$username, $pin, $role, $grade, $parent_id]);
 
@@ -29,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// 3. FETCH DATA
+// 2. FETCH DATA
 $sql = "SELECT u.*, p.username as parent_name 
         FROM users u 
         LEFT JOIN users p ON u.parent_id = p.id 
@@ -38,7 +40,7 @@ $users = $pdo->query($sql)->fetchAll();
 
 $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORDER BY username ASC")->fetchAll();
 
-// 4. GET DASHBOARD STATS
+// 3. GET DASHBOARD STATS
 $total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 $total_students = $pdo->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn();
 $active_games = $pdo->query("SELECT COUNT(*) FROM games WHERE active=1")->fetchColumn();
@@ -57,7 +59,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
 <div class="nav-bar">
     <a href="index.php" class="nav-item active">👥 Users</a>
     <a href="games.php" class="nav-item">🎮 Games</a>
-	 <a href="badges.php" class="nav-item">🏆 Badges</a> 
+    <a href="badges.php" class="nav-item">🏆 Badges</a>
     <a href="../logout.php" class="nav-item logout">Log Out</a>
 </div>
 
@@ -78,7 +80,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
         </div>
         <div class="card" style="text-align: center; padding: 20px;">
             <div style="font-size: 2rem; font-weight: bold; color: #f1c40f;"><?php echo $total_plays; ?></div>
-            <div style="color: #7f8c8d; font-size: 0.9rem;">Total Missions Played</div>
+            <div style="color: #7f8c8d; font-size: 0.9rem;">Total Missions</div>
         </div>
     </div>
 
@@ -129,10 +131,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
     </div>
 
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-            <h2 style="margin:0; border:none;">All Users</h2>
-        </div>
-
+        <h2 style="margin-bottom: 15px;">All Users</h2>
         <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 Search users..." style="margin-bottom: 15px;">
         
         <table>
@@ -166,15 +165,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
                     </td>
                     <td>
                         <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-edit">Edit</a>
-                        
-                        <?php if ($u['id'] != $_SESSION['user_id']): ?>
-                            <a href="delete_user.php?id=<?php echo $u['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
-                               class="btn-delete"
-                               onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($u['username']); ?>? This cannot be undone.');">
-                               Delete
-                            </a>
-                        <?php endif; ?>
-                    </td>
+                        </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

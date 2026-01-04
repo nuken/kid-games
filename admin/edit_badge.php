@@ -101,6 +101,7 @@ $icons = ['✨', '🏆', '🥇', '🥈', '🥉', '⭐', '🔥', '🤖', '🚀', 
         
         <a href="edit_badge.php?id=<?php echo $badge['id']; ?>&delete=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
            class="btn-delete" 
+           style="display: block; width: 100%; text-align: center; margin-top: 15px; margin-left: 0; padding: 12px; box-sizing: border-box; font-weight: bold; font-size: 16px;"
            onclick="return confirm('Delete this badge?');">
            Delete Badge
         </a>

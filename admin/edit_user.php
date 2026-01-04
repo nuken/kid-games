@@ -1,4 +1,5 @@
 <?php
+// admin/edit_user.php
 session_start();
 require_once '../includes/db.php'; 
 require_once 'auth_check.php';
@@ -10,7 +11,7 @@ $message = "";
 
 // 2. HANDLE UPDATE
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // SECURITY: CSRF Check
+    // CSRF Check
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die("Security Error: Invalid CSRF Token.");
     }
@@ -91,6 +92,16 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent'")->
         </div>
 
         <button type="submit" class="btn-save">Save Changes</button>
+
+        <?php if ($user['id'] != $_SESSION['user_id']): ?>
+            <a href="delete_user.php?id=<?php echo $user['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
+               class="btn-delete"
+               style="display: block; width: 100%; text-align: center; margin-top: 15px; margin-left: 0; padding: 12px; box-sizing: border-box; font-weight: bold; font-size: 16px; background-color: #e74c3c;"
+               onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($user['username']); ?>? This cannot be undone.');">
+               Delete User
+            </a>
+        <?php endif; ?>
+
         <a href="index.php" class="cancel-link">Cancel</a>
     </form>
 </div>
