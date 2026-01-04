@@ -3,6 +3,12 @@
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 session_start();
+if (isset($_SESSION['user_id'])) {
+    // If already logged in, go to the correct dashboard
+    $dest = ($_SESSION['role'] === 'admin') ? 'admin/index.php' : (($_SESSION['role'] === 'parent') ? 'parent.php' : 'index.php');
+    header("Location: $dest");
+    exit;
+}
 require_once 'includes/db.php';
 
 // Generate Token
