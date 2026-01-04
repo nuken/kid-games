@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 // Create Parent
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, avatar) VALUES (?, ?, 'parent', '👤')");
-                if ($stmt->execute([$username, $pin])) {
+                $hashed_pin = password_hash($pin, PASSWORD_DEFAULT);
+                if ($stmt->execute([$username, $hashed_pin])) {
                     $user_id = $pdo->lastInsertId();
                     $_SESSION['user_id'] = $user_id;
                     $_SESSION['username'] = $username;

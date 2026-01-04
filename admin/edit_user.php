@@ -17,13 +17,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $username = $_POST['username'];
-    $pin      = $_POST['pin'];
     $role     = $_POST['role'];
     $grade    = $_POST['grade_level'] ?? 0;
     $parent_id = ($role === 'student' && !empty($_POST['parent_id'])) ? $_POST['parent_id'] : null;
+    
+    // Check if PIN was changed
+    $new_pin = trim($_POST['pin']);
+    
+    if (!empty($new_pin)) {
+        // PIN changed: Hash it and update everything
+        $hashed_pin = password_hash($new_pin, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("UPDATE users SET username=?, pin_code=?, role=?, grade_level=?, parent_id=? WHERE id=?");
+        $params = [$username, $hashed_pin, $role, $grade, $parent_id, $id];
+    } else {
+        // PIN empty: Update everything EXCEPT pin_code
+        $stmt = $pdo->prepare("UPDATE users SET username=?, role=?, grade_level=?, parent_id=? WHERE id=?");
+        $params = [$username, $role, $grade, $parent_id, $id];
+    }
 
-    $stmt = $pdo->prepare("UPDATE users SET username=?, pin_code=?, role=?, grade_level=?, parent_id=? WHERE id=?");
-    if ($stmt->execute([$username, $pin, $role, $grade, $parent_id, $id])) {
+    if ($stmt->execute($params)) {
         $message = "<div class='alert success'>User updated! <a href='index.php' style='color:#155724; text-decoration:underline;'>Go Back</a></div>";
     } else {
         $message = "<div class='alert error'>Update failed.</div>";
@@ -59,7 +71,7 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent'")->
         <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
 
         <label>PIN Code</label>
-        <input type="text" name="pin" value="<?php echo htmlspecialchars($user['pin_code']); ?>" required>
+<input type="text" name="pin" placeholder="Leave blank to keep current PIN" autocomplete="off">
 
         <label>Role</label>
         <select name="role" id="roleSelect" onchange="toggleFields()">

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$user_id]);
         $user = $stmt->fetch();
 
-        if ($user && $user['pin_code'] === $pin) {
+        if ($user && password_verify($pin, $user['pin_code'])) {
             // SUCCESS
             $_SESSION['failed_attempts'] = 0;
             unset($_SESSION['lockout_time']);

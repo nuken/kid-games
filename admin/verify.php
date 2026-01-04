@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$user_id]);
         $user = $stmt->fetch();
 
-        if ($user && $entered_pin === $user['admin_pin']) {
+       if ($user && password_verify($entered_pin, $user['admin_pin'])) {
             $_SESSION['admin_unlocked'] = true; 
             header("Location: index.php");
             exit;

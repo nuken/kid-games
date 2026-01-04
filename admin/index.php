@@ -139,7 +139,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
                 <tr>
                     <th>Name</th>
                     <th>Role</th>
-                    <th>PIN</th>
+                    
                     <th>Parent / Data</th>
                     <th>Action</th>
                 </tr>
@@ -153,7 +153,6 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
                     <td>
                         <span class="badge role-<?php echo $u['role']; ?>"><?php echo ucfirst($u['role']); ?></span>
                     </td>
-                    <td style="font-family:monospace; font-weight:bold; color:#555;"><?php echo $u['pin_code']; ?></td>
                     <td>
                         <?php if ($u['role'] === 'student' && $u['parent_name']): ?>
                             <span style="color:#9b59b6; font-weight:bold; font-size:0.9em;">Child of <?php echo htmlspecialchars($u['parent_name']); ?></span>
