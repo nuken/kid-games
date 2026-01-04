@@ -52,7 +52,7 @@ Perfect for home labs using Portainer or Docker Compose.
 
 1.  **Clone the Repository**
     ```bash
-    git clone [https://github.com/nuken/kid-games.git](https://github.com/nuken/kid-games.git)
+    git clone https://github.com/nuken/kid-games.git
     cd kid-games
     ```
 
