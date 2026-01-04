@@ -23,8 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         // Default avatar set to silhouette
         $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar) VALUES (?, ?, ?, ?, ?, '👤')");
-        $stmt->execute([$username, $pin, $role, $grade, $parent_id]);
-
+        // HASH THE PIN FIRST
+$hashed_pin = password_hash($pin, PASSWORD_DEFAULT);
+$stmt->execute([$username, $hashed_pin, $role, $grade, $parent_id]);
         $message = "<div class='alert success'>User '$username' created successfully!</div>";
     } catch (PDOException $e) {
         $message = "<div class='alert error'>Error: " . $e->getMessage() . "</div>";

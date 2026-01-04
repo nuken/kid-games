@@ -42,11 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $message = "<div class='alert error'>Name '$child_name' is taken. Try adding an initial.</div>";
             } else {
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
-                if ($stmt->execute([$child_name, $child_pin, $child_grade, $_SESSION['user_id']])) {
-                    $message = "<div class='alert success'>Added $child_name successfully!</div>";
-                } else {
-                    $message = "<div class='alert error'>Database Error.</div>";
-                }
+
+// --- FIX START ---
+$hashed_pin = password_hash($child_pin, PASSWORD_DEFAULT);
+// Use $hashed_pin instead of $child_pin below:
+if ($stmt->execute([$child_name, $hashed_pin, $child_grade, $_SESSION['user_id']])) {
+// --- FIX END ---
+
+    $message = "<div class='alert success'>Added $child_name successfully!</div>";
+} else {
+    $message = "<div class='alert error'>Database Error.</div>";
+}
             }
         }
     }
