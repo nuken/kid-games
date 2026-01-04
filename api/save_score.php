@@ -6,7 +6,7 @@ require_once '../includes/quest_logic.php';
 
 session_start();
 
-// 1. Check if user is logged in
+// 1. Security Checks
 if (!isset($_SESSION['user_id'])) {
     http_response_code(403);
     die(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
@@ -20,93 +20,72 @@ if (!$data) {
     exit;
 }
 
+// CSRF VERIFICATION
+if (!isset($data['csrf_token']) || $data['csrf_token'] !== $_SESSION['csrf_token']) {
+    http_response_code(403);
+    die(json_encode(['status' => 'error', 'message' => 'Invalid Security Token']));
+}
+
 if ($data['user_id'] != $_SESSION['user_id']) {
     http_response_code(403);
     die(json_encode(['status' => 'error', 'message' => 'ID Mismatch']));
 }
 
-// 2. Extract variables
+// 2. Extract Data
 $user_id  = $data['user_id'];
 $game_id  = $data['game_id'];
 $score    = $data['score'];
 $duration = $data['duration'];
 $mistakes = isset($data['mistakes']) ? (int)$data['mistakes'] : 0; 
 
-// Fetch user grade for Quest Logic
+// Get Grade
 try {
     $stmt = $pdo->prepare("SELECT grade_level FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
-    $user_grade = $stmt->fetchColumn();
-    if ($user_grade === false) $user_grade = 0;
-} catch (Exception $e) {
-    $user_grade = 0; 
-}
+    $user_grade = $stmt->fetchColumn() ?: 0;
+} catch (Exception $e) { $user_grade = 0; }
 
-// 3. Insert into Database
+// 3. Save Score & Logic
 try {
-    $sql = "INSERT INTO progress (user_id, game_id, score, duration_seconds, mistakes)
-            VALUES (:uid, :gid, :score, :duration, :mistakes)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':uid' => $user_id,
-        ':gid' => $game_id,
-        ':score' => $score,
-        ':duration' => $duration,
-        ':mistakes' => $mistakes
-    ]);
+    $stmt = $pdo->prepare("INSERT INTO progress (user_id, game_id, score, duration_seconds, mistakes) VALUES (:uid, :gid, :score, :duration, :mistakes)");
+    $stmt->execute([':uid'=>$user_id, ':gid'=>$game_id, ':score'=>$score, ':duration'=>$duration, ':mistakes'=>$mistakes]);
 
     $new_badges = [];
 
-    // --- DAILY QUEST LOGIC (Keep strictly once per day) ---
+    // Daily Quest
     $daily_game_id = getDailyGameId($pdo, $user_grade);
-    
     if ($game_id == $daily_game_id) {
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 25 AND DATE(earned_at) = CURDATE()");
         $stmt->execute([$user_id]);
-        
         if ($stmt->fetchColumn() == 0) {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 25)")->execute([$user_id]);
-            $new_badges[] = ['name' => 'Daily Star', 'icon' => '🌟'];
-            
-            // Streak Logic
+            $new_badges[] = ['name'=>'Daily Star', 'icon'=>'🌟'];
             if (getStreakCount($pdo, $user_id) >= 3) {
                 $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 26)")->execute([$user_id]);
-                $new_badges[] = ['name' => 'Streak Master', 'icon' => '🔥'];
+                $new_badges[] = ['name'=>'Streak Master', 'icon'=>'🔥'];
             }
         }
     }
 
-    // A. "First Flight" (Badge ID 1) - Keep unique (Only once ever)
+    // First Flight
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = 1");
     $stmt->execute([$user_id]);
     if ($stmt->fetchColumn() == 0) {
         $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, 1)")->execute([$user_id]);
-        $new_badges[] = ['name' => 'First Flight', 'icon' => '✨'];
+        $new_badges[] = ['name'=>'First Flight', 'icon'=>'✨'];
     }
 
-    // B. Check Game-Specific Badges (ALLOW MULTIPLES!)
+    // Game Specific Badges
     $stmt = $pdo->prepare("SELECT * FROM badges WHERE criteria_game_id = ?");
     $stmt->execute([$game_id]);
-    $game_badges = $stmt->fetchAll();
-
-    foreach ($game_badges as $badge) {
-        // REMOVED the check for existing badges.
-        // Now we only check if they attained the score.
+    foreach ($stmt->fetchAll() as $badge) {
         if ($score >= $badge['criteria_score']) {
-            $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")
-                ->execute([$user_id, $badge['id']]);
-
-            $new_badges[] = [
-                'name' => $badge['name'],
-                'icon' => $badge['icon']
-            ];
+            $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $badge['id']]);
+            $new_badges[] = ['name'=>$badge['name'], 'icon'=>$badge['icon']];
         }
     }
 
-    echo json_encode([
-        'status' => 'success',
-        'new_badges' => $new_badges
-    ]);
+    echo json_encode(['status' => 'success', 'new_badges' => $new_badges]);
 
 } catch (PDOException $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
