@@ -1,38 +1,36 @@
 <?php
 // api/reset_badges.php
-header('Content-Type: application/json');
 require_once '../includes/db.php';
 session_start();
 
+// 1. Security Check
 if (!isset($_SESSION['user_id'])) {
+    if (isset($_GET['redirect'])) { header("Location: ../login.php"); exit; }
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
-    exit;
+    die(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid Request']);
-    exit;
-}
+// 2. Get Data (Support both POST JSON and GET URL)
+$json_input = file_get_contents('php://input');
+$data = json_decode($json_input, true) ?? [];
 
-$data = json_decode(file_get_contents('php://input'), true);
+$token     = $_GET['csrf_token'] ?? ($data['csrf_token'] ?? '');
+$target_id = $_GET['user_id']    ?? ($data['user_id'] ?? null);
 
-// CSRF CHECK
-if (!isset($data['csrf_token']) || $data['csrf_token'] !== $_SESSION['csrf_token']) {
-    http_response_code(403);
+// 3. CSRF Check
+if ($token !== $_SESSION['csrf_token']) {
     die(json_encode(['status' => 'error', 'message' => 'Invalid Security Token']));
 }
 
-if (!isset($data['user_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'No User ID']);
-    exit;
+if (!$target_id) {
+    die(json_encode(['status' => 'error', 'message' => 'No User ID provided']));
 }
 
-$target_id = $data['user_id'];
+// 4. Authorization
 $requester_id = $_SESSION['user_id'];
 $requester_role = $_SESSION['role'] ?? 'student';
-
 $allowed = false;
+
 if ($target_id == $requester_id) $allowed = true;
 elseif ($requester_role === 'admin') $allowed = true;
 elseif ($requester_role === 'parent') {
@@ -43,14 +41,24 @@ elseif ($requester_role === 'parent') {
 
 if (!$allowed) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Forbidden']);
-    exit;
+    die(json_encode(['status' => 'error', 'message' => 'Forbidden']));
 }
 
+// 5. Execute Delete
 try {
     $stmt = $pdo->prepare("DELETE FROM user_badges WHERE user_id = ?");
     $stmt->execute([$target_id]);
+
+    // Handle Redirect (For Parent Dashboard)
+    if (isset($_GET['redirect']) && $_GET['redirect'] == 'true') {
+        header("Location: ../parent.php?student_id=" . $target_id);
+        exit;
+    }
+
+    // Handle JSON (For API/JS)
+    header('Content-Type: application/json');
     echo json_encode(['status' => 'success', 'message' => 'Badges reset']);
+
 } catch (PDOException $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

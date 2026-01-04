@@ -278,10 +278,18 @@ $adult_avatars = ['👤'=>'Default','👩'=>'Mom','👨'=>'Dad','👵'=>'Grandma
                     <button type="submit" class="save-btn">Save Changes</button>
                 </form>
 
-                <div style="margin-top: 20px; text-align: center;">
-                    <a href="api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true" 
-                       onclick="return confirm('Delete ALL history for this child?')"
-                       style="color: #e74c3c; font-size: 0.9rem;">Reset Progress</a>
+                <div style="margin-top: 25px; text-align: center; display: flex; flex-direction: column; gap: 10px;">
+                    <a href="api/reset_badges.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
+                       onclick="return confirm('Remove all badges? (Scores will stay)')"
+                       style="color: #e67e22; font-weight: bold; font-size: 0.9rem; text-decoration: none;">
+                       ↺ Reset Badges Only
+                    </a>
+
+                    <a href="api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
+                       onclick="return confirm('WARNING: This deletes ALL history, scores, and badges. Continue?')"
+                       style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; text-decoration: none;">
+                       🗑️ Reset All Progress
+                    </a>
                 </div>
                 
                 <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
