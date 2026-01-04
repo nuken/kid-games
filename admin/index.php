@@ -1,23 +1,25 @@
 <?php
 session_start();
-require_once '../includes/db.php'; //
-
+require_once '../includes/db.php'; 
 require_once 'auth_check.php';
 
 $message = "";
 
 // 2. HANDLE ADD USER
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_user') {
+    // SECURITY: CSRF Check
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Security Error: Invalid CSRF Token.");
+    }
+
     $username = trim($_POST['username']);
     $pin      = trim($_POST['pin']);
     $role     = $_POST['role'];
     $grade    = $_POST['grade_level'] ?? 0;
     
-    // Only students get a parent_id
     $parent_id = ($role === 'student' && !empty($_POST['parent_id'])) ? $_POST['parent_id'] : null;
 
     try {
-        // CHANGED: Added 'avatar' column and set it to '👤'
         $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar) VALUES (?, ?, ?, ?, ?, '👤')");
         $stmt->execute([$username, $pin, $role, $grade, $parent_id]);
 
@@ -28,15 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // 3. FETCH DATA
-// Get all users with their parent's name joined
 $sql = "SELECT u.*, p.username as parent_name 
         FROM users u 
         LEFT JOIN users p ON u.parent_id = p.id 
         ORDER BY u.role DESC, u.username ASC";
 $users = $pdo->query($sql)->fetchAll();
 
-// Get list of Parents for the dropdowns
 $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORDER BY username ASC")->fetchAll();
+
+// 4. GET DASHBOARD STATS
+$total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+$total_students = $pdo->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn();
+$active_games = $pdo->query("SELECT COUNT(*) FROM games WHERE active=1")->fetchColumn();
+$total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -44,115 +50,45 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
 <head>
     <meta charset="UTF-8">
     <title>Admin - User Management</title>
-    <link rel="stylesheet" href="../assets/css/style.css"> <style>
-        /* --- ADMIN THEME OVERRIDES --- */
-        body { 
-            background-color: #f4f6f8; 
-            background-image: none; /* Remove space stars */
-            color: #333 !important; /* Force dark text globally */
-            font-family: sans-serif;
-        }
-
-        .admin-container { 
-            max-width: 1000px; 
-            margin: 30px auto; 
-            display: grid; 
-            grid-template-columns: 1fr 2fr; 
-            gap: 20px; 
-        }
-
-        .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            color: #333; /* Ensure text inside card is dark */
-        }
-        
-        /* Force Headings & Labels to be Dark */
-        h2 { 
-            margin-top: 0; 
-            color: #2c3e50; 
-            border-bottom: 2px solid #ecf0f1;
-            padding-bottom: 10px;
-        }
-
-        label { 
-            color: #2c3e50; 
-            font-weight: bold; 
-            display: block; 
-            margin-top: 10px;
-        }
-
-        /* Form Inputs */
-        input, select {
-            width: 100%; 
-            padding: 8px; 
-            margin-top: 5px; 
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #fff;
-            color: #333;
-        }
-
-        /* Table Styles */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        
-        th { 
-            background: #f8f9fa; 
-            color: #555; /* Dark grey header text */
-            text-align: left; 
-            padding: 12px; 
-            border-bottom: 2px solid #ddd;
-        }
-        
-        td { 
-            padding: 12px; 
-            border-bottom: 1px solid #eee; 
-            color: #333; /* Dark text for data */
-        }
-        
-        /* Badges & Buttons */
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; color: white; }
-        .role-admin { background: #e74c3c; }
-        .role-parent { background: #9b59b6; }
-        .role-student { background: #3498db; }
-
-        .btn-edit { background: #f39c12; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 0.9em; }
-        .btn-submit { width:100%; background:#2ecc71; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 16px; margin-top: 10px; }
-        .btn-submit:hover { background: #27ae60; }
-        
-        .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; color: white; text-align: center; font-weight: bold; }
-        .success { background: #2ecc71; } 
-        .error { background: #e74c3c; }
-		/* Add this for the red delete button */
-.btn-delete { 
-    background: #e74c3c; 
-    color: white; 
-    padding: 5px 10px; 
-    text-decoration: none; 
-    border-radius: 4px; 
-    font-size: 0.9em; 
-    margin-left: 5px; 
-}
-.btn-delete:hover { background: #c0392b; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
 <body>
-<div class="nav-bar" style="max-width: 1000px; margin: 0 auto 20px; display: flex; gap: 10px;">
-    <a href="index.php" style="padding: 10px 20px; text-decoration: none; background: #3498db; color: white; border-radius: 5px; font-weight: bold;">👥 Users</a>
-    <a href="games.php" style="padding: 10px 20px; text-decoration: none; color: #555; background: #e0e0e0; border-radius: 5px; font-weight: bold;">🎮 Games</a>
-    <a href="../logout.php" style="margin-left: auto; padding: 10px 20px; text-decoration: none; background: #e74c3c; color: white; border-radius: 5px; font-weight: bold;">Log Out</a>
+
+<div class="nav-bar">
+    <a href="index.php" class="nav-item active">👥 Users</a>
+    <a href="games.php" class="nav-item">🎮 Games</a>
+	 <a href="badges.php" class="nav-item">🏆 Badges</a> 
+    <a href="../logout.php" class="nav-item logout">Log Out</a>
 </div>
+
 <div class="admin-container">
     
+    <div class="stats-row" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 10px;">
+        <div class="card" style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #3498db;"><?php echo $total_users; ?></div>
+            <div style="color: #7f8c8d; font-size: 0.9rem;">Total Users</div>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #9b59b6;"><?php echo $total_students; ?></div>
+            <div style="color: #7f8c8d; font-size: 0.9rem;">Students</div>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #2ecc71;"><?php echo $active_games; ?></div>
+            <div style="color: #7f8c8d; font-size: 0.9rem;">Active Games</div>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #f1c40f;"><?php echo $total_plays; ?></div>
+            <div style="color: #7f8c8d; font-size: 0.9rem;">Total Missions Played</div>
+        </div>
+    </div>
+
     <div class="card">
         <h2>Add New User</h2>
         <?php echo $message; ?>
         
         <form method="POST">
             <input type="hidden" name="action" value="add_user">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             
             <label>Username</label>
             <input type="text" name="username" required placeholder="e.g. Bobby">
@@ -195,8 +131,9 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
             <h2 style="margin:0; border:none;">All Users</h2>
-            
         </div>
+
+        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 Search users..." style="margin-bottom: 15px;">
         
         <table>
             <thead>
@@ -228,16 +165,16 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
                         <?php endif; ?>
                     </td>
                     <td>
-    <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-edit">Edit</a>
-    
-    <?php if ($u['id'] != $_SESSION['user_id']): ?>
-        <a href="delete_user.php?id=<?php echo $u['id']; ?>" 
-           class="btn-delete"
-           onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($u['username']); ?>? This cannot be undone.');">
-           Delete
-        </a>
-    <?php endif; ?>
-</td>
+                        <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-edit">Edit</a>
+                        
+                        <?php if ($u['id'] != $_SESSION['user_id']): ?>
+                            <a href="delete_user.php?id=<?php echo $u['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
+                               class="btn-delete"
+                               onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($u['username']); ?>? This cannot be undone.');">
+                               Delete
+                            </a>
+                        <?php endif; ?>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -250,15 +187,29 @@ $parents = $pdo->query("SELECT id, username FROM users WHERE role = 'parent' ORD
     function toggleFields() {
         const role = document.getElementById('roleSelect').value;
         const studentFields = document.getElementById('studentFields');
-        // Only show Grade and Parent options if role is Student
-        if (role === 'student') {
-            studentFields.style.display = 'block';
-        } else {
-            studentFields.style.display = 'none';
+        studentFields.style.display = (role === 'student') ? 'block' : 'none';
+    }
+    toggleFields();
+
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.querySelector("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0]; 
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }       
         }
     }
-    // Run on load
-    toggleFields();
 </script>
 
 </body>

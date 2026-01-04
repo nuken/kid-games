@@ -9,25 +9,32 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
+// CSRF Token Generation if missing (just in case they land here directly)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $entered_pin = $_POST['admin_pin'];
-    $user_id = $_SESSION['user_id'];
-
-    // Fetch the stored admin_pin
-    $stmt = $pdo->prepare("SELECT admin_pin FROM users WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch();
-
-    // Check if PIN matches
-    // Note: In a real app, use password_verify() here if hashing
-    if ($user && $entered_pin === $user['admin_pin']) {
-        $_SESSION['admin_unlocked'] = true; // <--- The Key
-        header("Location: index.php");
-        exit;
+    // CSRF Check
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $error = "Session expired or invalid token.";
     } else {
-        $error = "Incorrect Admin PIN.";
+        $entered_pin = $_POST['admin_pin'];
+        $user_id = $_SESSION['user_id'];
+
+        $stmt = $pdo->prepare("SELECT admin_pin FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
+
+        if ($user && $entered_pin === $user['admin_pin']) {
+            $_SESSION['admin_unlocked'] = true; 
+            header("Location: index.php");
+            exit;
+        } else {
+            $error = "Incorrect Admin PIN.";
+        }
     }
 }
 ?>
@@ -35,57 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
     <title>Admin Verification</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
-        body { 
-            display:flex; justify-content:center; align-items:center; 
-            height:100vh; background:#2c3e50; 
-        }
+        body { display:flex; justify-content:center; align-items:center; height:100vh; background:#2c3e50; }
         .verify-box { 
-            background:white; 
-            padding:30px; 
-            border-radius:10px; 
-            text-align:center; 
-            width:300px; 
-            /* FIX: Force text to be dark so it shows up on white */
-            color: #333333 !important; 
+            background:white; padding:30px; border-radius:10px; 
+            text-align:center; width:300px; color: #333; 
         }
-        
-        /* Ensure headers are also dark */
-        .verify-box h2 {
-            color: #2c3e50 !important;
-            margin-top: 0;
-        }
-
-        input { 
-            font-size:24px; letter-spacing:5px; text-align:center; 
-            width:100%; padding:10px; margin:15px 0; 
-            border: 2px solid #ddd; border-radius: 5px;
-            color: #333; /* Input text color */
-        }
-        
-        button { 
-            background:#e74c3c; color:white; border:none; 
-            padding:10px 20px; width:100%; font-size:18px; 
-            cursor:pointer; border-radius:5px; font-weight:bold;
-        }
-        button:hover { background: #c0392b; }
-        
-        a { color: #bdc3c7; text-decoration: none; font-size: 0.9em; }
-        a:hover { color: white; }
+        input { font-size:24px; letter-spacing:5px; text-align:center; margin: 15px 0; }
     </style>
 </head>
 <body>
     <div class="verify-box">
         <h2>🔒 Security Check</h2>
         <p>Please enter secondary Admin PIN</p>
-        <?php if($error) echo "<p style='color:red'>$error</p>"; ?>
+        <?php if($error) echo "<p style='color:#e74c3c; font-weight:bold;'>$error</p>"; ?>
+        
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <input type="password" name="admin_pin" autofocus required>
-            <button type="submit">Unlock</button>
+            <button type="submit" class="btn-submit" style="background: #e74c3c;">Unlock</button>
         </form>
         <br>
-        <a href="../logout.php">Cancel</a>
+        <a href="../logout.php" style="color:#7f8c8d; text-decoration:none;">Cancel</a>
     </div>
 </body>
 </html>

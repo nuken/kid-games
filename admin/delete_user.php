@@ -2,8 +2,12 @@
 // admin/delete_user.php
 session_start();
 require_once '../includes/db.php';
-
 require_once 'auth_check.php';
+
+// 1. CSRF Security Check (via URL Parameter)
+if (!isset($_GET['csrf_token']) || $_GET['csrf_token'] !== $_SESSION['csrf_token']) {
+    die("Security Error: Invalid CSRF Token. Please go back and try again.");
+}
 
 // 2. Get User ID
 $id = $_GET['id'] ?? null;
@@ -21,7 +25,6 @@ try {
     $pdo->beginTransaction();
 
     // A. Unlink Children (if deleting a Parent)
-    // If we delete a parent, we set their children's parent_id to NULL
     $stmt = $pdo->prepare("UPDATE users SET parent_id = NULL WHERE parent_id = ?");
     $stmt->execute([$id]);
 

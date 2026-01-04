@@ -12,19 +12,23 @@ $subjects = ['Math', 'Reading', 'Logic', 'Creativity', 'Science', 'General'];
 
 // 2. HANDLE UPDATE
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // SECURITY: CSRF Check
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Security Error: Invalid CSRF Token.");
+    }
+
     $title      = trim($_POST['title']);
     $folder     = trim($_POST['folder']);
     $icon       = $_POST['icon'];
-    $subject    = $_POST['subject']; // New Field
+    $subject    = $_POST['subject']; 
     $min        = $_POST['min_grade'];
     $max        = $_POST['max_grade'];
     $active     = isset($_POST['active']) ? 1 : 0;
 
-    // Updated SQL to include 'subject'
     $stmt = $pdo->prepare("UPDATE games SET default_title=?, folder_path=?, default_icon=?, min_grade=?, max_grade=?, active=?, subject=? WHERE id=?");
     
     if ($stmt->execute([$title, $folder, $icon, $min, $max, $active, $subject, $id])) {
-        $message = "<div class='alert success'>Game updated! <a href='games.php' style='color:white;'>Go Back</a></div>";
+        $message = "<div class='alert success'>Game updated! <a href='games.php' style='color:#155724;'>Go Back</a></div>";
     } else {
         $message = "<div class='alert error'>Update failed.</div>";
     }
@@ -43,22 +47,8 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 <head>
     <meta charset="UTF-8">
     <title>Edit Game</title>
-    <link rel="stylesheet" href="../assets/css/style.css"> 
-    <style>
-        body { background: #f4f6f8; color: #333 !important; font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background-image: none; }
-        .edit-card { background: white; padding: 30px; border-radius: 10px; width: 450px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #333; }
-        
-        h2 { margin-top: 0; color: #2c3e50; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #2c3e50; }
-        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; background: #fff; color: #333; }
-        
-        .alert { padding:15px; margin-bottom:20px; border-radius:5px; text-align:center; color:white; font-weight: bold; }
-        .success { background:#2ecc71; } .error { background:#e74c3c; }
-        
-        .btn-save { width:100%; background:#f39c12; color:white; font-weight:bold; border:none; padding:12px; border-radius:5px; margin-top:20px; cursor:pointer; font-size: 16px; }
-        .btn-save:hover { background: #d68910; }
-        .cancel-link { display: block; text-align:center; margin-top:15px; color:#7f8c8d; text-decoration:none; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin.css"> 
+    <style> body { display:flex; justify-content:center; align-items:center; height:100vh; } </style>
 </head>
 <body>
 
@@ -67,6 +57,8 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
     <?php echo $message; ?>
 
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <label>Game Title</label>
         <input type="text" name="title" value="<?php echo htmlspecialchars($game['default_title']); ?>" required>
 
@@ -119,7 +111,7 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 
         <label style="display:flex; align-items:center; margin-top:20px; cursor:pointer;">
             <input type="checkbox" name="active" style="width:auto; margin-right:10px;" <?php if($game['active']) echo 'checked'; ?>>
-            Game is Active (Visible to Students)
+            Game is Active
         </label>
 
         <button type="submit" class="btn-save">Save Changes</button>
