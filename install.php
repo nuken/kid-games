@@ -1,25 +1,52 @@
 <?php
 // install.php
-// An "Old School" installer to set up the database and create the first Admin.
+// Setup script with Auto-Destruct and Pre-Flight Checks
 
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $message = "";
+$is_locked = false;
 
 // 1. Check for Config File
 if (!file_exists('includes/config.php')) {
-    die("<div style='color:red; font-family:sans-serif; padding:20px;'>
-            <strong>Error:</strong> 'includes/config.php' not found.<br>
-            Please rename 'includes/config.sample.php' to 'config.php' and edit it with your database settings first.
+    die("<div style='color:red; font-family:sans-serif; padding:20px; text-align:center;'>
+            <h2>Configuration Missing</h2>
+            <strong>Error:</strong> 'includes/config.php' not found.<br><br>
+            Please rename <code>includes/config.sample.php</code> to <code>config.php</code><br>
+            and edit it with your database credentials before running this installer.
          </div>");
 }
 
-// 2. Handle Installation
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once 'includes/config.php';
+require_once 'includes/config.php';
 
+// 2. PRE-FLIGHT CHECK: Is the system already installed?
+try {
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $options = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
+    $check_pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+
+    // Check if critical 'users' table exists
+    $stmt = $check_pdo->query("SHOW TABLES LIKE 'users'");
+    if ($stmt->rowCount() > 0) {
+        $is_locked = true;
+        $message = "<div class='alert error'>
+                        <strong>⚠️ System Already Installed</strong><br><br>
+                        The database tables already exist.<br>
+                        For security reasons, this installer has been disabled.<br><br>
+                        <strong>PLEASE DELETE 'install.php' MANUALLY.</strong><br><br>
+                        <a href='index.php' style='color:white; text-decoration:underline;'>Go to Home</a>
+                    </div>";
+    }
+} catch (Exception $e) {
+    // Connection failed or DB doesn't exist yet. 
+    // This is fine, we will let the installation logic handle the error details if the user proceeds.
+}
+
+// 3. Handle Installation
+if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    
     $admin_user = trim($_POST['username']);
     $admin_pin  = trim($_POST['pin']);
     $secret_pin = trim($_POST['admin_pin']);
@@ -134,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->exec($sql);
 
             // ---------------------------------------------------------
-            // B. INSERT DEFAULT DATA (Themes, Games, Badges)
+            // B. INSERT DEFAULT DATA
             // ---------------------------------------------------------
             
             // 1. Themes
@@ -144,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (2, 'Space Commander', 'space.css'),
                 (3, 'Fairy Tale', 'princess.css');");
 
-            // 2. Games (Standard Set)
+            // 2. Games
             $pdo->exec("TRUNCATE TABLE games");
             $sql_games = "INSERT INTO `games` (`id`, `default_title`, `folder_path`, `default_icon`, `min_grade`, `max_grade`, `active`, `subject`) VALUES
                 (1, 'Robo-Sorter', 'games/robo-sorter', '🤖', 2, 3, 1, 'Math'),
@@ -212,23 +239,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ---------------------------------------------------------
             // C. CREATE ADMIN USER
             // ---------------------------------------------------------
-            // Clear previous users to start fresh (optional, but good for install script)
-            // $pdo->exec("TRUNCATE TABLE users"); 
-
-            // Check if admin exists first to avoid duplicate errors if running twice
+            
+            // Check if admin exists first
             $check = $pdo->prepare("SELECT id FROM users WHERE role = 'admin'");
             $check->execute();
+            
             if ($check->fetch()) {
-                $message = "<div class='alert success'>Database updated! Admin account already exists.</div>";
+                // Admin exists, but we successfully ran the SQL updates.
+                $is_locked = true;
+                // Try to delete installer anyway
+                @unlink(__FILE__);
+                $message = "<div class='alert success'>
+                                <strong>Updated!</strong> Database structure updated.<br>
+                                Admin account already existed.<br>
+                                Please delete install.php now.
+                            </div>";
             } else {
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, avatar, admin_pin) VALUES (?, ?, 'admin', '🔰', ?)");
                 if ($stmt->execute([$admin_user, $admin_pin, $secret_pin])) {
-                    $message = "<div class='alert success'>
-                                    SUCCESS! <br><br>
-                                    Database installed.<br>
-                                    Admin User '<strong>$admin_user</strong>' created.<br><br>
-                                    <a href='login.php' style='color:white; text-decoration:underline;'>Go to Login</a>
-                                </div>";
+                    
+                    // ---------------------------------------------------------
+                    // D. AUTO-DESTRUCT
+                    // ---------------------------------------------------------
+                    $deleted = unlink(__FILE__);
+                    $is_locked = true;
+
+                    if ($deleted) {
+                        $message = "<div class='alert success'>
+                                        <strong>SUCCESS!</strong><br><br>
+                                        Installation is complete.<br>
+                                        Admin User '<strong>" . htmlspecialchars($admin_user) . "</strong>' created.<br>
+                                        <br>
+                                        <em>♻️ install.php has been automatically deleted.</em><br><br>
+                                        <a href='login.php' style='color:white; text-decoration:underline; font-size:1.2em;'>Go to Login</a>
+                                    </div>";
+                    } else {
+                        $message = "<div class='alert success'>
+                                        <strong>SUCCESS!</strong><br><br>
+                                        Installation is complete.<br>
+                                        Admin User '<strong>" . htmlspecialchars($admin_user) . "</strong>' created.<br>
+                                        <br>
+                                        <span style='color:#ffeb3b; font-size:1.1em;'>⚠️ Could not auto-delete this file.</span><br>
+                                        <strong>PLEASE DELETE install.php MANUALLY NOW.</strong><br><br>
+                                        <a href='login.php' style='color:white; text-decoration:underline;'>Go to Login</a>
+                                    </div>";
+                    }
                 }
             }
 
@@ -255,31 +310,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; }
         .success { background: #2ecc71; color: #0d5026; }
         .error { background: #e74c3c; color: white; }
+        a { color: inherit; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>🚀 Installer</h1>
-    <p>This will install the database tables and create your main Admin account.</p>
-
+    
     <?php echo $message; ?>
 
-    <?php if (strpos($message, 'SUCCESS') === false): ?>
-    <form method="POST">
-        <label>Admin Username</label>
-        <input type="text" name="username" placeholder="e.g. Admin" required>
+    <?php if (!$is_locked): ?>
+        <p>This will install the database tables and create your main Admin account.</p>
+        
+        <form method="POST">
+            <label>Admin Username</label>
+            <input type="text" name="username" placeholder="e.g. Admin" required>
 
-        <label>Main PIN (for login)</label>
-        <input type="number" name="pin" placeholder="e.g. 1234" required>
+            <label>Main PIN (for login)</label>
+            <input type="number" name="pin" placeholder="e.g. 1234" required>
 
-        <label>Admin Secret PIN (for protected areas)</label>
-        <input type="number" name="admin_pin" placeholder="e.g. 9999" required>
+            <label>Admin Secret PIN (for protected areas)</label>
+            <input type="number" name="admin_pin" placeholder="e.g. 9999" required>
 
-        <button type="submit">Install Now</button>
-    </form>
-    <?php else: ?>
-        <p style="color:red; font-weight:bold; margin-top:20px;">⚠️ PLEASE DELETE THIS FILE NOW!</p>
+            <button type="submit">Install Now</button>
+        </form>
     <?php endif; ?>
 </div>
 
