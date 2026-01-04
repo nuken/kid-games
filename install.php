@@ -255,8 +255,11 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Please delete install.php now.
                             </div>";
             } else {
+                $hashed_login = password_hash($admin_pin, PASSWORD_DEFAULT);
+                $hashed_secret = password_hash($secret_pin, PASSWORD_DEFAULT);
+
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, avatar, admin_pin) VALUES (?, ?, 'admin', '🔰', ?)");
-                if ($stmt->execute([$admin_user, $admin_pin, $secret_pin])) {
+                if ($stmt->execute([$admin_user, $hashed_login, $hashed_secret])) {
                     
                     // ---------------------------------------------------------
                     // D. AUTO-DESTRUCT
