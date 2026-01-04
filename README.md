@@ -52,8 +52,8 @@ Perfect for home labs using Portainer or Docker Compose.
 
 1.  **Clone the Repository**
     ```bash
-    git clone [https://github.com/yourusername/nuken-kid-games.git](https://github.com/yourusername/nuken-kid-games.git)
-    cd nuken-kid-games
+    git clone [https://github.com/nuken/kid-games.git](https://github.com/nuken/kid-games.git)
+    cd kid-games
     ```
 
 2.  **Configure Environment**
