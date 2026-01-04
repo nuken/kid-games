@@ -1,0 +1,156 @@
+/* assets/css/dashboard.css */
+
+/* --- Profile Bar --- */
+.profile-bar {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    color: white;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.user-info { display: flex; align-items: center; gap: 15px; }
+.avatar {
+    width: 60px; height: 60px; 
+    border-radius: 50%; border: 2px solid white; 
+    background: #fff; display: flex; 
+    align-items: center; justify-content: center; 
+    font-size: 35px; 
+    box-shadow: 0 0 10px rgba(255,255,255,0.5); 
+    cursor: pointer; user-select: none;
+    transition: transform 0.2s;
+}
+.avatar:active { transform: scale(0.9); }
+
+.details h2 { margin: 0; font-size: 1.2em; color: var(--star-gold, #f1c40f); }
+.details p { margin: 0; font-size: 0.9em; opacity: 0.8; color: white; }
+
+.logout-btn {
+    background: var(--planet-red, #e74c3c); 
+    color: white; text-decoration: none;
+    padding: 10px 20px; border-radius: 20px; 
+    font-weight: bold; font-size: 0.9em; 
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* --- Daily Quest --- */
+.daily-quest-container {
+    background: linear-gradient(135deg, #f1c40f, #f39c12);
+    border-radius: 15px;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 3px solid #fff;
+    animation: pulse-glow 3s infinite alternate;
+}
+@keyframes pulse-glow { 
+    from { box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); } 
+    to { box-shadow: 0 4px 25px rgba(243, 156, 18, 0.6); } 
+}
+
+.quest-info h2 { margin: 0 0 5px 0; font-size: 1.4em; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.quest-info p { margin: 0; font-size: 1em; }
+
+.quest-action { text-align: right; }
+.quest-btn {
+    background: #fff; color: #d35400; text-decoration: none;
+    padding: 10px 20px; border-radius: 20px; font-weight: bold;
+    display: inline-block; margin-top: 5px; 
+    box-shadow: 0 4px 0 #e67e22;
+    transition: transform 0.1s;
+}
+.quest-btn:active { transform: translateY(4px); box-shadow: none; }
+
+.streak-display { margin-top: 5px; font-size: 20px; }
+.streak-fire { filter: grayscale(100%) opacity(0.5); transition: all 0.5s; }
+.streak-fire.active { filter: none; transform: scale(1.2); }
+
+/* --- Badge Section --- */
+.badge-section {
+    background: var(--card-bg, #34495e);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.badge-grid {
+    display: flex; justify-content: center; flex-wrap: wrap;
+    gap: 15px; margin-top: 15px; min-height: 70px;
+}
+
+.badge-item {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid var(--star-gold, #f1c40f);
+    border-radius: 50%; width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; position: relative;
+    cursor: pointer; transition: transform 0.2s;
+}
+.badge-item:hover { transform: scale(1.15) rotate(5deg); background: rgba(255,255,255,0.2); }
+
+.badge-count {
+    position: absolute; top: -5px; right: -5px;
+    background: var(--planet-red, #e74c3c); color: white;
+    border-radius: 50%; width: 22px; height: 22px;
+    font-size: 12px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid white;
+}
+
+/* --- Mission Grid --- */
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.mission-card-wrapper {
+    position: relative;
+    height: 100%;
+    display: block;
+    transition: transform 0.2s;
+}
+.mission-card-wrapper:hover { transform: translateY(-8px); z-index: 5; }
+
+/* Favorite Heart */
+.fav-btn {
+    position: absolute; top: 15px; right: 15px;
+    font-size: 30px; color: rgba(255, 255, 255, 0.3);
+    cursor: pointer; z-index: 20;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s, color 0.2s;
+    user-select: none;
+}
+body[style*="princess"] .fav-btn { color: rgba(0, 0, 0, 0.15); } /* Darker for light themes */
+.fav-btn:hover { transform: scale(1.2); color: white; }
+.fav-btn.active { color: #e74c3c !important; opacity: 1; text-shadow: 0 0 15px rgba(231, 76, 60, 0.8); }
+
+/* Ensure card fills wrapper */
+.mission-card { height: 100%; display: block; box-sizing: border-box; }
+.mission-card:hover { transform: none !important; }
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .daily-quest-container { flex-direction: column; text-align: center; gap: 15px; }
+    .quest-action { text-align: center; }
+    .profile-bar { flex-direction: column; gap: 15px; text-align: center; }
+    .user-info { flex-direction: column; }
+}
