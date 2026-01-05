@@ -40,16 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             } else {
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
 
-// --- FIX START ---
-$hashed_pin = password_hash($child_pin, PASSWORD_DEFAULT);
-// Use $hashed_pin instead of $child_pin below:
-if ($stmt->execute([$child_name, $hashed_pin, $child_grade, $_SESSION['user_id']])) {
-// --- FIX END ---
-
-    $message = "<div class='alert success'>Added $child_name successfully!</div>";
-} else {
-    $message = "<div class='alert error'>Database Error.</div>";
-}
+                $hashed_pin = password_hash($child_pin, PASSWORD_DEFAULT);
+                if ($stmt->execute([$child_name, $hashed_pin, $child_grade, $_SESSION['user_id']])) {
+                    $message = "<div class='alert success'>Added $child_name successfully!</div>";
+                } else {
+                    $message = "<div class='alert error'>Database Error.</div>";
+                }
             }
         }
     }
@@ -278,26 +274,22 @@ $adult_avatars = ['👤'=>'Default','👩'=>'Mom','👨'=>'Dad','👵'=>'Grandma
                         Enable Confetti 🎉
                     </label>
 
-                    <button type="submit" class="save-btn">Save Changes</button>
+                    <button type="submit" class="save-btn">📝 Save Changes</button>
                 </form>
 
-                <div style="margin-top: 25px; text-align: center; display: flex; flex-direction: column; gap: 10px;">
-                    <a href="api/reset_badges.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
-                       onclick="return confirm('Remove all badges? (Scores will stay)')"
-                       style="color: #e67e22; font-weight: bold; font-size: 0.9rem; text-decoration: none;">
-                       ↺ Reset Badges Only
-                    </a>
+                <div style="margin-top: 5px; text-align: center; display: flex; flex-direction: column; gap: 5px;">
+                    <form method="POST" action="api/reset_badges.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" onsubmit="return confirm('Remove all badges? (Scores will stay)')">
+                        <button type="submit" class="save-btn" style="background: #e67e22; width: 100%;">↺ Reset Badges Only</button>
+                    </form>
 
-                    <a href="api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" 
-                       onclick="return confirm('WARNING: This deletes ALL history, scores, and badges. Continue?')"
-                       style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; text-decoration: none;">
-                       🗑️ Reset All Progress
-                    </a>
+                    <form method="POST" action="api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" onsubmit="return confirm('WARNING: This deletes ALL history, scores, and badges. Continue?')">
+                        <button type="submit" class="save-btn" style="background: #e74c3c; width: 100%;">🗑️ Reset All Progress</button>
+                    </form>
                 </div>
                 
-                <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+               
                 
-                <a href="report_card.php?student_id=<?php echo $current_student['id']; ?>" class="save-btn" style="background:#34495e; display:block; text-align:center; text-decoration:none; box-sizing:border-box;">
+                <a href="report_card.php?student_id=<?php echo $current_student['id']; ?>" class="save-btn" style="background:#34495e; margin-top: 30px; display:block; text-align:center; text-decoration:none; box-sizing:border-box;">
                     📄 View Full Report Card
                 </a>
             </div>
