@@ -25,6 +25,7 @@ function getDailyGameId($pdo, $grade_level) {
     $dayOfYear = (int)date('z'); 
     srand($dayOfYear); 
     shuffle($game_ids);
+	srand();
 
     // 3. Return the ID for today
     return $game_ids[$dayOfYear % count($game_ids)];
