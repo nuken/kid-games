@@ -1,8 +1,5 @@
 <?php
 // index.php
-ini_set('display_errors', 0); // Hide errors in production
-error_reporting(E_ALL);
-
 require_once 'includes/header.php';
 require_once 'includes/quest_logic.php';
 

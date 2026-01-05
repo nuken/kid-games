@@ -1,6 +1,5 @@
 <?php
 // play.php
-ini_set('display_errors', 1);
 session_start();
 require_once 'includes/db.php';
 require_once 'includes/header.php'; 

@@ -1,7 +1,5 @@
 <?php
 // login.php
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
 session_start();
 if (isset($_SESSION['user_id'])) {
     // If already logged in, go to the correct dashboard
