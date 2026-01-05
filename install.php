@@ -244,11 +244,18 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (8, 3, 3, 'Magic Time', '🕰️'),
                 (9, 4, 3, 'Crystal Ball', '🔮');");
 
-             // 5. Settings (Default Invite Code)
+             // 5. Settings (Default Invite Code & Debug Mode)
             $pdo->exec("TRUNCATE TABLE settings");
             $default_invite_hash = password_hash('FamilyGames', PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES ('invite_code', ?)");
-            $stmt->execute([$default_invite_hash]);
+            
+            // Prepare insert for multiple rows
+            $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES (?, ?)");
+            
+            // Invite Code
+            $stmt->execute(['invite_code', $default_invite_hash]);
+            
+            // Debug Mode (Default to 0/Off)
+            $stmt->execute(['display_errors', '0']);
             // ---------------------------------------------------------
             // C. CREATE ADMIN USER
             // ---------------------------------------------------------
