@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES ('display_errors', ?) ON DUPLICATE KEY UPDATE value = ?");
         if ($stmt->execute([$debug_val, $debug_val])) {
              // Refresh page to apply setting immediately
-             header("Refresh:0");
+             header("Refresh:2");
              $message .= "<div class='alert success'>Debug Mode updated!</div>";
         }
     }
