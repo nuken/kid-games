@@ -75,7 +75,7 @@ if (empty($radar_labels)) {
 <head>
     <meta charset="UTF-8">
     <title>Report Card: <?php echo htmlspecialchars($student['username']); ?></title>
-    <link rel="stylesheet" href="assets/css/parent.css">
+    <link rel="stylesheet" href="<?php echo auto_version('assets/css/parent.css'); ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body style="background-color: #f4f6f8;">

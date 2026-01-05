@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // 2. FETCH USERS
 $users = $pdo->query("SELECT id, username, avatar, role FROM users ORDER BY role DESC, username ASC")->fetchAll();
-function auto_version($file) { return file_exists($file) ? $file . '?v=' . filemtime($file) : $file; }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

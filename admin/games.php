@@ -46,7 +46,7 @@ $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗',
 <head>
     <meta charset="UTF-8">
     <title>Admin - Manage Games</title>
-    <link rel="stylesheet" href="../assets/css/admin.css"> 
+    <link rel="stylesheet" href="<?php echo auto_version('../assets/css/admin.css'); ?>"> 
     <style> .badge-subj { padding: 3px 8px; border-radius: 10px; font-size: 0.8em; background: #eee; border: 1px solid #ccc; } </style>
 </head>
 <body>

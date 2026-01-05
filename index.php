@@ -79,7 +79,6 @@ try {
 
 } catch (PDOException $e) { die("System Error"); }
 
-function auto_version($file) { return file_exists($file) ? $file . '?v=' . filemtime($file) : $file; }
 ?>
 <!DOCTYPE html>
 <html lang="en">

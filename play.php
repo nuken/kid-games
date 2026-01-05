@@ -9,11 +9,6 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-function auto_version($file) {
-    if (file_exists($file)) return $file . '?v=' . filemtime($file);
-    return $file;
-}
-
 // 1. Get Game Details
 $game_id = $_GET['game_id'] ?? null;
 if (!$game_id) { header("Location: index.php"); exit; }

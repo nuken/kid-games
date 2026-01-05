@@ -34,10 +34,6 @@ $scenes = [
 $current_scene = $_GET['scene'] ?? 'space';
 $bg_image = $scenes[$current_scene] ?? $scenes['space'];
 
-function auto_version($file) {
-    if (file_exists($file)) return $file . '?v=' . filemtime($file);
-    return $file;
-}
 ?>
 
 <!DOCTYPE html>

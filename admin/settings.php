@@ -46,7 +46,7 @@ $curr_debug = $pdo->query("SELECT value FROM settings WHERE name = 'display_erro
 <head>
     <meta charset="UTF-8">
     <title>Admin - Settings</title>
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="<?php echo auto_version('../assets/css/admin.css'); ?>">
 </head>
 <body>
 

@@ -37,4 +37,12 @@ try {
 } catch (\PDOException $e) {
      die("Database Connection Failed: " . $e->getMessage());
 }
+// Add this helper function here so it is available globally
+function auto_version($file) {
+    // Check if file exists relative to the calling script
+    if (file_exists($file)) {
+        return $file . '?v=' . filemtime($file);
+    }
+    return $file;
+}
 ?>

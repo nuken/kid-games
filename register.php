@@ -57,7 +57,6 @@ if (!$hashed_code || !password_verify($code, $hashed_code)) {
     }
 }
 
-function auto_version($file) { return file_exists($file) ? $file . '?v=' . filemtime($file) : $file; }
 ?>
 <!DOCTYPE html>
 <html lang="en">

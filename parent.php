@@ -147,7 +147,7 @@ $adult_avatars = ['👤'=>'Default','👩'=>'Mom','👨'=>'Dad','👵'=>'Grandma
 <head>
     <meta charset="UTF-8">
     <title>Parent Control Center</title>
-    <link rel="stylesheet" href="assets/css/parent.css">
+    <link rel="stylesheet" href="<?php echo auto_version('assets/css/parent.css'); ?>">
 </head>
 <body>
 

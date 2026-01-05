@@ -53,7 +53,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <title>Admin - User Management</title>
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="<?php echo auto_version('../assets/css/admin.css'); ?>">
 </head>
 <body>
 
