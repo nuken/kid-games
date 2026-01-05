@@ -109,6 +109,14 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            CREATE TABLE IF NOT EXISTS `settings` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `name` varchar(50) NOT NULL,
+              `value` varchar(255) NOT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `name` (`name`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
             CREATE TABLE IF NOT EXISTS `themes` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `name` varchar(50) NOT NULL,
@@ -235,6 +243,12 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (7, 2, 3, 'Castle Shop', '🏰'),
                 (8, 3, 3, 'Magic Time', '🕰️'),
                 (9, 4, 3, 'Crystal Ball', '🔮');");
+
+            // 5. Settings (Default Invite Code)
+            $pdo->exec("TRUNCATE TABLE settings");
+            $default_invite_hash = password_hash('FamilyGames', PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES ('invite_code', ?)");
+            $stmt->execute([$default_invite_hash]);
 
             // ---------------------------------------------------------
             // C. CREATE ADMIN USER
