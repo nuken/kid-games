@@ -22,7 +22,12 @@ body {
     max-width: 1200px; margin: 0 auto; padding: 0 20px;
     display: grid; grid-template-columns: 1fr 2fr; gap: 25px; 
 }
-
+.admin-container.centered {
+    display: flex;             /* Disable the grid */
+    justify-content: center;   /* Center horizontally */
+    align-items: flex-start;   /* Align to top (optional) */
+    grid-template-columns: none; /* Reset grid columns */
+} 
 .card { 
     background: white; padding: 25px; border-radius: 12px; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid #eaeaea;
