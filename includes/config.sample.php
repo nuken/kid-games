@@ -6,5 +6,4 @@ define('DB_NAME', 'kidgames');
 define('DB_USER', 'kid_user');
 define('DB_PASS', 'kid_password');
 define('DB_CHARSET', 'utf8mb4');
-define('INVITE_CODE', 'FamilyGames');
 ?>
