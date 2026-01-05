@@ -244,11 +244,11 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (8, 3, 3, 'Magic Time', '🕰️'),
                 (9, 4, 3, 'Crystal Ball', '🔮');");
 
-            // 5. Settings (Default Invite Code)
+            // 5. Settings (Default Invite Code & Site Name)
             $pdo->exec("TRUNCATE TABLE settings");
             $default_invite_hash = password_hash('FamilyGames', PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES ('invite_code', ?)");
-            $stmt->execute([$default_invite_hash]);
+            $stmt = $pdo->prepare("INSERT INTO settings (name, value) VALUES ('invite_code', ?), ('site_name', ?)");
+            $stmt->execute([$default_invite_hash, 'Family Game Hub']);
 
             // ---------------------------------------------------------
             // C. CREATE ADMIN USER
