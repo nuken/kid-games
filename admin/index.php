@@ -61,6 +61,7 @@ $total_plays = $pdo->query("SELECT COUNT(*) FROM progress")->fetchColumn();
     <a href="index.php" class="nav-item active">👥 Users</a>
     <a href="games.php" class="nav-item">🎮 Games</a>
     <a href="badges.php" class="nav-item">🏆 Badges</a>
+	<a href="settings.php" class="nav-item">⚙️ Settings</a>
     <a href="../logout.php" class="nav-item logout">Log Out</a>
 </div>
 

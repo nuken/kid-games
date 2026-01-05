@@ -22,8 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $username = trim($_POST['username']);
         $pin = trim($_POST['pin']);
 
-        if ($code !== INVITE_CODE) {
-            $error = "Invalid Invite Code!";
+        // Fetch hashed invite code from DB
+$stmt = $pdo->prepare("SELECT value FROM settings WHERE name = 'invite_code' LIMIT 1");
+$stmt->execute();
+$setting = $stmt->fetch();
+$hashed_code = $setting ? $setting['value'] : null;
+
+// Verify
+if (!$hashed_code || !password_verify($code, $hashed_code)) {
+    $error = "Invalid Invite Code!";
         } elseif (empty($username) || empty($pin) || strlen($pin) < 4) {
             $error = "Please enter a username and a 4-digit PIN.";
         } else {
