@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_code'])) {
     <a href="../logout.php" class="nav-item logout">Log Out</a>
 </div>
 
-<div class="admin-container.centered">
+<div class="admin-container centered">
     <div class="card" style="max-width: 500px; margin: 0 auto;">
         <h2>System Settings</h2>
         <?php echo $message; ?>
