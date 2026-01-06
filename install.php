@@ -212,7 +212,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->exec("TRUNCATE TABLE badges");
             // FIXED: Added `slug` to the column list and added NULL to all rows that don't have a slug.
             $sql_badges = "INSERT INTO `badges` (`id`, `name`, `description`, `icon`, `criteria_game_id`, `criteria_score`, `slug`) VALUES
-                (1, 'First Sparkle', 'Played your first game!', '✨', NULL, 0, NULL),
+                (1, 'First Sparkle', 'Played your first game!', '✨', NULL, 0, 'first_sparkle'),
                 (2, 'Sorting Master', 'Scored 100% in Robo-Sorter', '🤖', 1, 100, NULL),
                 (3, 'Shopkeeper', 'Scored 100% in Rocket Shop', '💰', 2, 100, NULL),
                 (4, 'Time Traveler', 'Scored 100% in Launch Time', '⏳', 3, 100, NULL),
