@@ -208,35 +208,36 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->exec($sql_games);
 
             // 3. Badges
+            // 3. Badges
             $pdo->exec("TRUNCATE TABLE badges");
-            $sql_badges = "INSERT INTO `badges` (`id`, `name`, `description`, `icon`, `criteria_game_id`, `criteria_score`) VALUES
-                (1, 'First Sparkle', 'Played your first game!', '✨', NULL, 0),
-                (2, 'Sorting Master', 'Scored 100% in Robo-Sorter', '🤖', 1, 100),
-                (3, 'Shopkeeper', 'Scored 100% in Rocket Shop', '💰', 2, 100),
-                (4, 'Time Traveler', 'Scored 100% in Launch Time', '⏳', 3, 100),
-                (5, 'Signal Decoder', 'Scored 100% in Cosmic Signal', '📡', 4, 100),
-                (6, 'Word Wizard', 'Scored 100 points in Spelling Bee', '🧙‍♂️', 7, 100),
-                (7, 'Art Director', 'Scored 100 points in Shapes & Colors', '🖌️', 6, 100),
-                (8, 'Book Scout', 'Scored 100% in Read & Match', '📖', 8, 100),
-                (9, 'Web Weaver', 'Scored 100% in Spider Web', '🕸️', 9, 100),
-                (10, 'Master Chemist', 'Scored 100% in Color Lab', '👨‍🔬', 10, 100),
-                (11, 'Spanish Dancer', 'Mastered new words in Spanish!', '💃', 11, 100),
-                (12, 'Math Farmer', 'Mastered Egg-dition!', '🚜', 12, 100),
-                (13, 'Popper Pro', 'Popped your way to victory!', '📌', 13, 100),
-                (14, 'Safari Guide', 'Expert on animals and habitats!', '🧭', 14, 100),
-                (15, 'Bridge Master', 'Built a safe path across the lava!', '🌉', 15, 100),
-                (16, 'Traffic Cop', 'Kept the traffic moving smoothly!', '👮', 16, 100),
-                (17, 'Good Listener', 'Followed the Robot\'s commands perfectly!', '👂', 17, 100),
-                (18, 'Conductor', 'Completed the Pattern Train route!', '🧢', 18, 100),
-                (19, 'Alphabet Master', 'Found every letter in the alphabet!', '🎓', 19, 100),
-                (20, 'Tracing Titan', 'Practiced writing 10 numbers!', '🖍️', 21, 100),
-                (21, 'Shape Sherlock', 'Solved 10 shape mysteries!', '🔍', 22, 100),
-                (22, 'Story Reader', 'Read a whole story in The Cat and Rat!', '📚', 23, 100),
-                (23, 'Sight Word Explorer', 'Read a story in Sight Word Adventures!', '🔭', 24, 100),
+            // FIXED: Added `slug` to the column list and added NULL to all rows that don't have a slug.
+            $sql_badges = "INSERT INTO `badges` (`id`, `name`, `description`, `icon`, `criteria_game_id`, `criteria_score`, `slug`) VALUES
+                (1, 'First Sparkle', 'Played your first game!', '✨', NULL, 0, NULL),
+                (2, 'Sorting Master', 'Scored 100% in Robo-Sorter', '🤖', 1, 100, NULL),
+                (3, 'Shopkeeper', 'Scored 100% in Rocket Shop', '💰', 2, 100, NULL),
+                (4, 'Time Traveler', 'Scored 100% in Launch Time', '⏳', 3, 100, NULL),
+                (5, 'Signal Decoder', 'Scored 100% in Cosmic Signal', '📡', 4, 100, NULL),
+                (6, 'Word Wizard', 'Scored 100 points in Spelling Bee', '🧙‍♂️', 7, 100, NULL),
+                (7, 'Art Director', 'Scored 100 points in Shapes & Colors', '🖌️', 6, 100, NULL),
+                (8, 'Book Scout', 'Scored 100% in Read & Match', '📖', 8, 100, NULL),
+                (9, 'Web Weaver', 'Scored 100% in Spider Web', '🕸️', 9, 100, NULL),
+                (10, 'Master Chemist', 'Scored 100% in Color Lab', '👨‍🔬', 10, 100, NULL),
+                (11, 'Spanish Dancer', 'Mastered new words in Spanish!', '💃', 11, 100, NULL),
+                (12, 'Math Farmer', 'Mastered Egg-dition!', '🚜', 12, 100, NULL),
+                (13, 'Popper Pro', 'Popped your way to victory!', '📌', 13, 100, NULL),
+                (14, 'Safari Guide', 'Expert on animals and habitats!', '🧭', 14, 100, NULL),
+                (15, 'Bridge Master', 'Built a safe path across the lava!', '🌉', 15, 100, NULL),
+                (16, 'Traffic Cop', 'Kept the traffic moving smoothly!', '👮', 16, 100, NULL),
+                (17, 'Good Listener', 'Followed the Robot\'s commands perfectly!', '👂', 17, 100, NULL),
+                (18, 'Conductor', 'Completed the Pattern Train route!', '🧢', 18, 100, NULL),
+                (19, 'Alphabet Master', 'Found every letter in the alphabet!', '🎓', 19, 100, NULL),
+                (20, 'Tracing Titan', 'Practiced writing 10 numbers!', '🖍️', 21, 100, NULL),
+                (21, 'Shape Sherlock', 'Solved 10 shape mysteries!', '🔍', 22, 100, NULL),
+                (22, 'Story Reader', 'Read a whole story in The Cat and Rat!', '📚', 23, 100, NULL),
+                (23, 'Sight Word Explorer', 'Read a story in Sight Word Adventures!', '🔭', 24, 100, NULL),
                 (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0, 'daily_star'),
                 (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master');";
             $pdo->exec($sql_badges);
-
             // 4. Overrides
             $pdo->exec("TRUNCATE TABLE game_theme_overrides");
             $pdo->exec("INSERT INTO `game_theme_overrides` (`id`, `game_id`, `theme_id`, `display_name`, `display_icon`) VALUES
