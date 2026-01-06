@@ -73,6 +73,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               `icon` varchar(10) NOT NULL,
               `criteria_game_id` int(11) DEFAULT NULL,
               `criteria_score` int(11) DEFAULT 0,
+              `slug` varchar(50) DEFAULT NULL UNIQUE,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -232,8 +233,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (21, 'Shape Sherlock', 'Solved 10 shape mysteries!', '🔍', 22, 100),
                 (22, 'Story Reader', 'Read a whole story in The Cat and Rat!', '📚', 23, 100),
                 (23, 'Sight Word Explorer', 'Read a story in Sight Word Adventures!', '🔭', 24, 100),
-                (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0),
-                (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0);";
+                (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0, 'daily_star'),
+                (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master');";
             $pdo->exec($sql_badges);
 
             // 4. Overrides
