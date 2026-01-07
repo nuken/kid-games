@@ -70,6 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // FETCH GAMES (for dropdown)
 $games = $pdo->query("SELECT id, default_title FROM games ORDER BY default_title ASC")->fetchAll();
 $icons = ['✨', '🏆', '🥇', '🥈', '🥉', '⭐', '🔥', '🤖', '🚀', '🎨', '🧩', '🦁', '🦖', '🦄', '🧙‍♂️', '💰', '💎', '🎓', '📚', '🔬'];
+
+// FIX: Ensure the current badge's icon is in the list
+if (!in_array($badge['icon'], $icons)) {
+    array_unshift($icons, $badge['icon']);
+}
 ?>
 
 <!DOCTYPE html>
