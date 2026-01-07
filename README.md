@@ -21,38 +21,68 @@ Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard
 * **Self-Hosted & Safe:** Zero ads, no external tracking, and no outbound links.
 * **Parent Dashboard:** Create and manage child accounts easily.
 * **Report Cards:** Track progress, mistakes, and time spent on each game.
-* **Theming:** Customize the interface with built-in themes like **Space**, **Princess**, and **Default**.
+* **Theming:** Customize the interface with built-in themes: **Space Commander**, **Fairy Tale**, and **Default**.
+* **Progressive Web App (PWA):** Installable on tablets and phones for a native app-like experience.
 
 ### 🕹️ For Kids
-* **Progress Tracking:** Earn badges and "streak" rewards (e.g., "On Fire" visual effects).
+* **Progress Tracking:** Earn badges like "Word Wizard" and "Math Farmer", plus "streak" rewards (e.g., "On Fire" visual effects).
 * **Voice Feedback:** Built-in Text-to-Speech engine guides the child through games.
-* **Fun & Educational:** Games cover math, reading, pattern recognition, and reflexes.
+* **Fun & Educational:** Games cover math, reading, pattern recognition, Spanish vocabulary, and reflexes.
 
 ---
 
 ## <a id="included-games"></a>🎲 Included Games
 
-The platform comes pre-loaded with a variety of educational titles:
+The platform comes pre-loaded with over 20 educational titles across various subjects:
 
 | Category | Games |
 | :--- | :--- |
-| **Literacy** | Alphabet, Sight Word Reader, Read Match, Spell It, Cat-Rat Reader |
-| **Math & Logic** | Egg-dition (Math), Robo Sorter, Pattern Train, Shape Detective |
-| **Creativity** | Coloring Book, Color Mix, Rocket Shop |
-| **Reflexes** | Balloon Pop, Red Light, Cosmic Signal, Lava Bridge |
-| **Memory** | Simon Says, Spider Web, Fiesta Pinata |
+| **Literacy & Language** | Alphabet Fun, Sight Word Adventures, Read & Match, Spell It!, Wild World (Animals), The Cat and Rat, Cosmic Signal (Reading), Fiesta Piñata (Spanish) |
+| **Math & Shapes** | Egg-dition (Math), Robo-Sorter, Rocket Shop (Money), Launch Time (Clocks), Shape Detective, Number Tracing |
+| **Logic & Memory** | Pattern Train, Spider Web, Robot Commander (Simon Says), Traffic Control (Red Light) |
+| **Action & Reflexes** | Balloon Pop, Lava Bridge |
+| **Creativity** | Coloring Book, Color Lab |
 
 ---
 
 ## <a id="installation"></a>🚀 Installation
 
-### Web Hosting (cPanel / LAMP)
+You can install this project using Docker (recommended for home labs) or manually on a standard web host.
 
-1.  **Upload:** Upload files to your `public_html` folder.
+### Option A: Docker (Recommended)
+
+Perfect for users with Portainer or Docker Compose.
+
+1.  **Clone the Repository**
+    ```bash
+    git clone [https://github.com/nuken/kid-games.git](https://github.com/nuken/kid-games.git)
+    cd kid-games
+    ```
+
+2.  **Configure Environment**
+    * Rename `includes/config.sample.php` to `includes/config.php`.
+    * Edit `includes/config.php` and change the `DB_HOST` to `db`.
+      *(Note: The default database user is `kid_user` and password is `kid_password`. These can be changed in `docker-compose.yml`)*
+
+3.  **Start Services**
+    ```bash
+    docker-compose up -d
+    ```
+    The site will be available at `http://localhost:8080`.
+
+4.  **Finish Setup**
+    * Visit `http://localhost:8080/install.php`.
+    * Follow the prompts to create your **Admin** account.
+
+### Option B: Web Hosting (cPanel / LAMP)
+
+1.  **Upload:** Upload all files to your server's `public_html` folder.
 2.  **Database:** Create a MySQL/MariaDB database and user in your control panel.
 3.  **Config:** * Rename `includes/config.sample.php` to `includes/config.php`.
-    * Edit it with your database credentials.
-4.  **Install:** Visit `yoursite.com/install.php` to complete setup.
+    * Edit it with your database credentials (Host, User, Password, DB Name).
+4.  **Install:** Visit `yoursite.com/install.php` to complete the setup.
+
+> **⚠️ Security Note:** The `install.php` script attempts to delete itself after a successful installation. If it fails to do so due to permissions, please manually delete `install.php` from your server.
 
 ---
 
