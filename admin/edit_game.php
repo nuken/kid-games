@@ -39,6 +39,9 @@ $stmt->execute([$id]);
 $game = $stmt->fetch();
 
 $icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚', '🕷️', '🧪', '🥚', '🎈', '🚦', '🚂'];
+if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
+    array_unshift($icons, $game['default_icon']);
+}
 ?>
 
 <!DOCTYPE html>
