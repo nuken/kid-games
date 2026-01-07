@@ -138,8 +138,8 @@ if ($current_student) {
 }
 
 // AVATAR LISTS
-$kid_avatars = ['👤'=>'Default','👨‍🚀'=>'Astronaut','👸'=>'Princess','🤖'=>'Robot','🦖'=>'Dino','🐱'=>'Cat','🐶'=>'Dog','🐔'=>'Chicken','🦄'=>'Unicorn','🧙‍♂️'=>'Wizard','👽'=>'Alien','🚀'=>'Rocket','⚾'=>'Baseball','👾'=>'Invader'];
-$adult_avatars = ['👤'=>'Default','👩'=>'Mom','👨'=>'Dad','👵'=>'Grandma','👴'=>'Grandpa','👮'=>'Officer','🕵️'=>'Detective','🤠'=>'Cowboy','👑'=>'Royal','🎩'=>'Top Hat','👓'=>'Glasses','☕'=>'Coffee'];
+$kid_avatars = $kid_avatar_list;
+$adult_avatars = $adult_avatar_list;
 ?>
 
 <!DOCTYPE html>
