@@ -62,7 +62,6 @@ Perfect for users with Portainer or Docker Compose.
 2.  **Configure Environment**
     * Rename `includes/config.sample.php` to `includes/config.php`.
     * Edit `includes/config.php`:
-        * Change `DB_HOST` to `db`.
         * **Security:** Change the default database username and password to secure, custom values (do not use the defaults).
     * **Update Docker Compose:** Open `docker-compose.yml` and ensure the `MYSQL_USER` and `MYSQL_PASSWORD` variables match exactly what you set in `config.php`.
 
