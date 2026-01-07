@@ -38,7 +38,7 @@ $stmt = $pdo->prepare("SELECT * FROM games WHERE id = ?");
 $stmt->execute([$id]);
 $game = $stmt->fetch();
 
-$icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚', '🕷️', '🧪', '🥚', '🎈', '🚦', '🚂'];
+$icons = $game_icons_list;
 if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
     array_unshift($icons, $game['default_icon']);
 }

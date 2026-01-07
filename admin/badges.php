@@ -43,7 +43,7 @@ $badges = $pdo->query($sql)->fetchAll();
 $games = $pdo->query("SELECT id, default_title FROM games ORDER BY default_title ASC")->fetchAll();
 
 // Icon Options
-$icons = ['✨', '🏆', '🥇', '🥈', '🥉', '⭐', '🔥', '🤖', '🚀', '🎨', '🧩', '🦁', '🦖', '🦄', '🧙‍♂️', '💰', '💎', '🎓', '📚', '🔬'];
+$icons = $badge_icons_list;
 ?>
 
 <!DOCTYPE html>

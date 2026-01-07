@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // 3. FETCH GAMES
 $games = $pdo->query("SELECT * FROM games ORDER BY subject, default_title ASC")->fetchAll();
-$icons = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚', '🕷️', '🧪', '🥚', '🎈', '🚦', '🚂'];
+$icons = $game_icons_list;
 ?>
 
 <!DOCTYPE html>
