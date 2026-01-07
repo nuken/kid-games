@@ -101,4 +101,9 @@ if (!$current_user) {
 
 $theme_css = $current_user['css_file'] ?? 'default.css';
 $theme_path = ($path_depth > 0) ? str_repeat("../", $path_depth) . "assets/themes/" . $theme_css : "assets/themes/" . $theme_css;
+// --- GLOBAL CONFIGURATION ---
+// Define icon lists here so they can be used across all admin pages
+$game_icons_list = ['🚀', '🤖', '⏰', '📡', '🎨', '🧩', '🎲', '🦁', '🚗', '🏰', '🦄', '🎸', '⚽', '📚', '🕷️', '🧪', '🥚', '🎈', '🚦', '🚂'];
+
+$badge_icons_list = ['✨', '🏆', '🥇', '🥈', '🥉', '⭐', '🔥', '🤖', '🚀', '🎨', '🧩', '🦁', '🦖', '🦄', '🧙‍♂️', '💰', '💎', '🎓', '📚', '🔬'];
 ?>
