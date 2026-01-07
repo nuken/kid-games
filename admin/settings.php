@@ -1,7 +1,6 @@
 <?php
 // admin/settings.php
 session_start();
-require_once '../includes/db.php';
 require_once 'auth_check.php'; // Ensures only logged-in admins can access
 
 $message = "";
