@@ -1,7 +1,8 @@
 <?php
 // includes/db.php
 require_once 'config.php';
-
+//If config.php is moved outside the web directory, change the file path. Example below.
+//require_once __DIR__ . '/../../config.php';
 $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
