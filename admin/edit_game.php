@@ -1,7 +1,6 @@
 <?php
 // admin/edit_game.php
 session_start();
-require_once '../includes/db.php'; 
 require_once 'auth_check.php';
 
 $id = $_GET['id'] ?? null;

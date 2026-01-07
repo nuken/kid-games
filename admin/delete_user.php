@@ -1,7 +1,6 @@
 <?php
 // admin/delete_user.php
 session_start();
-require_once '../includes/db.php';
 require_once 'auth_check.php';
 
 // 1. CSRF Security Check (via URL Parameter)
