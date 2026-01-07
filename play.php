@@ -1,7 +1,6 @@
 <?php
 // play.php
 session_start();
-require_once 'includes/db.php';
 require_once 'includes/header.php'; 
 
 // CSRF Security Setup
@@ -113,3 +112,4 @@ $jsConfig = [
 
 </body>
 </html>
+
