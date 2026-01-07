@@ -13,7 +13,7 @@
 }
 
 .help-btn {
-    position: absolute; top: 15px; right: 15px;
+    position: absolute; top: 25px; right: 25px;
     background: rgba(255,255,255,0.1); border: 2px solid white; color: white;
     padding: 5px 10px; border-radius: 15px; cursor: pointer;
 }
