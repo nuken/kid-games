@@ -108,7 +108,7 @@ Every game resides in `games/your-game-name/` and requires just three files:
 
 ## <a id="technology-stack"></a>🛠️ Technology Stack
 
-* **Backend:** PHP 7.4+ (No frameworks, lightweight)
+* **Backend:** PHP 7.4+ (No frameworks, lightweight) Tested on 8.4!
 * **Database:** MariaDB / MySQL
 * **Frontend:** Vanilla Javascript & HTML5
 * **Containerization:** Docker & Docker Compose
