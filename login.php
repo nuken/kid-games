@@ -180,6 +180,13 @@ $students = $pdo->query("SELECT id, username, avatar FROM users WHERE role = 'st
             <input type="hidden" name="login_type" value="student">
             <input type="hidden" name="user_id" id="input-user-id">
             <input type="hidden" name="pin" id="input-pin">
+
+            <div style="margin: 20px 0;">
+                <label style="color:#7f8c8d; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <input type="checkbox" name="remember" value="1" style="transform: scale(1.3);">
+                    Stay Signed In
+                </label>
+            </div>
         </form>
     </div>
 
@@ -197,7 +204,7 @@ $students = $pdo->query("SELECT id, username, avatar FROM users WHERE role = 'st
         if (form.style.display === 'block') {
             // GOING BACK TO KIDS (Reset)
             form.style.display = 'none';
-            grid.style.display = 'flex'; // FIXED: Uses flex instead of grid
+            grid.style.display = 'flex';
             title.innerText = "Who is playing?";
             btn.innerText = "Parent or Admin Login";
         } else {
@@ -219,13 +226,11 @@ $students = $pdo->query("SELECT id, username, avatar FROM users WHERE role = 'st
     }
 
     function resetView() {
-        // Hides PIN screen, shows Grid screen
         document.getElementById('pin-screen').style.display = 'none';
         document.getElementById('grid-screen').style.display = 'block';
 
-        // Ensure we are in "Kids" mode visually
         document.getElementById('staff-login').style.display = 'none';
-        document.querySelector('.user-grid').style.display = 'flex'; // FIXED: Ensures cards are horizontal
+        document.querySelector('.user-grid').style.display = 'flex';
         document.getElementById('page-title').innerText = "Who is playing?";
         document.getElementById('toggle-btn').innerText = "Parent or Admin Login";
 
