@@ -79,16 +79,29 @@ if ($user['locked_until'] && new DateTime($user['locked_until']) > new DateTime(
     <h2>Edit User: <?php echo htmlspecialchars($user['username']); ?></h2>
     <?php echo $message; ?>
 
-    <?php if ($is_locked): ?>
-        <div style="background:#e74c3c; color:white; padding:10px; border-radius:5px; margin-bottom:15px; text-align:center;">
-            <strong>⚠️ Account Locked</strong><br>
-            Until: <?php echo $user['locked_until']; ?>
-            <form method="POST" style="margin-top:10px;">
+    <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bdc3c7;">
+        <h4 style="margin-top:0; color:#2c3e50;">Security Status</h4>
+
+        <p><strong>Failed Attempts:</strong> <?php echo (int)$user['failed_attempts']; ?> / 5</p>
+
+        <?php if ($is_locked): ?>
+            <div style="color:#c0392b; font-weight:bold; margin-bottom:10px;">
+                ⚠️ LOCKED until <?php echo date('g:i A', strtotime($user['locked_until'])); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($user['failed_attempts'] > 0 || $is_locked): ?>
+            <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                <button type="submit" name="unlock_account" value="1" style="background:white; color:#c0392b; border:none; padding:5px 10px; cursor:pointer; font-weight:bold; border-radius:4px;">🔓 Unlock Now</button>
+                <button type="submit" name="unlock_account" value="1"
+                        style="background: #e67e22; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                    🔄 Reset Attempts & Unlock
+                </button>
             </form>
-        </div>
-    <?php endif; ?>
+        <?php else: ?>
+            <span style="color:#27ae60;">✅ Account is clean</span>
+        <?php endif; ?>
+    </div>
 
     <form method="POST">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
