@@ -125,10 +125,11 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            -- UPDATED USERS TABLE FOR SECURITY FEATURES
             CREATE TABLE IF NOT EXISTS `users` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `username` varchar(50) NOT NULL,
-              `pin_code` varchar(10) NOT NULL,
+              `pin_code` varchar(255) NOT NULL,
               `role` enum('student','parent','admin') DEFAULT 'student',
               `parent_id` int(11) DEFAULT NULL,
               `grade_level` int(11) DEFAULT 0,
@@ -136,6 +137,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               `avatar` varchar(255) DEFAULT '👤',
               `confetti_enabled` tinyint(1) DEFAULT 1,
               `admin_pin` varchar(255) DEFAULT NULL,
+              `failed_attempts` int(11) DEFAULT 0,
+              `locked_until` datetime DEFAULT NULL,
               PRIMARY KEY (`id`),
               KEY `parent_id` (`parent_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -208,9 +211,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->exec($sql_games);
 
             // 3. Badges
-            // 3. Badges
             $pdo->exec("TRUNCATE TABLE badges");
-            // FIXED: Added `slug` to the column list and added NULL to all rows that don't have a slug.
             $sql_badges = "INSERT INTO `badges` (`id`, `name`, `description`, `icon`, `criteria_game_id`, `criteria_score`, `slug`) VALUES
                 (1, 'First Sparkle', 'Played your first game!', '✨', NULL, 0, 'first_sparkle'),
                 (2, 'Sorting Master', 'Scored 100% in Robo-Sorter', '🤖', 1, 100, NULL),
@@ -238,6 +239,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0, 'daily_star'),
                 (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master');";
             $pdo->exec($sql_badges);
+
             // 4. Overrides
             $pdo->exec("TRUNCATE TABLE game_theme_overrides");
             $pdo->exec("INSERT INTO `game_theme_overrides` (`id`, `game_id`, `theme_id`, `display_name`, `display_icon`) VALUES
@@ -352,8 +354,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Admin Username</label>
             <input type="text" name="username" placeholder="e.g. Admin" required>
 
-            <label>Main PIN (for login)</label>
-            <input type="number" name="pin" placeholder="e.g. 1234" required>
+            <label>Main Password (for login)</label>
+            <input type="password" name="pin" placeholder="Create a strong password" required>
 
             <label>Admin Secret PIN (for protected areas)</label>
             <input type="number" name="admin_pin" placeholder="e.g. 9999" required>
