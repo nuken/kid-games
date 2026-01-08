@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $subject     = $_POST['subject'];
     $min_grade   = $_POST['min_grade'];
     $max_grade   = $_POST['max_grade'];
+    $safe_title = htmlspecialchars($title);
 
     if (empty($title) || empty($folder)) {
         $message = "<div class='alert error'>Title and Folder Path are required.</div>";
@@ -28,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         try {
             $stmt = $pdo->prepare("INSERT INTO games (default_title, folder_path, default_icon, min_grade, max_grade, active, subject) VALUES (?, ?, ?, ?, ?, 1, ?)");
             $stmt->execute([$title, $folder, $icon, $min_grade, $max_grade, $subject]);
-            $message = "<div class='alert success'>Game '$title' added successfully!</div>";
+            $message = "<div class='alert success'>Game '$safe_title' added successfully!</div>";
         } catch (PDOException $e) {
             $message = "<div class='alert error'>Error: " . $e->getMessage() . "</div>";
         }
