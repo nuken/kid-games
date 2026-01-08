@@ -36,9 +36,10 @@ body {
 /* Typography & Forms */
 h2 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
 label { display: block; margin-top: 15px; font-weight: 600; color: #34495e; font-size: 0.9rem; }
-input, select { 
+input, select, textarea { 
     width: 100%; padding: 10px; margin-top: 5px; 
     border: 1px solid #dcdcdc; border-radius: 6px; box-sizing: border-box;
+    font-family: inherit; /* Optional: ensures font matches inputs */
 }
 
 /* Tables */

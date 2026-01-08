@@ -8,7 +8,7 @@ body {
     min-height: 100vh; margin: 0; 
 }
 
-.container { width: 90%; max-width: 800px; text-align: center; }
+.container { width: 90%; max-width: 840px; text-align: center; }
 
 h1 { 
     color: #f1c40f; 
