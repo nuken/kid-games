@@ -145,6 +145,15 @@ if ($user['locked_until'] && new DateTime($user['locked_until']) > new DateTime(
 
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="index.php" class="cancel-link">Cancel</a>
+
+        <?php if ($user['role'] !== 'admin'): ?>
+            <a href="delete_user.php?id=<?php echo $user['id']; ?>&csrf_token=<?php echo $_SESSION['csrf_token']; ?>"
+               onclick="return confirm('Are you sure? This will permanently delete this user and all their progress.');"
+               style="float: right; color: #e74c3c; text-decoration: none; padding-top: 10px; font-weight: bold;">
+               🗑️ Delete User
+            </a>
+        <?php endif; ?>
+
     </form>
 </div>
 
