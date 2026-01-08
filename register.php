@@ -92,9 +92,9 @@ if (!$hashed_code || !password_verify($code, $hashed_code)) {
             </div>
 
             <div style="text-align: left; margin-bottom: 25px;">
-                <label style="font-weight: bold; color: #2c3e50;">Create 4-Digit PIN</label>
-                <input type="number" name="pin" placeholder="****" required 
-                       style="width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 8px; font-size: 16px; margin-top: 5px; text-align: center; letter-spacing: 5px;">
+                <label style="font-weight: bold; color: #2c3e50;">Create Password</label>
+                <input type="password" name="pin" placeholder="Create Password" required
+       style="width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 8px; font-size: 16px; margin-top: 5px; text-align: center; letter-spacing: 2px;">
             </div>
 
             <button type="submit" class="key key-enter" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 0 #27ae60;">Create Account</button>
