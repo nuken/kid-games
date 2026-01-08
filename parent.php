@@ -31,18 +31,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $child_name = trim($_POST['child_name']);
         $child_pin  = trim($_POST['child_pin']);
         $child_grade = $_POST['child_grade'];
+        $safe_name = htmlspecialchars($child_name);
 
         if (!empty($child_name) && !empty($child_pin)) {
             $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $checkStmt->execute([$child_name]);
             if ($checkStmt->fetch()) {
-                $message = "<div class='alert error'>Name '$child_name' is taken. Try adding an initial.</div>";
+                $message = "<div class='alert error'>Name '$safe_name' is taken. Try adding an initial.</div>";
             } else {
                 $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
 
                 $hashed_pin = password_hash($child_pin, PASSWORD_DEFAULT);
                 if ($stmt->execute([$child_name, $hashed_pin, $child_grade, $_SESSION['user_id']])) {
-                    $message = "<div class='alert success'>Added $child_name successfully!</div>";
+                    $message = "<div class='alert success'>Added $safe_name successfully!</div>";
                 } else {
                     $message = "<div class='alert error'>Database Error.</div>";
                 }
