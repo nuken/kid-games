@@ -99,6 +99,19 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               UNIQUE KEY `unique_override` (`game_id`,`theme_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            -- NEW: MESSAGES TABLE
+            CREATE TABLE IF NOT EXISTS `messages` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `sender_id` int(11) NOT NULL,
+              `receiver_id` int(11) NOT NULL,
+              `message` varchar(255) NOT NULL,
+              `sent_at` datetime DEFAULT current_timestamp(),
+              `is_read` tinyint(1) DEFAULT 0,
+              PRIMARY KEY (`id`),
+              KEY `receiver_idx` (`receiver_id`),
+              KEY `sender_date_idx` (`sender_id`, `sent_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
             CREATE TABLE IF NOT EXISTS `progress` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `user_id` int(11) NOT NULL,
@@ -125,7 +138,6 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-            -- UPDATED USERS TABLE FOR SECURITY FEATURES
             CREATE TABLE IF NOT EXISTS `users` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `username` varchar(50) NOT NULL,
@@ -136,6 +148,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               `theme_id` int(11) DEFAULT 1,
               `avatar` varchar(255) DEFAULT '👤',
               `confetti_enabled` tinyint(1) DEFAULT 1,
+              `messaging_enabled` tinyint(1) DEFAULT 1, /* NEW COLUMN */
               `admin_pin` varchar(255) DEFAULT NULL,
               `failed_attempts` int(11) DEFAULT 0,
               `locked_until` datetime DEFAULT NULL,
@@ -237,7 +250,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (22, 'Story Reader', 'Read a whole story in The Cat and Rat!', '📚', 23, 100, NULL),
                 (23, 'Sight Word Explorer', 'Read a story in Sight Word Adventures!', '🔭', 24, 100, NULL),
                 (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0, 'daily_star'),
-                (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master');";
+                (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master'),
+                (27, 'Messenger', 'Unlocked the secret messenger box!', '📬', NULL, 0, 'messenger_unlock');";
             $pdo->exec($sql_badges);
 
             // 4. Overrides
