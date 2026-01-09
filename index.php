@@ -9,16 +9,12 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 $user = $current_user;
-/// --- MESSENGER LOGIC ---
-$myMessages = [];
-$friendList = [];
+/// --- MESSENGER CHECK ---
 $hasMessenger = false;
+$unreadCount = 0;
 
-// 1. Only run if Messaging is Enabled for this user
 if ($current_user['messaging_enabled']) {
-
-    // 2. Check for Badge earned TODAY (Daily Reset Logic)
-    // We added: AND DATE(b.earned_at) = CURDATE()
+    // 1. Check for Badge (Unlock status)
     $checkBadge = $pdo->prepare("
         SELECT COUNT(*)
         FROM user_badges b
@@ -32,20 +28,13 @@ if ($current_user['messaging_enabled']) {
     if ($checkBadge->fetchColumn() > 0) {
         $hasMessenger = true;
 
-        // 3. Mark messages as read
-        $pdo->prepare("UPDATE messages SET is_read = 1 WHERE receiver_id = ?")->execute([$user_id]);
-
-        // 4. Fetch Inbox
-        $stmt = $pdo->prepare("SELECT m.*, u.username as sender_name, u.avatar as sender_avatar FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.receiver_id = ? ORDER BY m.sent_at DESC LIMIT 20");
+        // 2. Check for UNREAD messages only
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND is_read = 0");
         $stmt->execute([$user_id]);
-        $myMessages = $stmt->fetchAll();
-
-        // 5. Fetch Friends
-        $stmt = $pdo->prepare("SELECT id, username, avatar FROM users WHERE role = 'student' AND id != ? AND messaging_enabled = 1 ORDER BY username");
-        $stmt->execute([$user_id]);
-        $friendList = $stmt->fetchAll();
+        $unreadCount = $stmt->fetchColumn();
     }
 }
+
 $user_id = $_SESSION['user_id'];
 
 try {
@@ -149,7 +138,19 @@ try {
                 <p>Level: <?php echo $grade_display; ?></p>
             </div>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+
+            <?php if($hasMessenger): ?>
+                <a href="inbox.php" class="inbox-btn">
+                    📬 Inbox
+                    <?php if($unreadCount > 0): ?>
+                        <span class="notify-badge"><?php echo $unreadCount; ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php else: ?>
+                 <div title="Play 3 games to unlock messenger!" style="opacity:0.5; font-size:1.5rem; cursor: help;">🔒</div>
+            <?php endif; ?>
+
             <a href="sticker_book.php" class="logout-btn" style="background: var(--nebula-green);">Sticker Book</a>
             <a href="logout.php" class="logout-btn">Log Out</a>
         </div>
@@ -182,102 +183,6 @@ try {
             </div>
         </div>
         <?php endif; ?>
-
-        <?php if($current_user['messaging_enabled']): ?>
-<div class="messenger-box">
-    <?php if ($hasMessenger): ?>
-        <h2 onclick="toggleMessenger()" style="cursor: pointer; user-select: none;" title="Click to minimize">
-            📬 Inbox <span id="msg-toggle-icon" style="font-size: 0.8em; float: right;">▼</span>
-        </h2>
-
-        <div id="messenger-content">
-
-            <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px dashed #eee;">
-                <select id="receiver_id" style="padding: 10px; font-size: 1.1rem; border-radius: 10px; border: 2px solid #3498db;">
-                    <option value="">Choose a friend...</option>
-                    <?php foreach($friendList as $f): ?>
-                        <option value="<?php echo $f['id']; ?>"><?php echo $f['avatar'] . " " . htmlspecialchars($f['username']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div style="margin-top:10px;">
-                    <button onclick="pickEmoji('👋')" class="emoji-btn">👋</button>
-                    <button onclick="pickEmoji('😀')" class="emoji-btn">😀</button>
-                    <button onclick="pickEmoji('💖')" class="emoji-btn">💖</button>
-                    <button onclick="pickEmoji('🚀')" class="emoji-btn">🚀</button>
-                    <button onclick="pickEmoji('🦖')" class="emoji-btn">🦖</button>
-                    <button onclick="pickEmoji('🍕')" class="emoji-btn">🍕</button>
-                </div>
-                <p id="status-msg" style="height:20px; color:#27ae60; font-weight:bold;"></p>
-            </div>
-
-            <div class="inbox-window">
-                <?php if(count($myMessages) > 0): ?>
-                    <?php foreach($myMessages as $msg): ?>
-                        <div class="msg-bubble">
-                            <strong><?php echo $msg['sender_avatar']; ?> <?php echo htmlspecialchars($msg['sender_name']); ?>:</strong>
-                            <span style="font-size:1.5rem; margin-left:10px;"><?php echo $msg['message']; ?></span>
-                            <small style="color:#ccc; float:right;"><?php echo date('M j', strtotime($msg['sent_at'])); ?></small>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p style="color:#bdc3c7; padding: 20px;">No messages yet!</p>
-                <?php endif; ?>
-            </div>
-        </div>
-
-    <?php else: ?>
-        <div style="color: #95a5a6; font-style: italic;">
-            <span style="font-size: 3rem;">🔒</span><br>
-            <strong>Messenger Locked!</strong><br>
-            Play 3 games to unlock!
-        </div>
-    <?php endif; ?>
-</div>
-
-<script>
-function pickEmoji(emoji) {
-    const friendId = document.getElementById('receiver_id').value;
-    const status = document.getElementById('status-msg');
-    if (!friendId) { alert("Pick a friend first!"); return; }
-
-    status.innerText = "Sending...";
-
-    fetch('api/send_message.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receiver_id: friendId, message: emoji })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === 'success') {
-            status.innerText = "Sent! ✅";
-            setTimeout(() => location.reload(), 1000); // Reload to see message in history if we want
-        } else if (data.status === 'limit') {
-            status.style.color = 'orange';
-            status.innerText = data.message; // "You reached your limit..."
-        } else {
-            status.style.color = 'red';
-            status.innerText = data.message;
-        }
-    });
-}
-
-function toggleMessenger() {
-    const content = document.getElementById('messenger-content');
-    const icon = document.getElementById('msg-toggle-icon');
-
-    if (content.style.display === 'none') {
-        // Open it
-        content.style.display = 'block';
-        icon.innerText = '▼';
-    } else {
-        // Close it
-        content.style.display = 'none';
-        icon.innerText = '◀'; // Or use '▲'
-    }
-}
-</script>
-<?php endif; ?>
 
         <div class="badge-section">
             <h3 style="margin:0; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light, #ecf0f1); opacity:0.8;">
