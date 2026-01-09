@@ -190,6 +190,52 @@
 .emoji-btn:hover { transform: scale(1.2); background: #fff8d6; }
 .msg-bubble { background: white; padding: 8px 12px; border-radius: 15px; margin-bottom: 8px; border-left: 5px solid #2ecc71; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: left; }
 
+/* --- Inbox Button & Notification --- */
+.inbox-btn {
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9em;
+    border: 2px solid #f1c40f; /* Gold border to match theme */
+    position: relative; /* Needed for the badge positioning */
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.inbox-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background: #fffdf0;
+}
+
+.notify-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #e74c3c; /* Red alert color */
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-3px); }
+}
+
 body[style*="princess"] .fav-btn { color: rgba(0, 0, 0, 0.15); } /* Darker for light themes */
 .fav-btn:hover { transform: scale(1.2); color: white; }
 .fav-btn.active { color: #e74c3c !important; opacity: 1; text-shadow: 0 0 15px rgba(231, 76, 60, 0.8); }
