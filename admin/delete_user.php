@@ -3,22 +3,15 @@
 session_start();
 require_once 'auth_check.php';
 
-// 1. CSRF Security Check (via URL Parameter)
+// 1. CSRF Security Check
 if (!isset($_GET['csrf_token']) || $_GET['csrf_token'] !== $_SESSION['csrf_token']) {
     die("Security Error: Invalid CSRF Token. Please go back and try again.");
 }
 
-// 2. Get User ID
 $id = $_GET['id'] ?? null;
-if (!$id) {
-    header("Location: index.php");
-    exit;
-}
+if (!$id) { header("Location: index.php"); exit; }
 
-// 3. Prevent Admin Self-Deletion
-if ($id == $_SESSION['user_id']) {
-    die("You cannot delete yourself.");
-}
+if ($id == $_SESSION['user_id']) { die("You cannot delete yourself."); }
 
 try {
     $pdo->beginTransaction();
@@ -27,12 +20,16 @@ try {
     $stmt = $pdo->prepare("UPDATE users SET parent_id = NULL WHERE parent_id = ?");
     $stmt->execute([$id]);
 
-    // B. Delete Game Progress & Badges
-    $stmt = $pdo->prepare("DELETE FROM progress WHERE user_id = ?");
-    $stmt->execute([$id]);
-
-    $stmt = $pdo->prepare("DELETE FROM user_badges WHERE user_id = ?");
-    $stmt->execute([$id]);
+    // B. Delete Game Data
+    $pdo->prepare("DELETE FROM progress WHERE user_id = ?")->execute([$id]);
+    $pdo->prepare("DELETE FROM user_badges WHERE user_id = ?")->execute([$id]);
+    
+    // --- NEW: MISSING TABLES ADDED BELOW ---
+    $pdo->prepare("DELETE FROM user_favorites WHERE user_id = ?")->execute([$id]);
+    $pdo->prepare("DELETE FROM user_tokens WHERE user_id = ?")->execute([$id]);
+    
+    // Delete messages where user is SENDER or RECEIVER
+    $pdo->prepare("DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?")->execute([$id, $id]);
 
     // C. Delete the User
     $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
