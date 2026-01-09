@@ -86,8 +86,12 @@ $theme_path = "assets/themes/" . $theme_css;
                     <div style="margin-top:10px;">
                         <button onclick="pickEmoji('👋')" class="emoji-btn">👋</button>
                         <button onclick="pickEmoji('😀')" class="emoji-btn">😀</button>
+						<button onclick="pickEmoji('😁')" class="emoji-btn">😁</button>
+						<button onclick="pickEmoji('😎')" class="emoji-btn">😎</button>
                         <button onclick="pickEmoji('💖')" class="emoji-btn">💖</button>
-                        <button onclick="pickEmoji('🚀')" class="emoji-btn">🚀</button>
+                        <button onclick="pickEmoji('🦄')" class="emoji-btn">🦄</button>
+						<button onclick="pickEmoji('🎈')" class="emoji-btn">🎈</button>
+						<button onclick="pickEmoji('🚀')" class="emoji-btn">🚀</button>
                         <button onclick="pickEmoji('🦖')" class="emoji-btn">🦖</button>
                         <button onclick="pickEmoji('🍕')" class="emoji-btn">🍕</button>
                     </div>
