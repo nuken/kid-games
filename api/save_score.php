@@ -32,73 +32,97 @@ if ($data['user_id'] != $_SESSION['user_id']) {
 }
 
 // 2. Extract Data
-$user_id  = $data['user_id'];
-$game_id  = $data['game_id'];
-$score    = $data['score'];
-$duration = $data['duration'];
+$user_id  = (int)$data['user_id'];
+$game_id  = (int)$data['game_id'];
+$score    = (int)$data['score'];
+$duration = (int)$data['duration'];
 $mistakes = isset($data['mistakes']) ? (int)$data['mistakes'] : 0;
 
-// Get Grade
+// Get Grade & Messaging Status
 try {
-    $stmt = $pdo->prepare("SELECT grade_level FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT grade_level, messaging_enabled FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
-    $user_grade = $stmt->fetchColumn() ?: 0;
-} catch (Exception $e) { $user_grade = 0; }
+    $user_row = $stmt->fetch();
+    $user_grade = $user_row ? (int)$user_row['grade_level'] : 0;
+    $messaging_on = isset($user_row['messaging_enabled']) ? (int)$user_row['messaging_enabled'] : 1;
+} catch (Exception $e) {
+    $user_grade = 0;
+    $messaging_on = 1;
+}
 
 // 3. Save Score & Logic
 try {
+    // A. Insert Progress Record (This counts as the game played)
     $stmt = $pdo->prepare("INSERT INTO progress (user_id, game_id, score, duration_seconds, mistakes) VALUES (:uid, :gid, :score, :duration, :mistakes)");
     $stmt->execute([':uid'=>$user_id, ':gid'=>$game_id, ':score'=>$score, ':duration'=>$duration, ':mistakes'=>$mistakes]);
 
     $new_badges = [];
 
-    // --- FETCH DYNAMIC BADGE IDS (No more hardcoded 1, 25, 26) ---
-    // These functions come from includes/quest_logic.php
+    // --- FETCH BADGE IDS ---
     $dailyStarId    = getBadgeIdBySlug($pdo, 'daily_star');
     $streakMasterId = getBadgeIdBySlug($pdo, 'streak_master');
     $firstGameId    = getBadgeIdBySlug($pdo, 'first_sparkle');
+    $messengerBadgeId = getBadgeIdBySlug($pdo, 'messenger_unlock');
 
-    // A. Daily Quest Logic
+    // ======================================================
+    // LOGIC 1: MESSENGER BADGE (Daily Reset Logic)
+    // ======================================================
+    if ($messaging_on === 1 && $messengerBadgeId) {
+        // Count games played TODAY only
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND DATE(played_at) = CURDATE()");
+        $stmt->execute([$user_id]);
+        $gamesToday = $stmt->fetchColumn();
+
+        // If they just finished their 3rd game today, award the badge
+        // (We check == 3 so we don't spam it on game 4, 5, 6, etc.)
+        if ($gamesToday == 3) {
+            $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $messengerBadgeId]);
+            $new_badges[] = ['name'=>'Messenger Unlocked!', 'icon'=>'📬'];
+        }
+    }
+
+    // ======================================================
+    // LOGIC 2: DAILY QUEST STAR
+    // ======================================================
+    // (This usually stays 1 per day to track streaks properly)
     $daily_game_id = getDailyGameId($pdo, $user_grade);
-
-    // Only proceed if we actually found the "Daily Star" badge ID in the DB
     if ($dailyStarId && $game_id == $daily_game_id) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ? AND DATE(earned_at) = CURDATE()");
-        $stmt->execute([$user_id, $dailyStarId]);
+        $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ? AND DATE(earned_at) = CURDATE()");
+        $check->execute([$user_id, $dailyStarId]);
 
-        if ($stmt->fetchColumn() == 0) {
-            // Award Daily Star
+        if ($check->fetchColumn() == 0) {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $dailyStarId]);
             $new_badges[] = ['name'=>'Daily Star', 'icon'=>'🌟'];
 
-            // Check Streak (Only if Streak Master badge exists)
+            // Check Streak (Needs 3 unique days of stars)
             if ($streakMasterId && getStreakCount($pdo, $user_id) >= 3) {
-                // Award Streak Master
                 $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $streakMasterId]);
                 $new_badges[] = ['name'=>'Streak Master', 'icon'=>'🔥'];
             }
         }
     }
 
-    // B. First Flight (First Game Played)
-    // Only proceed if we have a slug for the first game badge
+    // ======================================================
+    // LOGIC 3: FIRST GAME EVER (One time only)
+    // ======================================================
     if ($firstGameId) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?");
-        $stmt->execute([$user_id, $firstGameId]);
-        if ($stmt->fetchColumn() == 0) {
+        $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?");
+        $check->execute([$user_id, $firstGameId]);
+        if ($check->fetchColumn() == 0) {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $firstGameId]);
             $new_badges[] = ['name'=>'First Flight', 'icon'=>'✨'];
         }
     }
 
-    // C. Game Specific Badges (Already dynamic)
+    // ======================================================
+    // LOGIC 4: GAME BADGES (STACKABLE!)
+    // ======================================================
+    // We removed the duplicate check. If they win, they get the badge. Every time.
     $stmt = $pdo->prepare("SELECT * FROM badges WHERE criteria_game_id = ?");
     $stmt->execute([$game_id]);
-    foreach ($stmt->fetchAll() as $badge) {
-        // Prevent duplicate badge awards for the same game criteria
-        // (Optional check: currently it allows re-earning if not unique constrained,
-        // but typically you check if they already have it.
-        // Assuming current behavior is desired, we keep it simple.)
+    $game_badges = $stmt->fetchAll();
+
+    foreach ($game_badges as $badge) {
         if ($score >= $badge['criteria_score']) {
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $badge['id']]);
             $new_badges[] = ['name'=>$badge['name'], 'icon'=>$badge['icon']];
@@ -108,6 +132,7 @@ try {
     echo json_encode(['status' => 'success', 'new_badges' => $new_badges]);
 
 } catch (PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    error_log("Save Score Error: " . $e->getMessage());
+    echo json_encode(['status' => 'error', 'message' => 'Database Error']);
 }
 ?>
