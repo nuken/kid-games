@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![PHP](https://img.shields.io/badge/php-7.4%2B-purple) ![Docker](https://img.shields.io/badge/docker-ready-blue)
 
-A self-hosted, safe, and ad-free educational gaming platform for children. This project allows parents to manage child accounts, track progress, and provide a curated list of educational games.
+A self-hosted, safe, and ad-free educational gaming platform that I built for my grandchildren. This project allows parents to manage child accounts, track progress, and provide a curated list of educational games.
 
 Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard web hosting.
 
