@@ -1,89 +1,54 @@
 <?php
 // parent.php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// 1. LOAD HEADER (Handles Session Start & Auto-Login)
 require_once 'includes/header.php';
 
 // --------------------------------------------------------
-// 2. ROLE SECURITY CHECK
+// 1. SECURITY & CSRF SETUP
 // --------------------------------------------------------
 if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'parent' && $_SESSION['role'] !== 'admin')) {
     header("Location: login.php"); exit;
 }
 
-// --------------------------------------------------------
-// DEFINITIONS
-// --------------------------------------------------------
-// Kid Avatars
-$kid_avatars = [
-    '👤' => 'Default',
-    '👨‍🚀' => 'Astronaut',
-    '👸' => 'Princess',
-    '🤖' => 'Robot',
-    '🦖' => 'Dino',
-    '🐱' => 'Cat',
-    '🐶' => 'Dog',
-    '🐔' => 'Chicken',
-    '🦄' => 'Unicorn',
-    '🧙‍♂️' => 'Wizard',
-    '👽' => 'Alien',
-    '🚀' => 'Rocket',
-    '⚾' => 'Baseball',
-    '👾' => 'Space Invader'
-];
+// Generate CSRF Token if missing
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-// Adult Avatars
-$adult_avatars = [
-    '👤' => 'Default',
-    '👩' => 'Mom / Woman',
-    '👨' => 'Dad / Man',
-    '👵' => 'Grandma',
-    '👴' => 'Grandpa',
-    '👮' => 'Officer',
-    '🕵️' => 'Detective',
-    '🤠' => 'Cowboy/girl',
-    '👑' => 'Royal',
-    '🎩' => 'Top Hat',
-    '👓' => 'Glasses',
-    '☕' => 'Coffee Lover'
-];
+$message = "";
 
 // --------------------------------------------------------
 // 2. HANDLE UPDATES (POST)
 // --------------------------------------------------------
-$message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
-    // --- A. HANDLE ADD CHILD ---
+    // CSRF Check
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("<div class='alert error'>Security Error: Invalid Session. Please refresh.</div>");
+    }
+
+    // --- A. ADD CHILD ---
     if ($_POST['action'] === 'add_child') {
         $child_name = trim($_POST['child_name']);
         $child_pin  = trim($_POST['child_pin']);
         $child_grade = $_POST['child_grade'];
+        $safe_name = htmlspecialchars($child_name);
 
         if (!empty($child_name) && !empty($child_pin)) {
-            // 1. CHECK FOR DUPLICATES
             $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $checkStmt->execute([$child_name]);
-
             if ($checkStmt->fetch()) {
-                // Name taken
-                $message = "<div class='alert error'>The name '$child_name' is already taken. Please add a last initial (e.g. '$child_name B').</div>";
+                $message = "<div class='alert error'>Name '$safe_name' is taken. Try adding an initial.</div>";
             } else {
-                // 2. PROCEED TO ADD
-                // Create user linked to THIS parent. Default avatar is '👤'
-                $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1)");
-                if ($stmt->execute([$child_name, $child_pin, $child_grade, $_SESSION['user_id']])) {
-                    $message = "<div class='alert success'>Added $child_name!</div>";
-                    // No redirect needed; the query below will pick up the new child immediately
+                // Default: Confetti ON, Messaging ON
+                $stmt = $pdo->prepare("INSERT INTO users (username, pin_code, role, grade_level, parent_id, avatar, confetti_enabled, messaging_enabled) VALUES (?, ?, 'student', ?, ?, '👤', 1, 1)");
+
+                $hashed_pin = password_hash($child_pin, PASSWORD_DEFAULT);
+                if ($stmt->execute([$child_name, $hashed_pin, $child_grade, $_SESSION['user_id']])) {
+                    $message = "<div class='alert success'>Added $safe_name successfully!</div>";
                 } else {
-                    $message = "<div class='alert error'>Error adding child.</div>";
+                    $message = "<div class='alert error'>Database Error.</div>";
                 }
             }
-        } else {
-            $message = "<div class='alert error'>Name and PIN required.</div>";
         }
     }
 
@@ -93,74 +58,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $u_grade = $_POST['grade_level'];
         $u_theme = $_POST['theme_id'];
         $u_avatar = $_POST['avatar'];
-
-        // Checkbox logic: if present, it's 1, else 0
         $u_confetti = isset($_POST['confetti']) ? 1 : 0;
+        $u_messaging = isset($_POST['messaging']) ? 1 : 0; // NEW FIELD
 
-        // Check ownership before updating
+        // Verify Ownership
         if ($_SESSION['role'] === 'parent') {
             $check = $pdo->prepare("SELECT id FROM users WHERE id = ? AND parent_id = ?");
             $check->execute([$u_id, $_SESSION['user_id']]);
-            if (!$check->fetch()) {
-                die("Error: You do not have permission to edit this student.");
-            }
+            if (!$check->fetch()) die("Permission Denied.");
         }
 
-        $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ?, confetti_enabled = ? WHERE id = ?");
-        if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_confetti, $u_id])) {
-            $message = "<div class='alert success'>Settings Updated! Go check the dashboard.</div>";
-        } else {
-            $message = "<div class='alert error'>Error updating settings.</div>";
+        $stmt = $pdo->prepare("UPDATE users SET grade_level = ?, theme_id = ?, avatar = ?, confetti_enabled = ?, messaging_enabled = ? WHERE id = ?");
+        if ($stmt->execute([$u_grade, $u_theme, $u_avatar, $u_confetti, $u_messaging, $u_id])) {
+            $message = "<div class='alert success'>Settings Updated!</div>";
         }
     }
 
     // --- C. UPDATE PARENT PROFILE ---
     elseif ($_POST['action'] === 'update_parent_profile') {
         $p_avatar = $_POST['parent_avatar'];
-        $p_id = $_SESSION['user_id']; // Update MYSELF
-
         $stmt = $pdo->prepare("UPDATE users SET avatar = ? WHERE id = ?");
-        if ($stmt->execute([$p_avatar, $p_id])) {
-            $message = "<div class='alert success'>Your Profile Updated!</div>";
-        } else {
-            $message = "<div class='alert error'>Error updating profile.</div>";
-        }
+        $stmt->execute([$p_avatar, $_SESSION['user_id']]);
+        $message = "<div class='alert success'>Profile Updated!</div>";
     }
 }
 
 // --------------------------------------------------------
 // 3. FETCH DATA
 // --------------------------------------------------------
-// A. Get My Children
-$students = [];
+// Get Children
 if ($_SESSION['role'] === 'admin') {
-    // Admins see all students
     $students = $pdo->query("SELECT * FROM users WHERE role = 'student' ORDER BY username ASC")->fetchAll();
 } else {
-    // Parents only see their own linked children
     $stmt = $pdo->prepare("SELECT * FROM users WHERE role = 'student' AND parent_id = ? ORDER BY username ASC");
     $stmt->execute([$_SESSION['user_id']]);
     $students = $stmt->fetchAll();
 }
 
-// B. Get Parent Info (Me)
+// Get Parent Info
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $me = $stmt->fetch();
 
 $themes = $pdo->query("SELECT * FROM themes ORDER BY name ASC")->fetchAll();
 
-// C. Determine Selected Student
-if (isset($_GET['student_id'])) {
-    $student_id = $_GET['student_id'];
-} elseif (isset($_POST['student_id'])) {
-    $student_id = $_POST['student_id'];
-} else {
-    // Default to the first student found, or 0 if none
-    $student_id = count($students) > 0 ? $students[0]['id'] : 0;
-}
+// Determine Selected Student
+$student_id = $_GET['student_id'] ?? ($_POST['student_id'] ?? ($students[0]['id'] ?? 0));
 
-// Get current student's info
 $current_student = null;
 foreach ($students as $s) {
     if ($s['id'] == $student_id) {
@@ -168,38 +112,37 @@ foreach ($students as $s) {
         break;
     }
 }
-
-// Fallback if ID is invalid but students exist
-if (!$current_student && count($students) > 0) {
+// Fallback
+if (!$current_student && !empty($students)) {
     $current_student = $students[0];
     $student_id = $current_student['id'];
 }
 
 // --------------------------------------------------------
-// 4. CALCULATE STATS (For selected student)
+// 4. STATS LOGIC
 // --------------------------------------------------------
 $stats = ['total' => 0, 'time' => 0, 'avg' => 0];
 $game_stats = [];
 
 if ($current_student) {
-    // Overall Stats
     $stmt = $pdo->prepare("SELECT COUNT(*) as total, SUM(duration_seconds) as time, AVG(score) as avg FROM progress WHERE user_id = ?");
     $stmt->execute([$student_id]);
     $db_stats = $stmt->fetch();
     if ($db_stats) $stats = $db_stats;
 
-    $total_minutes = floor(($stats['time'] ?? 0) / 60);
-
-    // Per-Game Stats
     $stmt = $pdo->prepare("
         SELECT g.default_title as title, COUNT(p.id) as plays, MAX(p.score) as best, AVG(p.score) as avg
         FROM games g
         LEFT JOIN progress p ON g.id = p.game_id AND p.user_id = ?
-        GROUP BY g.id
+        GROUP BY g.id HAVING plays > 0
     ");
     $stmt->execute([$student_id]);
     $game_stats = $stmt->fetchAll();
 }
+
+// AVATAR LISTS
+$kid_avatars = $kid_avatar_list;
+$adult_avatars = $adult_avatar_list;
 ?>
 
 <!DOCTYPE html>
@@ -207,96 +150,19 @@ if ($current_student) {
 <head>
     <meta charset="UTF-8">
     <title>Parent Control Center</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        /* PARENT DASHBOARD OVERRIDES */
-        body {
-            background: #f0f2f5;
-            color: #333 !important; /* Force dark text */
-            background-image: none;
-            font-family: sans-serif;
-        }
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-link { text-decoration: none; color: #333; font-weight: bold; font-size: 1.1em; }
-
-        .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            color: #333; /* Ensure text inside cards is dark */
-        }
-
-        .card h2 {
-            margin-top: 0;
-            color: #2c3e50;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        label { display: block; margin-top: 10px; font-weight: bold; color: #555; }
-        select, input[type=text] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            color: #333;
-            background: #fff;
-        }
-
-        button.save-btn { width: 100%; margin-top: 20px; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; }
-        button.save-btn:hover { background: #27ae60; }
-
-        /* TABLE STYLES */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-
-        th {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 2px solid #ddd;
-            background: #f8f9fa;
-            color: #555; /* Dark header text */
-            font-weight: bold;
-        }
-
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-            color: #333; /* Dark cell text */
-        }
-
-        /* Notifications */
-        .alert { padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-
-        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
-        /* New Styles for Profile Avatar */
-        .profile-header { display:flex; align-items:center; gap: 15px; margin-bottom: 10px; }
-        .big-avatar { font-size: 40px; background: #f0f2f5; padding: 10px; border-radius: 50%; width: 60px; height: 60px; display:flex; justify-content:center; align-items:center; }
-    </style>
+    <link rel="stylesheet" href="<?php echo auto_version('assets/css/parent.css'); ?>">
 </head>
 <body>
 
 <div class="container">
     <div class="top-bar">
-      <a href="logout.php" class="back-link">⬅ Log Out & Switch to Child</a>
         <h1>Parent Controls</h1>
+        <a href="logout.php" class="back-link">⬅ Log Out</a>
     </div>
 
     <?php echo $message; ?>
 
     <div class="dashboard-grid">
-
         <div class="left-col">
 
             <div class="card" style="border-left: 5px solid #8e44ad;">
@@ -308,8 +174,8 @@ if ($current_student) {
                         <small style="color:#777;">Parent Account</small>
                     </div>
                 </div>
-
-                <form method="POST" action="parent.php">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="hidden" name="action" value="update_parent_profile">
                     <label>Change My Avatar:</label>
                     <select name="parent_avatar" onchange="this.form.submit()">
@@ -324,7 +190,7 @@ if ($current_student) {
 
             <div class="card">
                 <h2>Select Child</h2>
-                <form method="GET" action="parent.php">
+                <form method="GET">
                     <select name="student_id" onchange="this.form.submit()">
                         <?php if(count($students) > 0): ?>
                             <?php foreach ($students as $s): ?>
@@ -339,26 +205,26 @@ if ($current_student) {
                 </form>
             </div>
 
-            <div class="card" style="background: #e3f2fd; border: 1px solid #90caf9;">
+            <div class="card" style="background: #e3f2fd; border-color: #90caf9;">
                 <h2>➕ Add a Child</h2>
-                <form method="POST" action="parent.php">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="hidden" name="action" value="add_child">
 
-                    <label>Child's Name:</label>
+                    <label>Name</label>
                     <input type="text" name="child_name" placeholder="e.g. Timmy" required>
 
-                    <label>Child's PIN:</label>
-                    <input type="text" name="child_pin" placeholder="Simple PIN (e.g. 1111)" required>
+                    <label>PIN Code</label>
+                    <input type="text" name="child_pin" placeholder="e.g. 1111" required>
 
-                    <label>Grade Level:</label>
+                    <label>Grade Level</label>
                     <select name="child_grade">
-                        <option value="0">Preschool (Age 3-4)</option>
-                        <option value="1">Kindergarten (Age 5-6)</option>
-                        <option value="2">1st Grade (Age 6-7)</option>
-                        <option value="3">2nd Grade (Age 7-8)</option>
-                        <option value="4">3rd Grade (Age 8-9)</option>
-                        <option value="5">4th Grade (Age 9-10)</option>
-                        <option value="6">5th Grade (Age 10-11)</option>
+                        <option value="0">Preschool</option>
+                        <option value="1">Kindergarten</option>
+                        <option value="2">1st Grade</option>
+                        <option value="3">2nd Grade</option>
+                        <option value="4">3rd Grade</option>
+                        <option value="5">4th Grade</option>
                     </select>
 
                     <button type="submit" class="save-btn" style="background: #3498db;">Add Child</button>
@@ -366,27 +232,23 @@ if ($current_student) {
             </div>
 
             <?php if ($current_student): ?>
-            <div class="card" style="background: #e8f4fd; border: 1px solid #b6d4fe;">
-                <h2>⚙️ Settings</h2>
-                <form method="POST" action="parent.php">
+            <div class="card" style="background: #fdfefe; border-top: 4px solid #f1c40f;">
+                <h2>⚙️ Settings for <?php echo htmlspecialchars($current_student['username']); ?></h2>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="hidden" name="action" value="update_settings">
                     <input type="hidden" name="student_id" value="<?php echo $current_student['id']; ?>">
 
-                    <label>Display Name:</label>
-                    <input type="text" value="<?php echo htmlspecialchars($current_student['username']); ?>" disabled style="background:#eee; color:#777;">
-
-                    <label>Grade Level:</label>
+                    <label>Grade Level</label>
                     <select name="grade_level">
-                        <option value="0" <?php echo ($current_student['grade_level'] == 0) ? 'selected' : ''; ?>>Preschool (Age 3-4)</option>
-                        <option value="1" <?php echo ($current_student['grade_level'] == 1) ? 'selected' : ''; ?>>Kindergarten (Age 5-6)</option>
-                        <option value="2" <?php echo ($current_student['grade_level'] == 2) ? 'selected' : ''; ?>>1st Grade (Age 6-7)</option>
-                        <option value="3" <?php echo ($current_student['grade_level'] == 3) ? 'selected' : ''; ?>>2nd Grade (Age 7-8)</option>
-                        <option value="4" <?php echo ($current_student['grade_level'] == 4) ? 'selected' : ''; ?>>3rd Grade (Age 8-9)</option>
-                        <option value="5" <?php echo ($current_student['grade_level'] == 5) ? 'selected' : ''; ?>>4th Grade (Age 9-10)</option>
-                        <option value="6" <?php echo ($current_student['grade_level'] == 6) ? 'selected' : ''; ?>>5th Grade (Age 10-11)</option>
+                        <?php for($i=0; $i<=6; $i++): ?>
+                            <option value="<?php echo $i; ?>" <?php echo ($current_student['grade_level'] == $i) ? 'selected' : ''; ?>>
+                                Grade <?php echo $i == 0 ? 'PK' : ($i == 1 ? 'K' : $i); ?>
+                            </option>
+                        <?php endfor; ?>
                     </select>
 
-                    <label>Theme:</label>
+                    <label>Theme</label>
                     <select name="theme_id">
                         <?php foreach ($themes as $theme): ?>
                             <option value="<?php echo $theme['id']; ?>" <?php echo ($current_student['theme_id'] == $theme['id']) ? 'selected' : ''; ?>>
@@ -395,81 +257,81 @@ if ($current_student) {
                         <?php endforeach; ?>
                     </select>
 
-                    <label>Avatar:</label>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-
-                        <div id="avatar-preview" style="
-                            width: 60px; height: 60px;
-                            background: #fff;
-                            border: 2px solid #ddd;
-                            border-radius: 50%;
-                            font-size: 35px;
-                            display: flex; align-items: center; justify-content: center;
-                            cursor: default;
-                        ">
-                            <?php
-                                // Fallback: If DB has old filename (contains dot), show default emoji
-                                $current_av = $current_student['avatar'] ?? '👤';
-                                if (strpos($current_av, '.') !== false) $current_av = '👤';
-                                echo $current_av;
-                            ?>
+                    <label>Avatar</label>
+                    <div style="display: flex; gap: 10px;">
+                        <div id="avatar-preview" class="big-avatar" style="width: 50px; height: 50px; font-size: 25px;">
+                            <?php echo $current_student['avatar'] ?: '👤'; ?>
                         </div>
-
-                        <select name="avatar" id="avatar-select" onchange="updateAvatar()" style="flex: 1; font-size: 1.2em;">
+                        <select name="avatar" id="avatar-select" onchange="document.getElementById('avatar-preview').innerText = this.value;">
                             <?php foreach ($kid_avatars as $emoji => $label): ?>
-                                <option value="<?php echo $emoji; ?>" <?php echo ($current_av == $emoji) ? 'selected' : ''; ?>>
+                                <option value="<?php echo $emoji; ?>" <?php echo ($current_student['avatar'] == $emoji) ? 'selected' : ''; ?>>
                                     <?php echo $emoji . " " . $label; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
-                    <label style="display:flex; align-items:center; margin-top:20px; cursor:pointer; background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                        <input type="checkbox" name="confetti" value="1" style="width:auto; margin-right:15px; transform:scale(1.5);"
-                            <?php if(!isset($current_student['confetti_enabled']) || $current_student['confetti_enabled'] == 1) echo 'checked'; ?>>
-                        <span style="font-size:1.1em; color:#2c3e50;">🎉 Enable Confetti</span>
-                    </label>
+                    <div style="margin: 20px 0; background: #fafafa; padding: 10px; border-radius: 8px;">
+                        <label style="display:flex; align-items:center; cursor:pointer; margin-bottom: 10px;">
+                            <input type="checkbox" name="confetti" value="1" style="width:auto; margin-right:10px;"
+                                <?php if($current_student['confetti_enabled']) echo 'checked'; ?>>
+                            Enable Confetti 🎉
+                        </label>
 
-                    <button type="submit" class="save-btn">Save Changes</button>
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" name="messaging" value="1" style="width:auto; margin-right:10px;"
+                                <?php if($current_student['messaging_enabled']) echo 'checked'; ?>>
+                            Allow Messaging 📬
+                        </label>
+                        <small style="display:block; color:#777; margin-left: 25px;">If disabled, child cannot send/receive messages.</small>
+                    </div>
+
+                    <button type="submit" class="save-btn">📝 Save Changes</button>
                 </form>
 
-                <div style="margin-top: 15px; text-align: center;">
-                    <button onclick="if(confirm('Are you sure? This deletes ALL history.')) { location.href='api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true'; }"
-                            style="background:none; border:none; color: #e74c3c; text-decoration: underline; cursor: pointer;">
-                        Reset Progress
-                    </button>
+                <div style="margin-top: 5px; text-align: center; display: flex; flex-direction: column; gap: 5px;">
+                    <form method="POST" action="api/reset_badges.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" onsubmit="return confirm('Remove all badges? (Scores will stay)')">
+                        <button type="submit" class="save-btn" style="background: #e67e22; width: 100%;">↺ Reset Badges Only</button>
+                    </form>
+
+                    <form method="POST" action="api/reset_stats.php?user_id=<?php echo $current_student['id']; ?>&redirect=true&csrf_token=<?php echo $_SESSION['csrf_token']; ?>" onsubmit="return confirm('WARNING: This deletes ALL history, scores, and badges. Continue?')">
+                        <button type="submit" class="save-btn" style="background: #e74c3c; width: 100%;">🗑️ Reset All Progress</button>
+                    </form>
                 </div>
 
-                <div style="margin-top: 15px; border-top: 1px solid #b6d4fe; padding-top: 15px;">
-                    <a href="report_card.php?student_id=<?php echo $current_student['id']; ?>"
-                       style="
-                           display: block;
-                           text-align: center;
-                           background: #34495e;
-                           color: white;
-                           padding: 12px;
-                           border-radius: 8px;
-                           text-decoration: none;
-                           font-weight: bold;
-                       ">
-                       📄 View Full Report Card
-                    </a>
-                </div>
+                <a href="report_card.php?student_id=<?php echo $current_student['id']; ?>" class="save-btn" style="background:#34495e; margin-top: 30px; display:block; text-align:center; text-decoration:none; box-sizing:border-box;">
+                    📄 View Full Report Card
+                </a>
             </div>
-
-            <script>
-                function updateAvatar() {
-                    const select = document.getElementById('avatar-select');
-                    const preview = document.getElementById('avatar-preview');
-                    // Update text inside the circle
-                    preview.innerText = select.value;
-                }
-            </script>
             <?php endif; ?>
         </div>
 
         <div class="right-col">
             <?php if ($current_student): ?>
+                <div class="card">
+                     <h2>📬 Last 5 Messages</h2>
+                     <?php
+                     $msgs = $pdo->prepare("SELECT m.*, u.username as friend FROM messages m JOIN users u ON (m.sender_id = u.id OR m.receiver_id = u.id) WHERE (m.sender_id = ? OR m.receiver_id = ?) AND u.id != ? ORDER BY m.sent_at DESC LIMIT 5");
+                     $msgs->execute([$student_id, $student_id, $student_id]);
+                     $recent_msgs = $msgs->fetchAll();
+                     ?>
+                     <?php if(count($recent_msgs) > 0): ?>
+                        <ul style="list-style:none; padding:0; font-size:0.9rem;">
+                        <?php foreach($recent_msgs as $m): ?>
+                            <?php $is_me = ($m['sender_id'] == $student_id); ?>
+                            <li style="padding:5px; border-bottom:1px solid #eee;">
+                                <?php echo $is_me ? "➡️ Sent to" : "⬅️ From"; ?>
+                                <strong><?php echo htmlspecialchars($m['friend']); ?></strong>:
+                                <?php echo $m['message']; ?>
+                                <span style="color:#aaa; font-size:0.8em;"><?php echo date('M j', strtotime($m['sent_at'])); ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                        </ul>
+                     <?php else: ?>
+                        <p style="color:#999;">No messages found.</p>
+                     <?php endif; ?>
+                </div>
+
                 <div class="card">
                     <div style="display:flex; justify-content:space-around; text-align:center;">
                         <div>
@@ -477,7 +339,7 @@ if ($current_student) {
                             <div style="color:#777;">Missions</div>
                         </div>
                         <div>
-                            <div style="font-size:2em; font-weight:bold; color:#3498db;"><?php echo $total_minutes; ?>m</div>
+                            <div style="font-size:2em; font-weight:bold; color:#3498db;"><?php echo floor($stats['time'] / 60); ?>m</div>
                             <div style="color:#777;">Minutes</div>
                         </div>
                         <div>
@@ -495,15 +357,12 @@ if ($current_student) {
                             <tr><th>Game</th><th>Plays</th><th>Best</th><th>Avg</th></tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($game_stats as $game):
-                                $avg = round($game['avg'] ?? 0);
-                                $best = $game['best'] ?? 0;
-                            ?>
+                            <?php foreach ($game_stats as $game): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($game['title']); ?></td>
                                 <td><?php echo $game['plays']; ?></td>
-                                <td style="font-weight:bold; color:#27ae60;"><?php echo $best; ?>%</td>
-                                <td><?php echo $avg; ?>%</td>
+                                <td style="color:#27ae60; font-weight:bold;"><?php echo $game['best']; ?>%</td>
+                                <td><?php echo round($game['avg']); ?>%</td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -513,7 +372,7 @@ if ($current_student) {
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="card"><p>No students found. Add your first child using the form on the left!</p></div>
+                <div class="card"><p>Welcome! Add a child on the left to get started.</p></div>
             <?php endif; ?>
         </div>
     </div>
