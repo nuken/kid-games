@@ -27,24 +27,32 @@ if(mb_strlen($emoji_msg) > 10) { // Limit length just in case
 try {
     // --- CHECK 1: OPT-OUT STATUS ---
     // Check if Sender OR Receiver has messaging disabled
-    $stmt = $pdo->prepare("SELECT id, messaging_enabled FROM users WHERE id IN (?, ?)");
+    $stmt = $pdo->prepare("SELECT id, messaging_enabled, role FROM users WHERE id IN (?, ?)");
     $stmt->execute([$sender_id, $receiver_id]);
-    $users = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // [id => enabled]
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC); 
+    
+    // Remap to [id => data] for easier access
+    $userData = [];
+    foreach($users as $u) { $userData[$u['id']] = $u; }
 
-    if (empty($users[$sender_id]) || $users[$sender_id] == 0) {
+    if (empty($userData[$sender_id]) || $userData[$sender_id]['messaging_enabled'] == 0) {
          die(json_encode(['status' => 'error', 'message' => 'Messaging disabled by parent.']));
     }
-    if (empty($users[$receiver_id]) || $users[$receiver_id] == 0) {
+    if (empty($userData[$receiver_id]) || $userData[$receiver_id]['messaging_enabled'] == 0) {
          die(json_encode(['status' => 'error', 'message' => 'This friend cannot receive messages right now.']));
     }
 
-    // --- CHECK 2: DAILY LIMIT ---
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE sender_id = ? AND DATE(sent_at) = CURDATE()");
-    $stmt->execute([$sender_id]);
-    $sent_today = $stmt->fetchColumn();
+    // --- CHECK 2: DAILY LIMIT (Students Only) ---
+    $senderRole = $userData[$sender_id]['role'] ?? 'student';
+    
+    if ($senderRole === 'student') {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE sender_id = ? AND DATE(sent_at) = CURDATE()");
+        $stmt->execute([$sender_id]);
+        $sent_today = $stmt->fetchColumn();
 
-    if ($sent_today >= $DAILY_LIMIT) {
-        die(json_encode(['status' => 'limit', 'message' => "You reached your limit of $DAILY_LIMIT messages today!"]));
+        if ($sent_today >= $DAILY_LIMIT) {
+            die(json_encode(['status' => 'limit', 'message' => "You reached your limit of $DAILY_LIMIT messages today!"]));
+        }
     }
 
     // --- EXECUTE: SEND MESSAGE ---

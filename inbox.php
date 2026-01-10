@@ -38,9 +38,20 @@ $stmt = $pdo->prepare("SELECT m.*, u.username as sender_name, u.avatar as sender
 $stmt->execute([$user_id]);
 $myMessages = $stmt->fetchAll();
 
-// 4. Fetch Friends
-$stmt = $pdo->prepare("SELECT id, username, avatar FROM users WHERE role = 'student' AND id != ? AND messaging_enabled = 1 ORDER BY username");
-$stmt->execute([$user_id]);
+// 4. Fetch Friends (AND PARENT)
+// UPDATED QUERY: Select students OR the specific parent of this user
+$stmt = $pdo->prepare("
+    SELECT id, username, avatar, role 
+    FROM users 
+    WHERE (
+        (role = 'student' AND id != :uid1) 
+        OR 
+        (id = (SELECT parent_id FROM users WHERE id = :uid2))
+    )
+    AND messaging_enabled = 1 
+    ORDER BY role ASC, username
+");
+$stmt->execute(['uid1' => $user_id, 'uid2' => $user_id]);
 $friendList = $stmt->fetchAll();
 
 // Theme Setup (for background colors)
@@ -78,9 +89,16 @@ $theme_path = "assets/themes/" . $theme_css;
             <div id="messenger-content" style="display:block;">
                 <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px dashed #eee;">
                     <select id="receiver_id" style="padding: 10px; font-size: 1.1rem; border-radius: 10px; border: 2px solid #3498db;">
-                        <option value="">Choose a friend...</option>
+                        <option value="">Choose a person...</option>
                         <?php foreach($friendList as $f): ?>
-                            <option value="<?php echo $f['id']; ?>"><?php echo $f['avatar'] . " " . htmlspecialchars($f['username']); ?></option>
+                            <?php 
+                                // Add a star or label if it's the parent
+                                $label = htmlspecialchars($f['username']);
+                                if ($f['role'] === 'parent' || $f['role'] === 'admin') {
+                                    $label .= " (Parent)";
+                                }
+                            ?>
+                            <option value="<?php echo $f['id']; ?>"><?php echo $f['avatar'] . " " . $label; ?></option>
                         <?php endforeach; ?>
                     </select>
                     <div style="margin-top:10px;">
@@ -119,7 +137,7 @@ $theme_path = "assets/themes/" . $theme_css;
 function pickEmoji(emoji) {
     const friendId = document.getElementById('receiver_id').value;
     const status = document.getElementById('status-msg');
-    if (!friendId) { alert("Pick a friend first!"); return; }
+    if (!friendId) { alert("Pick a person first!"); return; }
 
     status.innerText = "Sending...";
 

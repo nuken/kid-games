@@ -310,6 +310,18 @@ $adult_avatars = $adult_avatar_list;
             <?php if ($current_student): ?>
                 <div class="card">
                      <h2>📬 Last 5 Messages</h2>
+                     
+                     <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:15px; border:1px solid #eee;">
+                         <strong>Send to <?php echo htmlspecialchars($current_student['username']); ?>:</strong>
+                         <div style="margin-top:5px; display:flex; gap:5px;">
+                             <button onclick="sendParentEmoji('👋')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👋</button>
+                             <button onclick="sendParentEmoji('❤️')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">❤️</button>
+                             <button onclick="sendParentEmoji('🌟')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">🌟</button>
+                             <button onclick="sendParentEmoji('👍')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👍</button>
+                             <button onclick="sendParentEmoji('👏')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👏</button>
+                         </div>
+                         <div id="p-msg-status" style="margin-top:5px; font-weight:bold; color:#27ae60; font-size:0.9rem; min-height:1.2em;"></div>
+                     </div>
                      <?php
                      $msgs = $pdo->prepare("SELECT m.*, u.username as friend FROM messages m JOIN users u ON (m.sender_id = u.id OR m.receiver_id = u.id) WHERE (m.sender_id = ? OR m.receiver_id = ?) AND u.id != ? ORDER BY m.sent_at DESC LIMIT 5");
                      $msgs->execute([$student_id, $student_id, $student_id]);
@@ -377,6 +389,34 @@ $adult_avatars = $adult_avatar_list;
         </div>
     </div>
 </div>
+
+<script>
+function sendParentEmoji(msg) {
+    const receiverId = <?php echo $student_id; ?>;
+    const status = document.getElementById('p-msg-status');
+    status.innerText = "Sending...";
+    
+    fetch('api/send_message.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver_id: receiverId, message: msg })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            status.innerText = "Sent! ✅ Refreshing...";
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            status.style.color = 'red';
+            status.innerText = data.message;
+        }
+    })
+    .catch(err => {
+        status.style.color = 'red';
+        status.innerText = "Error connecting.";
+    });
+}
+</script>
 
 </body>
 </html>
