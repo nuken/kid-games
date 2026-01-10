@@ -220,7 +220,9 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (21, 'Number Tracing', 'games/number-tracing', '✏️', 0, 1, 1, 'General'),
                 (22, 'Shape Detective', 'games/shape-detective', '🕵️', 0, 3, 1, 'General'),
                 (23, 'The Cat and Rat', 'games/cat-rat-reader', '🐱', 0, 1, 1, 'General'),
-                (24, 'Sight Word Adventures', 'games/sight-word-reader', '🦜', 1, 2, 1, 'Reading');";
+                (24, 'Sight Word Adventures', 'games/sight-word-reader', '🦜', 1, 2, 1, 'Reading'),
+                (25, 'Cosmic Calc', 'games/cosmic-calc', '🚀', 3, 6, 1, 'Math'),
+                (26, 'Vocab Lab', 'games/vocab-lab', '📚', 3, 6, 1, 'Reading');";
             $pdo->exec($sql_games);
 
             // 3. Badges
@@ -251,7 +253,9 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (23, 'Sight Word Explorer', 'Read a story in Sight Word Adventures!', '🔭', 24, 100, NULL),
                 (25, 'Daily Star', 'Completed the Daily Quest!', '⭐', NULL, 0, 'daily_star'),
                 (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master'),
-                (27, 'Messenger', 'Unlocked the secret messenger box!', '📬', NULL, 0, 'messenger_unlock');";
+                (27, 'Messenger', 'Unlocked the secret messenger box!', '📬', NULL, 0, 'messenger_unlock'),
+                (28, 'Blast Off', 'Scored 100% on Cosmic Calc', '🚀', 25, 100, NULL),
+                (29, 'Word Warrior', 'Scored 100% in Vocab Lab', '🏆', 26, 100, NULL);";
             $pdo->exec($sql_badges);
 
             // 4. Overrides
