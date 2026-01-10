@@ -148,7 +148,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               `theme_id` int(11) DEFAULT 1,
               `avatar` varchar(255) DEFAULT '👤',
               `confetti_enabled` tinyint(1) DEFAULT 1,
-              `messaging_enabled` tinyint(1) DEFAULT 1, /* NEW COLUMN */
+              `messaging_enabled` tinyint(1) DEFAULT 1,
               `admin_pin` varchar(255) DEFAULT NULL,
               `failed_attempts` int(11) DEFAULT 0,
               `locked_until` datetime DEFAULT NULL,
@@ -156,12 +156,15 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               KEY `parent_id` (`parent_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            -- UPDATED: Badge Stacking Support
             CREATE TABLE IF NOT EXISTS `user_badges` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `user_id` int(11) NOT NULL,
               `badge_id` int(11) NOT NULL,
               `earned_at` datetime DEFAULT current_timestamp(),
-              PRIMARY KEY (`id`)
+              `count` int(11) DEFAULT 1,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `unique_user_badge` (`user_id`, `badge_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
             CREATE TABLE IF NOT EXISTS `user_favorites` (
