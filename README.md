@@ -1,114 +1,118 @@
-# 🎮 Kids Game Hub (Nuken Kid Games)
+# 🎓 Nuken LMS: Walled Garden Education
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![PHP](https://img.shields.io/badge/php-7.4%2B-purple) ![Docker](https://img.shields.io/badge/docker-ready-blue)
 
-A self-hosted, safe, and ad-free educational gaming platform that I built for my grandchildren. This project allows parents to manage child accounts, track progress, and provide a curated list of educational games.
+**A self-hosted, "Walled Garden" Learning Management System (LMS) designed for safe, distraction-free home education.**
+
+Unlike standard game sites, Nuken LMS provides a closed-loop environment. It allows parents and educators to host a private server where students can learn, track progress, and even socialize safely without ever being exposed to the open internet, advertisements, or external tracking.
 
 Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard web hosting.
 
 ## 📋 Table of Contents
-- [Features](#features)
-- [Included Games](#included-games)
+- [The Walled Garden](#walled-garden)
+- [LMS Features](#lms-features)
+- [Included Modules](#included-modules)
 - [Installation](#installation)
-- [Game Development](#game-development)
-- [Technology Stack](#technology-stack)
+- [Developer API](#developer-api)
 
 ---
 
-## <a id="features"></a>✨ Features
+## <a id="walled-garden"></a>🛡️ The Walled Garden
+The core philosophy of Nuken LMS is complete isolation from the "wild web."
 
-### 🛡️ For Parents
-* **Self-Hosted & Safe:** Zero ads, no external tracking, and no outbound links.
-* **Parent Dashboard:** Create and manage child accounts easily.
-* **Report Cards:** Track progress, mistakes, and time spent on each game.
-* **Theming:** Customize the interface with built-in themes: **Space Commander**, **Fairy Tale**, and **Default**.
-* **Progressive Web App (PWA):** Installable on tablets and phones for a native app-like experience.
-
-### 🕹️ For Kids
-* **Progress Tracking:** Earn badges like "Word Wizard" and "Math Farmer", plus "streak" rewards (e.g., "On Fire" visual effects).
-* **Voice Feedback:** Built-in Text-to-Speech engine guides the child through games.
-* **Fun & Educational:** Games cover math, reading, pattern recognition, Spanish vocabulary, and reflexes.
+* **Zero External Footprint:** No Google Analytics, no third-party fonts, and no outbound links.
+* **Internal Messaging System:** Students can send messages (e.g., emojis, encouragement) to family members or other students *only* within the local system.
+* **Data Sovereignty:** All progress data, messages, and user accounts reside 100% on your own server.
 
 ---
 
-## <a id="included-games"></a>🎲 Included Games
+## <a id="lms-features"></a>✨ LMS Features
 
-The platform comes pre-loaded with over 20 educational titles across various subjects:
+### 👨‍🏫 For Administrators (Parents/Teachers)
+* **Student Management:** Create accounts with secure **PIN Code Login** for easy access.
+* **Granular Analytics:** View detailed Report Cards showing:
+    * Scores and completion time per session.
+    * Specific mistake counts to identify struggle areas.
+    * Long-term progress history.
+* **Adaptive Theming:** The interface and *game content* adapt to the student's interest.
+    * *Example:* In the "Fairy Tale" theme, "Robo-Sorter" automatically becomes "Unicorn Sorter."
+* **Security Lockouts:** Built-in protection against brute-force PIN guessing.
 
-| Category | Games |
+### 🎓 For Students
+* **Personalized Dashboard:** Students can "Favorite" specific exercises for quick access.
+* **Gamified Learning:** Earn badges (e.g., "Word Wizard", "Streak Master") and unlock visual rewards like "On Fire" streaks.
+* **Voice Guidance:** Integrated Text-to-Speech acts as a personal tutor, reading instructions and feedback aloud.
+* **Safe Socializing:** Unlock the "Messenger Box" badge to send safe, local messages to other users.
+
+---
+
+## <a id="included-modules"></a>📚 Included Learning Modules
+
+The LMS comes pre-loaded with over 20 curriculum-aligned titles:
+
+| Subject | Modules |
 | :--- | :--- |
 | **Literacy & Language** | Alphabet Fun, Sight Word Adventures, Read & Match, Spell It!, Wild World (Animals), The Cat and Rat, Cosmic Signal (Reading), Fiesta Piñata (Spanish) |
-| **Math & Shapes** | Egg-dition (Math), Robo-Sorter, Rocket Shop (Money), Launch Time (Clocks), Shape Detective, Number Tracing |
-| **Logic & Memory** | Pattern Train, Spider Web, Robot Commander (Simon Says), Traffic Control (Red Light) |
-| **Action & Reflexes** | Balloon Pop, Lava Bridge |
+| **Math & Logic** | Egg-dition (Arithmetic), Robo-Sorter (Categorization), Rocket Shop (Currency), Launch Time (Analog Clocks), Pattern Train, Spider Web (Geometry) |
+| **Executive Function** | Robot Commander (Auditory Processing/Simon Says), Traffic Control (Impulse Control/Red Light) |
+| **Motor Skills** | Balloon Pop, Lava Bridge |
 | **Creativity** | Coloring Book, Color Lab |
 
 ---
 
 ## <a id="installation"></a>🚀 Installation
 
-You can install this project using Docker (recommended for home labs) or manually on a standard web host.
-
 ### Option A: Docker (Recommended)
 
-Perfect for users with Portainer or Docker Compose.
+Ideal for home labs (Portainer/Docker Compose).
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/nuken/kid-games.git
+    git clone [https://github.com/nuken/kid-games.git](https://github.com/nuken/kid-games.git)
     cd kid-games
     ```
 
 2.  **Configure Environment**
     * Rename `includes/config.sample.php` to `includes/config.php`.
-    * Edit `includes/config.php`:
-        * **Security:** Change the default database username and password to secure, custom values (do not use the defaults).
-    * **Update Docker Compose:** Open `docker-compose.yml` and ensure the `MYSQL_USER` and `MYSQL_PASSWORD` variables match exactly what you set in `config.php`.
+    * Edit `includes/config.php` with secure credentials.
+    * **Update Docker Compose:** Ensure `MYSQL_USER` and `MYSQL_PASSWORD` in `docker-compose.yml` match your config.
 
 3.  **Start Services**
     ```bash
     docker-compose up -d
     ```
-    The site will be available at `http://localhost:8080`.
+    Access the LMS at `http://localhost:8080`.
 
 4.  **Finish Setup**
-    * Visit `http://localhost:8080/install.php`.
-    * Follow the prompts to create your **Admin** account.
+    * Visit `http://localhost:8080/install.php` to create your **Admin** account.
 
-### Option B: Web Hosting (cPanel / LAMP)
+### Option B: Standard Hosting (LAMP/cPanel)
 
-1.  **Upload:** Upload all files to your server's `public_html` folder.
-2.  **Database:** Create a MySQL/MariaDB database and user in your control panel.
-3.  **Config:** * Rename `includes/config.sample.php` to `includes/config.php`.
-    * Edit it with your database credentials (Host, User, Password, DB Name).
-4.  **Install:** Visit `yoursite.com/install.php` to complete the setup.
+1.  **Upload:** Upload files to your server's `public_html`.
+2.  **Database:** Create a MySQL/MariaDB database.
+3.  **Config:** Rename and edit `includes/config.php` with your database details.
+4.  **Install:** Run the installer at `yoursite.com/install.php`.
 
-> **⚠️ Security Note:** The `install.php` script attempts to delete itself after a successful installation. If it fails to do so due to permissions, please manually delete `install.php` from your server.
+> **⚠️ Security:** The installer attempts to self-destruct. If `install.php` remains after setup, manually delete it.
 
 ---
 
-## <a id="game-development"></a>🧩 Game Development
+## <a id="developer-api"></a>🧩 Curriculum Development
 
-Want to add your own games? The platform exposes a powerful Javascript API called **GameBridge** that handles the complex logic for you.
+Expand the LMS with your own modules using the **GameBridge API**.
 
-* **[📖 Read the full Developer Guide](examples/DEVELOPER_GUIDE.md)**
+* **[📖 Read the Developer Guide](examples/DEVELOPER_GUIDE.md)**
 
-### Key API Features
-* **Scoring:** `GameBridge.saveScore({ score: 100, mistakes: 0 })` handles database syncing automatically.
-* **Audio:** `GameBridge.speak("Find the red circle")` uses the browser's TTS engine.
-* **Feedback:** `GameBridge.handleCorrect()` triggers global "ding" sounds and visual streaks.
-
-### Quick Start
-Every game resides in `games/your-game-name/` and requires just three files:
-* `view.php` (The HTML interface)
-* `game.js` (Logic using `GameBridge.setupGame({...})`)
-* `style.css` (Visuals)
+### API Capabilities
+* **Data Sync:** `GameBridge.saveScore({...})` automatically syncs results to the student's report card.
+* **TTS Engine:** `GameBridge.speak("Select the square")` utilizes browser-native speech.
+* **Theme Awareness:** Detect the active LMS theme (Space/Princess/Default) to swap game assets dynamically.
 
 ---
 
 ## <a id="technology-stack"></a>🛠️ Technology Stack
 
-* **Backend:** PHP 7.4+ (No frameworks, lightweight) Tested on 8.4!
-* **Database:** MariaDB / MySQL
-* **Frontend:** Vanilla Javascript & HTML5
-* **Containerization:** Docker & Docker Compose
+* **Core:** PHP 7.4+ (Tested on 8.4)
+* **Data:** MariaDB / MySQL
+* **Frontend:** Vanilla Javascript, HTML5, PWA Support
+* **Delivery:** Docker & Docker Compose
