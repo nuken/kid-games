@@ -44,7 +44,7 @@ The core philosophy is complete isolation from the "wild web."
 * **Personalized Dashboard:** Students can "Favorite" specific exercises for quick access.
 * **Gamified Learning:** Earn badges (e.g., "Word Wizard", "Streak Master") and unlock visual rewards.
 * **Voice Guidance:** Integrated Text-to-Speech acts as a personal tutor, reading instructions aloud.
-* **Safe Socializing:** Unlock the "Messenger Box" badge to send safe, local messages to other users.
+* **Safe Socializing:** Unlock the "Messenger Box" badge to send safe, local messages to parents or siblings.
 
 ---
 
