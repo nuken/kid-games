@@ -9,27 +9,74 @@ if (!$id) { header("Location: games.php"); exit; }
 $message = "";
 $subjects = ['Math', 'Reading', 'Logic', 'Creativity', 'Science', 'General'];
 
-// 2. HANDLE UPDATE
+// ---------------------------------------------------------
+// 2. HANDLE REQUESTS (POST)
+// ---------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // SECURITY: CSRF Check
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die("Security Error: Invalid CSRF Token.");
     }
 
-    $title      = trim($_POST['title']);
-    $folder     = trim($_POST['folder']);
-    $icon       = $_POST['icon'];
-    $subject    = $_POST['subject']; 
-    $min        = $_POST['min_grade'];
-    $max        = $_POST['max_grade'];
-    $active     = isset($_POST['active']) ? 1 : 0;
+    $action = $_POST['action'] ?? 'update';
 
-    $stmt = $pdo->prepare("UPDATE games SET default_title=?, folder_path=?, default_icon=?, min_grade=?, max_grade=?, active=?, subject=? WHERE id=?");
+    // --- A. DELETE GAME ---
+    if ($action === 'delete') {
+        try {
+            $pdo->beginTransaction();
+
+            // 1. Delete Progress History
+            $stmt = $pdo->prepare("DELETE FROM progress WHERE game_id = ?");
+            $stmt->execute([$id]);
+
+            // 2. Delete User Favorites (if exists)
+            // Wrapping in try-catch in case table doesn't exist yet, though it should
+            try {
+                $stmt = $pdo->prepare("DELETE FROM user_favorites WHERE game_id = ?");
+                $stmt->execute([$id]);
+            } catch (Exception $e) { /* Ignore if table missing */ }
+
+            // 3. Delete Theme Overrides
+            try {
+                $stmt = $pdo->prepare("DELETE FROM game_theme_overrides WHERE game_id = ?");
+                $stmt->execute([$id]);
+            } catch (Exception $e) { /* Ignore */ }
+
+            // 4. Detach Badges (Don't delete the badge, just remove the game requirement)
+            $stmt = $pdo->prepare("UPDATE badges SET criteria_game_id = NULL WHERE criteria_game_id = ?");
+            $stmt->execute([$id]);
+
+            // 5. Delete the Game Record
+            $stmt = $pdo->prepare("DELETE FROM games WHERE id = ?");
+            $stmt->execute([$id]);
+
+            $pdo->commit();
+            header("Location: games.php?msg=deleted");
+            exit;
+
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $message = "<div class='alert error'>Error deleting game: " . $e->getMessage() . "</div>";
+        }
+    }
     
-    if ($stmt->execute([$title, $folder, $icon, $min, $max, $active, $subject, $id])) {
-        $message = "<div class='alert success'>Game updated! <a href='games.php' style='color:#155724;'>Go Back</a></div>";
-    } else {
-        $message = "<div class='alert error'>Update failed.</div>";
+    // --- B. UPDATE GAME ---
+    else {
+        $title      = trim($_POST['title']);
+        $folder     = trim($_POST['folder']);
+        $icon       = $_POST['icon'];
+        $subject    = $_POST['subject']; 
+        $min        = $_POST['min_grade'];
+        $max        = $_POST['max_grade'];
+        $active     = isset($_POST['active']) ? 1 : 0;
+
+        $stmt = $pdo->prepare("UPDATE games SET default_title=?, folder_path=?, default_icon=?, min_grade=?, max_grade=?, active=?, subject=? WHERE id=?");
+        
+        if ($stmt->execute([$title, $folder, $icon, $min, $max, $active, $subject, $id])) {
+            $message = "<div class='alert success'>Game updated! <a href='games.php' style='color:#155724;'>Go Back</a></div>";
+        } else {
+            $message = "<div class='alert error'>Update failed.</div>";
+        }
     }
 }
 
@@ -37,6 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $stmt = $pdo->prepare("SELECT * FROM games WHERE id = ?");
 $stmt->execute([$id]);
 $game = $stmt->fetch();
+
+if (!$game) { die("Game not found."); }
 
 $icons = $game_icons_list;
 if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
@@ -50,7 +99,23 @@ if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
     <meta charset="UTF-8">
     <title>Edit Game</title>
     <link rel="stylesheet" href="../assets/css/admin.css"> 
-    <style> body { display:flex; justify-content:center; align-items:center; height:100vh; } </style>
+    <style> 
+        body { display:flex; justify-content:center; align-items:center; min-height:100vh; padding: 20px; box-sizing: border-box; } 
+        .edit-card { max-width: 500px; width: 100%; }
+        .btn-delete { 
+            background-color: #e74c3c; 
+            margin-top: 20px; 
+            width: 100%; 
+            padding: 10px; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 1rem;
+        }
+        .btn-delete:hover { background-color: #c0392b; }
+        .divider { border-top: 1px solid #ddd; margin: 20px 0; }
+    </style>
 </head>
 <body>
 
@@ -60,6 +125,7 @@ if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
 
     <form method="POST">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" name="action" value="update">
 
         <label>Game Title</label>
         <input type="text" name="title" value="<?php echo htmlspecialchars($game['default_title']); ?>" required>
@@ -119,6 +185,15 @@ if (!empty($game['default_icon']) && !in_array($game['default_icon'], $icons)) {
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="games.php" class="cancel-link">Cancel</a>
     </form>
+
+    <div class="divider"></div>
+
+    <form method="POST" onsubmit="return confirm('⚠️ DANGER: Are you sure you want to delete this game?\n\nThis will remove all student progress and favorite links associated with it. This cannot be undone.');">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn-delete">🗑️ Delete Game Permanently</button>
+    </form>
+
 </div>
 
 </body>
