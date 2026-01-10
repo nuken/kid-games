@@ -103,7 +103,8 @@ try {
     $games = $stmt->fetchAll();
 
     // 4. GET BADGES
-    $stmt = $pdo->prepare("SELECT b.name, b.icon, COUNT(ub.id) as count FROM user_badges ub JOIN badges b ON ub.badge_id = b.id WHERE ub.user_id = ? GROUP BY b.id ORDER BY MAX(ub.earned_at) DESC");
+    // Notice we now select 'ub.count' directly instead of calculating 'COUNT(ub.id)'
+    $stmt = $pdo->prepare("SELECT b.name, b.icon, ub.count, ub.earned_at FROM user_badges ub JOIN badges b ON ub.badge_id = b.id WHERE ub.user_id = ? ORDER BY ub.earned_at DESC");
     $stmt->execute([$user_id]);
     $my_badges = $stmt->fetchAll();
 

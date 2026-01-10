@@ -123,11 +123,19 @@ try {
     $game_badges = $stmt->fetchAll();
 
     foreach ($game_badges as $badge) {
-        if ($score >= $badge['criteria_score']) {
-            $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $badge['id']]);
-            $new_badges[] = ['name'=>$badge['name'], 'icon'=>$badge['icon']];
-        }
+    if ($score >= $badge['criteria_score']) {
+        // "UPSERT" Logic: Try to insert. If it exists, add +1 to count and update the time.
+        $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) 
+                VALUES (?, ?, NOW(), 1) 
+                ON DUPLICATE KEY UPDATE 
+                count = count + 1, 
+                earned_at = NOW()";
+                
+        $pdo->prepare($sql)->execute([$user_id, $badge['id']]);
+        
+        $new_badges[] = ['name'=>$badge['name'], 'icon'=>$badge['icon']];
     }
+}
 
     echo json_encode(['status' => 'success', 'new_badges' => $new_badges]);
 

@@ -34,6 +34,10 @@ if (isset($_GET['delete']) && $_GET['delete'] == 'true') {
     if ($is_system_badge) {
         $message = "<div class='alert error'>⛔ Action Blocked: This is a System Badge and cannot be deleted.</div>";
     } else {
+        // 1. Clean up user history (Prevents Bloat!)
+        $pdo->prepare("DELETE FROM user_badges WHERE badge_id = ?")->execute([$id]);
+
+        // 2. Delete the badge definition
         $stmt = $pdo->prepare("DELETE FROM badges WHERE id = ?");
         $stmt->execute([$id]);
         header("Location: badges.php");
