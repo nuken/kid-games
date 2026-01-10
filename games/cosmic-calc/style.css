@@ -1,0 +1,55 @@
+/* games/cosmic-calc/style.css */
+#game-stage {
+    text-align: center;
+    padding-top: 20px;
+}
+
+.question-text {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 20px 0;
+    font-family: 'Comic Neue', sans-serif;
+}
+
+.options-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.math-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 20px 40px;
+    font-size: 2.5rem;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #2980b9;
+    transition: transform 0.1s;
+    min-width: 120px;
+}
+
+.math-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #2980b9;
+}
+
+/* Theme Override: Space Theme */
+body.theme-space .question-text {
+    color: #fff;
+    text-shadow: 0 0 10px #3498db;
+}
+
+/* Rocket Animation */
+@keyframes blastOff {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(20px); } /* Anticipation */
+    100% { transform: translateY(-200vh); } /* Blast off */
+}
+
+.blasting-off {
+    animation: blastOff 1.5s ease-in forwards;
+}
