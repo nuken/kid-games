@@ -1,214 +1,237 @@
-# 🛠️ Developer Guide: Creating a New Game
+# 🛠️ Nuken LMS Developer Guide
 
-Welcome to the **Kids Game Hub** developer guide! This platform is designed to be extensible. You can easily add new educational games using standard HTML, CSS, and our powerful `GameBridge` JavaScript API.
+Welcome! Nuken LMS is designed to be extensible. You can add new educational modules using standard HTML, CSS, and our powerful `GameBridge` JavaScript API.
 
-## 📂 Game Structure
-
-To create a new game, create a folder in `/games/your-game-name/`. The platform automatically detects folders here.
-Your folder **must** contain these three files:
-
-| File | Purpose |
-| :--- | :--- |
-| **`view.php`** | The HTML markup for your game. (Just the game container; headers/scripts are auto-loaded). |
-| **`style.css`** | Custom visual styling for your game elements. |
-| **`game.js`** | The game logic. This is where you interact with `GameBridge`. |
-
-> **Tip:** You can also add an `images/` or `sounds/` folder within your game directory to keep assets organized.
+The platform handles the "boring stuff" (User Auth, Database Syncing, CSRF Protection, Sound Effects, Text-to-Speech) so you can focus entirely on the game logic.
 
 ---
 
-## 🌉 The GameBridge API
+## 📂 1. Module Structure
 
-The platform provides a global `GameBridge` object to handle the "heavy lifting" like scoring, database syncing, text-to-speech, and reward animations.
+To create a new game, create a folder in `/games/your-game-name/`. The platform automatically detects folders here.
 
-### 1. Initialization (`setupGame`)
+**Directory Tree:**
+```text
+/games/
+  └── /my-cool-game/
+       ├── view.php        (Required: HTML structure)
+       ├── style.css       (Required: Visuals)
+       ├── game.js         (Required: Logic)
+       ├── thumbnail.png   (Optional: Preview image)
+       └── /assets/        (Optional: Images/Sounds)
 
-Call this method inside your `DOMContentLoaded` event listener to register your game.
+```
+
+### 📄 The 3 Core Files
+
+#### 1. `view.php`
+
+This file contains **only** the HTML specific to your game.
+
+* **DO NOT** include `<html>`, `<head>`, or `<body>` tags. The LMS wraps your content automatically.
+* **DO NOT** load `game.js` or `style.css` manually. The LMS loads them for you.
+
+```html
+<div id="game-container">
+    <div id="question-text">Target: A</div>
+    <div id="grid" class="options-grid"></div>
+</div>
+
+```
+
+#### 2. `style.css`
+
+Standard CSS. Scoping your classes (e.g., `.mygame-card`) is recommended to avoid conflicts.
+
+#### 3. `game.js`
+
+Your logic file. It **must** wrap code in a closure or event listener to avoid global scope pollution.
+
+---
+
+## 🌉 2. The GameBridge API
+
+`GameBridge` is the global object that connects your game to the LMS core.
+
+### A. Initialization
+
+Call `setupGame` inside `DOMContentLoaded` to register your game.
 
 ```javascript
-GameBridge.setupGame({
-    // Text displayed on the initial start overlay
-    instructions: "Find all the red circles!", 
-    
-    // Optional: Text spoken aloud when the start overlay appears
-    speakInstruction: "Can you find the red circles?", 
-    
-    // Define difficulty levels (creates buttons on the start screen)
-    levels: [
-        { id: 1, label: "Easy" },
-        { id: 2, label: "Hard" }
-    ],
-    
-    // Callback function when the user clicks a level button
-    onStart: function(level) {
-        // level will be 1 or 2 based on the ID above
-        startGame(level);
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    GameBridge.setupGame({
+        // Text displayed on the start overlay
+        instructions: "Find all the red circles!", 
+        
+        // Optional: Spoken aloud when start screen appears
+        speakInstruction: "Can you find the red circles?", 
+        
+        // Define difficulty levels (creates buttons on start screen)
+        levels: [
+            { id: 1, label: "Practice" },
+            { id: 2, label: "Challenge" }
+        ],
+        
+        // Callback when user clicks a level
+        onStart: function(level) {
+            // level will be 1 or 2
+            startGame(level);
+        }
+    });
 });
 
 ```
 
-### 2. Gameplay Feedback
+### B. Feedback & Streaks
 
-Use these methods to provide immediate feedback to the child. They handle audio cues and visual "Streak" animations (like the "On Fire" effect).
+The LMS tracks "Streaks" (consecutive correct answers) to trigger the "On Fire" visual effect.
 
-* **`GameBridge.handleCorrect()`**
-* Plays a positive "Ding" sound.
-* Increments the internal streak counter.
+| Method | Description |
+| --- | --- |
+| `GameBridge.handleCorrect()` | Plays "Ding" sound + Increments Streak + Updates UI. |
+| `GameBridge.handleCorrectSilent()` | Increments Streak + Updates UI *without* sound. (Use this if your game plays its own specific success audio). |
+| `GameBridge.handleWrong()` | Plays "Buzz" sound + Resets Streak to 0. |
 
+### C. Audio & Text-to-Speech (TTS)
 
-* **`GameBridge.handleCorrectSilent()`**
-* Increments the streak counter *without* playing a sound.
-* *Use Case:* You are playing your own specific voice-over or sound effect but still want the "On Fire" visual benefits.
+The LMS uses the browser's native SpeechSynthesis API.
 
-
-* **`GameBridge.handleWrong()`**
-* Plays a "Buzz" sound.
-* Resets the streak counter to zero.
-
+* **`GameBridge.speak("Good job!")`**
+* Adds text to the queue. Speaks naturally after current sentence finishes.
 
 
-### 3. Audio & Text-to-Speech (TTS)
-
-The platform uses the browser's native synthesis engine.
-
-* **`GameBridge.speak(text)`**
-* Adds text to the speech queue. Will wait for previous sentences to finish.
-
-
-* **`GameBridge.speakNow(text)`**
-* **Interrupts** any current speech and speaks immediately.
-* *Use Case:* User tapped an item and needs instant feedback.
+* **`GameBridge.speakNow("Stop!")`**
+* **Interrupts** current speech immediately. Essential for fast-paced games where feedback must be instant.
 
 
 * **`GameBridge.stopSpeech()`**
-* Cancels all current and queued speech immediately.
-
-
-* **`GameBridge.playAudio(key)`**
-* Plays system sounds. Available keys: `'correct'`, `'wrong'`.
+* Cancels all audio immediately.
 
 
 
-### 4. Winning & Scoring
+### D. Scoring & Saving
 
-When the game ends (or a major milestone is reached), you **must** save the score to trigger badges and database tracking.
+When a game session ends, call `saveScore`. The Bridge automatically handles User ID, CSRF tokens, and Database connections.
 
 ```javascript
 GameBridge.saveScore({
-    score: 100,              // Integrity: 0 to 100
-    duration: 45,            // Time taken in seconds
-    mistakes: 2,             // Number of errors made (affects Report Card)
+    score: 100,              // Integer: 0 to 100
+    duration: 45,            // Integer: Seconds played
+    mistakes: 2,             // Integer: Used for Teacher Reports
     
-    // Optional: Keep user in the game?
-    // true  = "Free Play" mode. Saves data/badges but lets them keep playing.
-    // false = (Default) Redirects user to the Main Menu after saving.
+    // Optional: Free Play Mode
+    // true  = Saves data/badges but KEEPS user in the game.
+    // false = (Default) Redirects user to the Main Menu.
     noRedirect: false        
 });
 
 ```
 
-### 5. Celebration
+> **💡 Badge Logic:** You do not need to code badge logic in JS. If the server detects the score meets criteria defined in the **Admin Panel**, the LMS will automatically pause the game and show the "New Badge Unlocked" modal overlay.
 
-Trigger the victory animations. This includes confetti and optional video rewards.
+### E. Celebration
+
+Trigger confetti or video rewards.
 
 ```javascript
-// Level 1: Confetti & Speech
+// Simple Confetti
 GameBridge.celebrate("You did it!");
 
-// Level 2: Reward Video Overlay
-// Pass a video URL as the second argument to show a popup player
-GameBridge.celebrate("Great Job!", "assets/videos/dance.mp4");
+// Video Reward (e.g., for finishing a hard level)
+GameBridge.celebrate("Amazing!", "assets/videos/dance_party.mp4");
 
 ```
 
 ---
 
-## 🎨 Theming Support
+## 🎨 3. Theming & Accessibility
 
-The platform automatically adjusts visuals (like Confetti emojis) based on the active theme.
+The LMS supports themes (Default, Princess, Space). The `<body>` tag receives a class matching the active theme.
 
-To support themes in your game's CSS, you can use the global theme classes added to the `<body>` (e.g., `.theme-princess`, `.theme-space`).
-
-**Example `style.css`:**
+**CSS Example:**
 
 ```css
-.my-game-button {
-    background: blue;
+/* Default Style */
+.card { background: #eee; }
+
+/* Princess Theme Override */
+body.theme-princess .card { 
+    background: pink; 
+    border: 2px solid gold;
+    border-radius: 50%; /* Make cards round */
 }
 
-/* Princess Theme Overrides */
-body.theme-princess .my-game-button {
-    background: pink;
-    border: 2px solid gold;
+/* Space Theme Override */
+body.theme-space .card { 
+    background: #000033; 
+    color: white; 
+}
+
+```
+
+**JavaScript Theme Detection:**
+You generally don't need this, but if you must load dynamic assets:
+
+```javascript
+if (document.body.classList.contains('theme-space')) {
+    loadSpaceAliens();
 }
 
 ```
 
 ---
 
-## ⚡ Quick Start Template
+## ⚡ 4. Quick Start Template
 
-Copy this into your `game.js` to get started immediately.
+Copy this into `games/my-new-game/game.js`:
 
 ```javascript
 (function() {
-    // --- Variables ---
     let score = 0;
     let mistakes = 0;
     let startTime = Date.now();
-    let currentLevel = 1;
 
-    // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
-            instructions: "Tap the correct shapes!",
-            levels: [
-                { id: 1, label: "Practice" },
-                { id: 2, label: "Challenge" }
-            ],
-            onStart: (level) => {
-                currentLevel = level;
-                startGame();
-            }
+            instructions: "Click the correct answer!",
+            levels: [{ id: 1, label: "Start Game" }],
+            onStart: (level) => startGame()
         });
     });
 
-    // --- Game Logic ---
     function startGame() {
         score = 0;
         mistakes = 0;
         startTime = Date.now();
-        // TODO: Render your game elements here
+        renderGame();
     }
 
-    function handleInput(isCorrect) {
-        if (isCorrect) {
-            // 1. Feedback
-            GameBridge.handleCorrect();
-            score += 10;
+    function renderGame() {
+        // TODO: Build your UI here
+    }
 
-            // 2. Win Condition
-            if (score >= 100) {
-                finishGame();
-            }
+    window.handleUserClick = function(isCorrect) {
+        if (isCorrect) {
+            GameBridge.handleCorrect();
+            // GameBridge.speakNow("Correct!"); 
+            score += 10;
+            if (score >= 100) endGame();
         } else {
-            // 1. Feedback
             GameBridge.handleWrong();
             mistakes++;
         }
-    }
+    };
 
-    function finishGame() {
-        // 1. Celebrate
-        GameBridge.celebrate("You are a winner!");
-
-        // 2. Save
+    function endGame() {
+        GameBridge.celebrate("Mission Complete!");
         GameBridge.saveScore({
             score: 100,
-            duration: (Date.now() - startTime) / 1000,
+            duration: Math.floor((Date.now() - startTime) / 1000),
             mistakes: mistakes
         });
     }
 })();
 
+```
+
+```
