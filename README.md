@@ -4,9 +4,12 @@
 
 **A self-hosted, "Walled Garden" Learning Management System (LMS) designed for safe, distraction-free home education.**
 
-Unlike standard game sites, Nuken LMS provides a closed-loop environment. It allows parents and educators to host a private server where students can learn, track progress, and even socialize safely without ever being exposed to the open internet, advertisements, or external tracking.
+Nuken LMS allows parents and educators to host a private server where students can learn, track progress, and socialize safely without exposure to the open internet.
 
-Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard web hosting.
+**🎯 Target Audience:**
+Currently pre-loaded with content optimized for **Preschool to 2nd Grade** (Literacy, Basic Math, Logic). However, the platform is **grade-agnostic**—it is built to grow with your students, allowing you to easily develop or install modules for older age groups (Coding, Advanced Math, Typing, etc.).
+
+---
 
 ## 📋 Table of Contents
 - [The Walled Garden](#walled-garden)
@@ -18,8 +21,7 @@ Designed to run on home servers (Intel N100, Raspberry Pi, Synology) or standard
 ---
 
 ## <a id="walled-garden"></a>🛡️ The Walled Garden
-The core philosophy of Nuken LMS is complete isolation from the "wild web."
-
+The core philosophy is complete isolation from the "wild web."
 * **Zero External Footprint:** No Google Analytics, no third-party fonts, and no outbound links.
 * **Internal Messaging System:** Students can send messages (e.g., emojis, encouragement) to family members or other students *only* within the local system.
 * **Data Sovereignty:** All progress data, messages, and user accounts reside 100% on your own server.
@@ -28,27 +30,27 @@ The core philosophy of Nuken LMS is complete isolation from the "wild web."
 
 ## <a id="lms-features"></a>✨ LMS Features
 
+### 📈 Built for Growth
+* **Grade-Level Filtering:** The database supports `min_grade` and `max_grade` parameters. As you add complex games for older kids, they will only appear for students in those grades.
+* **Scalable Engine:** The "GameBridge" API handles simple matching games just as easily as complex logic puzzles or typing tutors.
+
 ### 👨‍🏫 For Administrators (Parents/Teachers)
 * **Student Management:** Create accounts with secure **PIN Code Login** for easy access.
-* **Granular Analytics:** View detailed Report Cards showing:
-    * Scores and completion time per session.
-    * Specific mistake counts to identify struggle areas.
-    * Long-term progress history.
-* **Adaptive Theming:** The interface and *game content* adapt to the student's interest.
-    * *Example:* In the "Fairy Tale" theme, "Robo-Sorter" automatically becomes "Unicorn Sorter."
+* **Granular Analytics:** View detailed Report Cards showing scores, completion time, and specific mistake counts.
+* **Adaptive Theming:** The interface and *game content* adapt to the student's interest (e.g., "Robo-Sorter" becomes "Unicorn Sorter" in the Fairy Tale theme).
 * **Security Lockouts:** Built-in protection against brute-force PIN guessing.
 
 ### 🎓 For Students
 * **Personalized Dashboard:** Students can "Favorite" specific exercises for quick access.
-* **Gamified Learning:** Earn badges (e.g., "Word Wizard", "Streak Master") and unlock visual rewards like "On Fire" streaks.
-* **Voice Guidance:** Integrated Text-to-Speech acts as a personal tutor, reading instructions and feedback aloud.
+* **Gamified Learning:** Earn badges (e.g., "Word Wizard", "Streak Master") and unlock visual rewards.
+* **Voice Guidance:** Integrated Text-to-Speech acts as a personal tutor, reading instructions aloud.
 * **Safe Socializing:** Unlock the "Messenger Box" badge to send safe, local messages to other users.
 
 ---
 
 ## <a id="included-modules"></a>📚 Included Learning Modules
 
-The LMS comes pre-loaded with over 20 curriculum-aligned titles:
+The LMS comes pre-loaded with over 20 curriculum-aligned titles for early learners:
 
 | Subject | Modules |
 | :--- | :--- |
@@ -63,7 +65,6 @@ The LMS comes pre-loaded with over 20 curriculum-aligned titles:
 ## <a id="installation"></a>🚀 Installation
 
 ### Option A: Docker (Recommended)
-
 Ideal for home labs (Portainer/Docker Compose).
 
 1.  **Clone the Repository**
@@ -87,7 +88,6 @@ Ideal for home labs (Portainer/Docker Compose).
     * Visit `http://localhost:8080/install.php` to create your **Admin** account.
 
 ### Option B: Standard Hosting (LAMP/cPanel)
-
 1.  **Upload:** Upload files to your server's `public_html`.
 2.  **Database:** Create a MySQL/MariaDB database.
 3.  **Config:** Rename and edit `includes/config.php` with your database details.
