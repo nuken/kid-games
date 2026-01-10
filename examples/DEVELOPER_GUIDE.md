@@ -233,5 +233,3 @@ Copy this into `games/my-new-game/game.js`:
 })();
 
 ```
-
-```
