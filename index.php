@@ -12,6 +12,7 @@ $user = $current_user;
 /// --- MESSENGER CHECK ---
 $hasMessenger = false;
 $unreadCount = 0;
+$daily_progress = 0; // NEW: Track progress
 
 if ($current_user['messaging_enabled']) {
     // 1. Check for Badge (Unlock status)
@@ -27,11 +28,15 @@ if ($current_user['messaging_enabled']) {
 
     if ($checkBadge->fetchColumn() > 0) {
         $hasMessenger = true;
-
         // 2. Check for UNREAD messages only
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND is_read = 0");
         $stmt->execute([$user_id]);
         $unreadCount = $stmt->fetchColumn();
+    } else {
+        // NEW: If locked, check how many games they have played today
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND DATE(played_at) = CURDATE()");
+        $stmt->execute([$user_id]);
+        $daily_progress = $stmt->fetchColumn();
     }
 }
 
@@ -149,7 +154,10 @@ try {
                     <?php endif; ?>
                 </a>
             <?php else: ?>
-                 <div title="Play 3 games to unlock messenger!" style="opacity:0.5; font-size:1.5rem; cursor: help;">🔒</div>
+                 <div class="locked-messenger" title="Play 3 games to unlock!" style="display:flex; flex-direction:column; align-items:center; color:white; opacity:0.7; cursor: help;">
+                     <div style="font-size:1.5rem;">🔒</div>
+                     <div style="font-size:0.9rem; font-weight:bold;"><?php echo min($daily_progress, 3); ?>/3</div>
+                 </div>
             <?php endif; ?>
 
             <a href="sticker_book.php" class="logout-btn" style="background: var(--nebula-green);">Sticker Book</a>

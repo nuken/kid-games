@@ -68,16 +68,26 @@ try {
     // LOGIC 1: MESSENGER BADGE (Daily Reset Logic)
     // ======================================================
     if ($messaging_on === 1 && $messengerBadgeId) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND DATE(played_at) = CURDATE()");
-        $stmt->execute([$user_id]);
-        $gamesToday = $stmt->fetchColumn();
+        
+        // Check 1: Did we ALREADY unlock it today? (Prevent duplicate counts)
+        $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ? AND DATE(earned_at) = CURDATE()");
+        $check->execute([$user_id, $messengerBadgeId]);
+        $alreadyUnlocked = ($check->fetchColumn() > 0);
 
-        if ($gamesToday == 3) {
-            // UPSERT for Messenger Badge
-            $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) VALUES (?, ?, NOW(), 1) 
-                    ON DUPLICATE KEY UPDATE count = count + 1, earned_at = NOW()";
-            $pdo->prepare($sql)->execute([$user_id, $messengerBadgeId]);
-            $new_badges[] = ['name'=>'Messenger Unlocked!', 'icon'=>'📬'];
+        if (!$alreadyUnlocked) {
+            // Check 2: How many games played today?
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND DATE(played_at) = CURDATE()");
+            $stmt->execute([$user_id]);
+            $gamesToday = $stmt->fetchColumn();
+
+            // FIX: Changed from == 3 to >= 3 so we don't "skip" the unlock if count jumps to 4
+            if ($gamesToday >= 3) {
+                // UPSERT for Messenger Badge
+                $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) VALUES (?, ?, NOW(), 1) 
+                        ON DUPLICATE KEY UPDATE count = count + 1, earned_at = NOW()";
+                $pdo->prepare($sql)->execute([$user_id, $messengerBadgeId]);
+                $new_badges[] = ['name'=>'Messenger Unlocked!', 'icon'=>'📬'];
+            }
         }
     }
 
@@ -86,11 +96,8 @@ try {
     // ======================================================
     $daily_game_id = getDailyGameId($pdo, $user_grade);
     
-    // Check if this is the daily game
     if ($dailyStarId && $game_id == $daily_game_id) {
         
-        // UPSERT: If exists, update date/count. If new, insert.
-        // This prevents the "Duplicate Entry" crash.
         $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) 
                 VALUES (?, ?, NOW(), 1) 
                 ON DUPLICATE KEY UPDATE 
@@ -98,23 +105,15 @@ try {
                 earned_at = NOW()";
         
         $pdo->prepare($sql)->execute([$user_id, $dailyStarId]);
-        
-        // We only show the alert if it's the FIRST time today (to avoid spamming the popup)
-        // We check if the 'count' logic implies this, but for simplicity, we just show it.
-        // Or we can check if they already had it today before the insert? 
-        // For now, let's just show it. It's fun validation.
         $new_badges[] = ['name'=>'Daily Star', 'icon'=>'⭐'];
 
-        // Check Streak (Now uses the improved progress-based logic)
+        // Check Streak
         if ($streakMasterId && getStreakCount($pdo, $user_id) >= 3) {
-            
-            // UPSERT Streak Master Badge
             $sqlStreak = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) 
                           VALUES (?, ?, NOW(), 1) 
                           ON DUPLICATE KEY UPDATE 
                           count = count + 1, 
                           earned_at = NOW()";
-                          
             $pdo->prepare($sqlStreak)->execute([$user_id, $streakMasterId]);
             $new_badges[] = ['name'=>'Streak Master', 'icon'=>'🔥'];
         }
@@ -124,7 +123,6 @@ try {
     // LOGIC 3: FIRST GAME EVER (One time only)
     // ======================================================
     if ($firstGameId) {
-        // This one stays as INSERT IGNORE or simple check because we only want it once EVER.
         $check = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?");
         $check->execute([$user_id, $firstGameId]);
         if ($check->fetchColumn() == 0) {
