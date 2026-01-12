@@ -315,45 +315,88 @@ window.GameBridge = (function() {
             if (text) this.speak(text);
 
             if (videoUrl) {
+                // 1. Create Overlay with Fade Transition
                 const videoOverlay = document.createElement('div');
                 videoOverlay.id = 'video-reward-overlay';
                 Object.assign(videoOverlay.style, {
                     position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
                     backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    opacity: '0', transition: 'opacity 0.4s ease' // Smooth fade in
                 });
 
-                videoOverlay.innerHTML = `
-                    <video id="reward-video" width="90%" style="max-width: 600px; aspect-ratio: 16/9; background: black; border-radius: 20px; border: 5px solid #f1c40f;" autoplay>
-                        <source src="${videoUrl}" type="video/mp4">
-                    </video>
-                    <button id="close-video" style="margin-top: 20px; padding: 15px 40px; font-size: 20px; border-radius: 50px; background: #2ecc71; color: white; border: none; cursor: pointer; font-weight: bold;">
-                        Great Job! ➡
-                    </button>
-                `;
+                // 2. Create Video Element Programmatically (Better Control)
+                const vid = document.createElement('video');
+                vid.id = 'reward-video';
+                vid.src = videoUrl;
+                vid.autoplay = true;
+                vid.controls = false;
+                vid.playsInline = true; // REQUIRED for iOS to play without fullscreen
 
+                // Style the video
+                Object.assign(vid.style, {
+                    width: '90%', maxWidth: '600px', aspectRatio: '16/9',
+                    background: '#000', borderRadius: '20px',
+                    border: '5px solid #f1c40f',
+                    boxShadow: '0 0 30px rgba(241, 196, 15, 0.4)',
+                    transform: 'scale(0.8)', transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                });
+
+                // 3. Create the "Close" Button
+                const btn = document.createElement('button');
+                btn.id = 'close-video';
+                btn.innerText = 'Great Job! ➡';
+                Object.assign(btn.style, {
+                    marginTop: '25px', padding: '15px 40px', fontSize: '20px',
+                    borderRadius: '50px', background: '#2ecc71', color: 'white',
+                    border: 'none', cursor: 'pointer', fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(46, 204, 113, 0.4)',
+                    opacity: '0', transition: 'opacity 0.5s ease 1s' // Fade in after 1 second
+                });
+
+                // 4. Assemble
+                videoOverlay.appendChild(vid);
+                videoOverlay.appendChild(btn);
                 document.body.appendChild(videoOverlay);
 
+                // 5. Trigger Animation & Play
+                requestAnimationFrame(() => {
+                    videoOverlay.style.opacity = '1';
+                    vid.style.transform = 'scale(1)';
+                    btn.style.opacity = '1';
+                });
+
+                // Robust Play Attempt (Fixes some mobile autoplay blocks)
+                vid.play().catch(e => {
+                    console.warn("Autoplay prevented:", e);
+                    vid.controls = true; // Show controls so user can manually play if blocked
+                });
+
+                // 6. Cleanup Logic
                 const closeVideoAndProceed = () => {
                      if(!document.body.contains(videoOverlay)) return;
-                     document.body.removeChild(videoOverlay);
 
-                     const badgeOverlay = document.querySelector('.badge-overlay');
-                     if (badgeOverlay && badgeOverlay.startGiftTimer) {
-                         badgeOverlay.startGiftTimer();
-                     } else {
-                         window.location.href = "index.php";
-                     }
+                     // Fade out
+                     videoOverlay.style.opacity = '0';
+                     vid.style.transform = 'scale(0.8)';
+
+                     setTimeout(() => {
+                         if(document.body.contains(videoOverlay)) document.body.removeChild(videoOverlay);
+
+                         // Resume the badge timer if it exists
+                         const badgeOverlay = document.querySelector('.badge-overlay');
+                         if (badgeOverlay && badgeOverlay.startGiftTimer) {
+                             badgeOverlay.startGiftTimer();
+                         } else {
+                             window.location.href = "index.php";
+                         }
+                     }, 400);
                 };
 
-                const vid = document.getElementById('reward-video');
-                if (vid) {
-                    vid.onended = function() { setTimeout(closeVideoAndProceed, 2000); };
-                }
-                document.getElementById('close-video').onclick = closeVideoAndProceed;
+                vid.onended = function() { setTimeout(closeVideoAndProceed, 1500); };
+                btn.onclick = closeVideoAndProceed;
             }
         },
-
         // --- UPDATED SAVE SCORE WITH CSRF ---
         saveScore: function(data) {
             if (!window.gameConfig) return;
