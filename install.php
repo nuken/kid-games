@@ -112,6 +112,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               KEY `sender_date_idx` (`sender_id`, `sent_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            -- UPDATED: Added Performance Indexes
             CREATE TABLE IF NOT EXISTS `progress` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `user_id` int(11) NOT NULL,
@@ -120,7 +121,9 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
               `duration_seconds` int(11) DEFAULT 0,
               `played_at` datetime DEFAULT current_timestamp(),
               `mistakes` int(11) DEFAULT 0,
-              PRIMARY KEY (`id`)
+              PRIMARY KEY (`id`),
+              KEY `idx_user_game_score` (`user_id`, `game_id`, `score`),
+              KEY `idx_user_played` (`user_id`, `played_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
             CREATE TABLE IF NOT EXISTS `settings` (
