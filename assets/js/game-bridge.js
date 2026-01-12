@@ -1,16 +1,29 @@
 /* assets/js/game-bridge.js */
+
+// ==========================================
+// 1. ZzFX Micro Library (Embedded)
+// ==========================================
+// This allows ZzFX to work in all games without editing every view.php
+let zzfxV=.3; // Volume
+let zzfxX=new (window.AudioContext||webkitAudioContext); // Audio Context
+let zzfx=(p,k=.05,b=220,e=0,r=0,t=.1,q=0,D=1,u=0,y=0,v=0,z=0,l=0,E=0,A=0,F=0,c=0,w=1,m=0,B=0,N=0)=>{let M=Math,d=2*M.PI,R=44100,G=u*=500*d/R/R,C=b*=(1-k+2*k*M.random(k=[]))*d/R,g=0,H=0,a=0,n=1,I=0,J=0,f=0,h=N<0?-1:1,x=d*h*N*2/R,L=M.cos(x),Z=M.sin,K=Z(x)/4,O=1+K,X=-2*L/O,Y=(1-K)/O,P=(1+h*L)/2/O,Q=-(h+L)/O,S=P,T=0,U=0,V=0,W=0;e=R*e+9;m*=R;r*=R;t*=R;c*=R;y*=500*d/R**3;A*=d/R;v*=d/R;z*=R;l=R*l|0;p*=zzfxV;for(h=e+m+r+t+c|0;a<h;k[a++]=f*p)++J%(100*F|0)||(f=q?1<q?2<q?3<q?4<q?(g/d%1<D/2)*2-1:Z(g**3):M.max(M.min(M.tan(g),1),-1):1-(2*g/d%2+2)%2:1-4*M.abs(M.round(g/d)-g/d):Z(g),f=(l?1-B+B*Z(d*a/l):1)*(4<q?s:(f<0?-1:1)*M.abs(f)**D)*(a<e?a/e:a<e+m?1-(a-e)/m*(1-w):a<e+m+r?w:a<h-c?(h-a-c)/t*w:0),f=c?f/2+(c>a?0:(a<h-c?1:(h-a)/c)*k[a-c|0]/2/p):f,N?f=W=S*T+Q*(T=U)+P*(U=f)-Y*V-X*(V=W):0),x=(b+=u+=y)*M.cos(A*H++),g+=x+x*E*Z(a**5),n&&++n>z&&(b+=v,C+=v,n=0),!l||++I%l||(b=C,u=G,n=n||1);X=zzfxX,p=X.createBuffer(1,h,R);p.getChannelData(0).set(k);b=X.createBufferSource();b.buffer=p;b.connect(X.destination);b.start();return b};
+// ==========================================
+
 window.GameBridge = (function() {
     const API_PATH = 'api/save_score.php';
-    let currentStreak = 0; 
+    let currentStreak = 0;
 
     // Audio Buffer Variables
     let pendingStreakMessage = null;
     let pendingStreakTimer = null;
 
-    // Audio Objects
+    // --- ZzFX SOUND DEFINITIONS ---
     const sounds = {
-        correct: new Audio('assets/sounds/correct.mp3'),
-        wrong:   new Audio('assets/sounds/wrong.mp3')
+        // "Ding" - High pitch sine wave with sustain
+        correct: [2,,498,.02,.01,.06,1,1.3,15,-28,,,,,,,,.74,,,688],
+
+        // "Buzz" - Low pitch saw/noise with dissonance
+        wrong:   [1.9,,150,.05,.2,.2,,3.1,-5,,-50,,-0.1,,,,,,,,1]
     };
 
     /**
@@ -19,7 +32,7 @@ window.GameBridge = (function() {
     window.playConfettiEffect = function() {
         if (window.gameConfig && window.gameConfig.confetti === false) {
             console.log("Confetti disabled.");
-            return; 
+            return;
         }
 
         let theme = 'default';
@@ -45,13 +58,13 @@ window.GameBridge = (function() {
             const el = document.createElement('div');
             el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
 
-            const startX = Math.random() * 100; 
+            const startX = Math.random() * 100;
             const startRotation = Math.random() * 360;
 
             Object.assign(el.style, {
                 position: 'absolute',
                 left: startX + 'vw',
-                top: '-10vh', 
+                top: '-10vh',
                 fontSize: (Math.random() * 20 + 20) + 'px',
                 transform: `translate3d(0, 0, 0) rotate(${startRotation}deg)`,
                 willChange: 'transform'
@@ -86,7 +99,7 @@ window.GameBridge = (function() {
             style.innerHTML = `
                 .badge-overlay {
                     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.5); z-index: 10000; 
+                    background: rgba(0,0,0,0.5); z-index: 10000;
                     display: flex; align-items: center; justify-content: center;
                     backdrop-filter: blur(5px);
                 }
@@ -145,7 +158,7 @@ window.GameBridge = (function() {
             autoOpenTimer = setTimeout(() => {
                 const t = document.getElementById('gift-box-trigger');
                 if (t) t.click();
-            }, 5000); 
+            }, 5000);
         };
 
         overlay.startGiftTimer = startGiftTimer;
@@ -160,7 +173,12 @@ window.GameBridge = (function() {
         if(trigger) {
             trigger.onclick = function() {
                 if(autoOpenTimer) clearTimeout(autoOpenTimer);
-                sounds.correct.play().catch(()=>{});
+
+                // --- ZzFX UPDATE START ---
+                if (typeof zzfx !== 'undefined' && sounds.correct) {
+                    zzfx(...sounds.correct);
+                }
+                // --- ZzFX UPDATE END ---
 
                 const container = document.getElementById('badge-card-container');
                 container.innerHTML = badgeHtml + `<button id="badge-close-btn" class="badge-btn">Awesome!</button>`;
@@ -187,8 +205,7 @@ window.GameBridge = (function() {
 
     return {
         init: function() {
-            sounds.correct.load();
-            sounds.wrong.load();
+             // Initialized via embedded code
         },
 
         setupGame: function(config) {
@@ -259,10 +276,15 @@ window.GameBridge = (function() {
         },
 
         playAudio: function(key) {
-            if (sounds[key]) {
-                const s = sounds[key].cloneNode();
-                s.play().catch(e => {});
+            // --- ZzFX UPDATE START ---
+            if (sounds[key] && typeof zzfx !== 'undefined') {
+                // Ensure audio context is running (fixes mobile silence)
+                if (typeof zzfxX !== 'undefined' && zzfxX.state === 'suspended') {
+                    zzfxX.resume();
+                }
+                zzfx(...sounds[key]);
             }
+            // --- ZzFX UPDATE END ---
         },
 
         stopSpeech: function() {
@@ -294,10 +316,10 @@ window.GameBridge = (function() {
 
             if (videoUrl) {
                 const videoOverlay = document.createElement('div');
-                videoOverlay.id = 'video-reward-overlay'; 
+                videoOverlay.id = 'video-reward-overlay';
                 Object.assign(videoOverlay.style, {
                     position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001', 
+                    backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '10001',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                 });
 
