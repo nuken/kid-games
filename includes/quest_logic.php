@@ -10,16 +10,25 @@ function getDailyGameId($pdo, $grade_level, $timestamp = null) {
         $timestamp = time();
     }
 
-    // 1. Get active games THAT FIT THIS CHILD'S GRADE
-    $stmt = $pdo->prepare("
-        SELECT id FROM games
-        WHERE active = 1
-        AND min_grade <= ?
-        AND max_grade >= ?
-        ORDER BY id ASC
-    ");
-    $stmt->execute([$grade_level, $grade_level]);
-    $game_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // PERFORMANCE FIX: Static cache prevents re-querying the DB when called in a loop (e.g. by getStreakCount)
+    static $grade_game_cache = [];
+
+    // Only query the database if we haven't fetched games for this grade level yet
+    if (!isset($grade_game_cache[$grade_level])) {
+        // 1. Get active games THAT FIT THIS CHILD'S GRADE
+        $stmt = $pdo->prepare("
+            SELECT id FROM games
+            WHERE active = 1
+            AND min_grade <= ?
+            AND max_grade >= ?
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$grade_level, $grade_level]);
+        $grade_game_cache[$grade_level] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    // Use the cached list
+    $game_ids = $grade_game_cache[$grade_level];
 
     if (empty($game_ids)) return null;
 
