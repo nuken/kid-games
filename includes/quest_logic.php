@@ -64,7 +64,6 @@ function getStreakCount($pdo, $user_id) {
     $grade = $stmt->fetchColumn() ?: 0;
 
     // 2. Get the date of the LAST Streak Badge earned
-    // We only count stars earned AFTER the last streak badge to prevent "overlapping" streaks.
     $streakMasterId = getBadgeIdBySlug($pdo, 'streak_master');
     $lastStreakDate = '1970-01-01'; // Default long ago
 
@@ -91,9 +90,14 @@ function getStreakCount($pdo, $user_id) {
         $targetGameId = getDailyGameId($pdo, $grade, $checkTime);
 
         if ($targetGameId) {
-            // Check if they actually played it on that date
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND game_id = ? AND DATE(played_at) = ?");
-            $stmt->execute([$user_id, $targetGameId, $checkDate]);
+            // PERFORMANCE FIX: SARGable Date Range Query
+            // Instead of using DATE(played_at), we check the range.
+            $startOfDay = $checkDate . ' 00:00:00';
+            $endOfDay   = $checkDate . ' 23:59:59';
+
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND game_id = ? AND played_at >= ? AND played_at <= ?");
+            $stmt->execute([$user_id, $targetGameId, $startOfDay, $endOfDay]);
+            
             if ($stmt->fetchColumn() > 0) {
                 $streakCount++;
             }
