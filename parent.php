@@ -318,7 +318,7 @@ $adult_avatars = $adult_avatar_list;
                              <button onclick="sendParentEmoji('❤️')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">❤️</button>
                              <button onclick="sendParentEmoji('🌟')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">🌟</button>
                              <button onclick="sendParentEmoji('👍')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👍</button>
-                             <button onclick="sendParentEmoji('👏')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👏</button>
+                             <button onclick="sendParentEmoji('👊')" style="font-size:1.5rem; cursor:pointer; border:1px solid #ddd; background:#fff; border-radius:5px; padding:5px;">👊</button>
                          </div>
                          <div id="p-msg-status" style="margin-top:5px; font-weight:bold; color:#27ae60; font-size:0.9rem; min-height:1.2em;"></div>
                      </div>
