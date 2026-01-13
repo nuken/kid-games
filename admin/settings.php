@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="../logout.php" class="nav-item logout">Log Out</a>
 </div>
 
-<div class="admin-container-centered">
-    <div class="card" style="max-width: 500px; margin: 0 auto;">
+<div class="admin-container-centered" style="margin-bottom: 15px;">
+    <div class="card" style="max-width: 750px; margin: 0 auto;">
         <h2>System Settings</h2>
         <?php echo $message; ?>
         
@@ -56,8 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Update Invite Code</label>
                 <input type="text" name="invite_code" placeholder="New Invite Code" autocomplete="off">
             </div>
-            
-            <div style="margin-top: 20px; font-size: 0.9rem; color: #666; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+
+            <button type="submit" class="btn-submit" style="margin-top: 20px;">Save Settings</button>
+        </form>
+		<br><br>
+		
+		          <h2>System Information</h2>   
+            <div class="info-row" style="margin-bottom: 15px; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                 <strong>Debug Mode Status:</strong> 
                 <?php 
                 if (defined('SHOW_ERRORS') && SHOW_ERRORS === true) {
@@ -69,10 +74,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <br><br>
                 To change the error reporting settings, please modify the <code>config.php</code> file.
             </div>
+		<div>
+        
+        <div class="info-row" style="margin-bottom: 15px; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <strong style="color: #2c3e50;">🕒 Server Time:</strong>
+            <div style="font-family: monospace; font-size: 1.1em; margin-top: 5px;">
+                <?php echo date('F j, Y'); ?><br>
+                <?php echo date('g:i:s a T'); ?>
+            </div>
+            <small style="color: #7f8c8d;">
+                This is the time used for Streaks and Daily Quests.
+            </small>
+        </div>
 
-            <button type="submit" class="btn-submit" style="margin-top: 20px;">Save Settings</button>
-        </form>
+        <div class="info-row" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <strong style="color: #2c3e50;">🐘 PHP Environment:</strong>
+            <ul style="list-style: none; padding: 0; margin-top: 5px; color: #555;">
+                <li><strong>Version:</strong> <?php echo phpversion(); ?></li>
+                <li><strong>Max Upload:</strong> <?php echo ini_get('upload_max_filesize'); ?></li>
+                <li><strong>Max POST:</strong> <?php echo ini_get('post_max_size'); ?></li>
+                <li><strong>Memory Limit:</strong> <?php echo ini_get('memory_limit'); ?></li>
+            </ul>
+        </div>
+
+        <div class="info-row">
+            <strong style="color: #2c3e50;">🗄️ Database:</strong>
+            <div style="margin-top: 5px; color: #555;">
+                Connected to: <strong><?php echo htmlspecialchars(DB_NAME); ?></strong><br>
+                <small>Host: <?php echo htmlspecialchars(DB_HOST); ?></small>
+            </div>
+        </div>
     </div>
+    </div>
+	
 </div>
 
 </body>
