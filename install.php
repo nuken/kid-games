@@ -282,8 +282,6 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // Invite Code
             $stmt->execute(['invite_code', $default_invite_hash]);
             
-            // Debug Mode (Default to 0/Off)
-            $stmt->execute(['display_errors', '0']);
             // ---------------------------------------------------------
             // C. CREATE ADMIN USER
             // ---------------------------------------------------------
