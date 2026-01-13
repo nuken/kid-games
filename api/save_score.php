@@ -58,11 +58,19 @@ try {
 
     $new_badges = [];
 
-    // --- FETCH BADGE IDS ---
-    $dailyStarId    = getBadgeIdBySlug($pdo, 'daily_star');
-    $streakMasterId = getBadgeIdBySlug($pdo, 'streak_master');
-    $firstGameId    = getBadgeIdBySlug($pdo, 'first_sparkle');
-    $messengerBadgeId = getBadgeIdBySlug($pdo, 'messenger_unlock');
+    // --- FETCH BADGE IDS (OPTIMIZED) ---
+    // Fetch all 4 special badges in a single database query
+    $stmt = $pdo->prepare("SELECT slug, id FROM badges WHERE slug IN ('daily_star', 'streak_master', 'first_sparkle', 'messenger_unlock')");
+    $stmt->execute();
+    
+    // FETCH_KEY_PAIR creates an array like: ['daily_star' => 25, 'streak_master' => 26, ...]
+    $specialBadges = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    // Assign IDs to variables (using ?? null to handle cases where a badge might be missing)
+    $dailyStarId      = $specialBadges['daily_star'] ?? null;
+    $streakMasterId   = $specialBadges['streak_master'] ?? null;
+    $firstGameId      = $specialBadges['first_sparkle'] ?? null;
+    $messengerBadgeId = $specialBadges['messenger_unlock'] ?? null;
 
     // ======================================================
     // LOGIC 1: MESSENGER BADGE (Daily Reset Logic)
@@ -76,7 +84,7 @@ try {
 
         if (!$alreadyUnlocked) {
             // Check 2: How many games played today?
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND DATE(played_at) = CURDATE()");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM progress WHERE user_id = ? AND played_at >= CURDATE()");
             $stmt->execute([$user_id]);
             $gamesToday = $stmt->fetchColumn();
 
