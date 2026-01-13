@@ -15,23 +15,16 @@ $options = [
 try {
      $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 
-     // --- DEBUG MODE CHECK START ---
-     try {
-         // Check for Debug Mode setting in DB
-         $stmt = $pdo->query("SELECT value FROM settings WHERE name = 'display_errors' LIMIT 1");
-         $debugMode = $stmt->fetchColumn();
-
-         if ($debugMode === '1') {
-             ini_set('display_errors', 1);
-             ini_set('display_startup_errors', 1);
-             error_reporting(E_ALL);
-         } else {
-             ini_set('display_errors', 0);
-             ini_set('display_startup_errors', 0);
-             error_reporting(E_ALL); // Log errors, but don't show them
-         }
-     } catch (Exception $e) {
-         // Silently ignore if table missing (happens during install)
+     // --- DEBUG MODE CHECK START (OPTIMIZED) ---
+     // We now check the config constant instead of querying the DB
+     if (defined('SHOW_ERRORS') && SHOW_ERRORS === true) {
+         ini_set('display_errors', 1);
+         ini_set('display_startup_errors', 1);
+         error_reporting(E_ALL);
+     } else {
+         ini_set('display_errors', 0);
+         ini_set('display_startup_errors', 0);
+         error_reporting(E_ALL); // Log errors, but don't show them
      }
      // --- DEBUG MODE CHECK END ---
 
