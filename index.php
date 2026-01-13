@@ -94,6 +94,14 @@ try {
 
     // This function was updated in previous steps to use slugs internally
     $streak = getStreakCount($pdo, $user_id);
+    $streakMasterId = getBadgeIdBySlug($pdo, 'streak_master');
+    if ($streakMasterId) {
+        $checkStreak = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ? AND DATE(earned_at) = CURDATE()");
+        $checkStreak->execute([$user_id, $streakMasterId]);
+        if ($checkStreak->fetchColumn() > 0) {
+            $streak = 3;
+        }
+    }
 
     // 3. GET GAMES
     $sql = "SELECT g.id, g.folder_path, COALESCE(ov.display_name, g.default_title) as title,
