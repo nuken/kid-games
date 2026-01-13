@@ -58,7 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div style="margin-top: 20px; font-size: 0.9rem; color: #666; background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                <strong>Note:</strong> Debug Mode is now managed in the <code>config.php</code> file for better performance.
+                <strong>Debug Mode Status:</strong> 
+                <?php 
+                if (defined('SHOW_ERRORS') && SHOW_ERRORS === true) {
+                    echo '<span style="color: #e74c3c; font-weight: bold;">ON</span>';
+                } else {
+                    echo '<span style="color: #27ae60; font-weight: bold;">OFF</span>';
+                }
+                ?>
+                <br><br>
+                To change the error reporting settings, please modify the <code>config.php</code> file.
             </div>
 
             <button type="submit" class="btn-submit" style="margin-top: 20px;">Save Settings</button>
