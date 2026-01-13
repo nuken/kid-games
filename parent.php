@@ -241,12 +241,12 @@ $adult_avatars = $adult_avatar_list;
 
                     <label>Grade Level</label>
                     <select name="grade_level">
-                        <?php for($i=0; $i<=6; $i++): ?>
-                            <option value="<?php echo $i; ?>" <?php echo ($current_student['grade_level'] == $i) ? 'selected' : ''; ?>>
-                                Grade <?php echo $i == 0 ? 'PK' : ($i == 1 ? 'K' : $i); ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
+    <?php for($i=0; $i<=6; $i++): ?>
+        <option value="<?php echo $i; ?>" <?php echo ($current_student['grade_level'] == $i) ? 'selected' : ''; ?>>
+            <?php echo $i == 0 ? 'PK' : ($i == 1 ? 'K' : 'Grade ' . ($i - 1)); ?>
+        </option>
+    <?php endfor; ?>
+</select>
 
                     <label>Theme</label>
                     <select name="theme_id">
