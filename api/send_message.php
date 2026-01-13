@@ -4,10 +4,6 @@ header('Content-Type: application/json');
 session_start();
 require_once '../includes/db.php';
 
-// CONFIGURATION
-$DAILY_LIMIT = 15; // Max messages a child can send per day
-$INBOX_CAP   = 20; // Max messages kept in history per child
-
 // 1. Security Check
 if (!isset($_SESSION['user_id'])) {
     die(json_encode(['status' => 'error', 'message' => 'Not logged in']));
@@ -50,8 +46,8 @@ try {
         $stmt->execute([$sender_id]);
         $sent_today = $stmt->fetchColumn();
 
-        if ($sent_today >= $DAILY_LIMIT) {
-            die(json_encode(['status' => 'limit', 'message' => "You reached your limit of $DAILY_LIMIT messages today!"]));
+        if ($sent_today >= MSG_DAILY_LIMIT) {
+            die(json_encode(['status' => 'limit', 'message' => "You reached your limit of " . MSG_DAILY_LIMIT . " messages today!"]));
         }
     }
 
@@ -65,9 +61,9 @@ try {
     $stmt->execute([$receiver_id]);
     $count = $stmt->fetchColumn();
 
-    if ($count > $INBOX_CAP) {
-        // Delete oldest messages for this receiver, keeping only the newest INBOX_CAP
-        $limit = $count - $INBOX_CAP;
+    if ($count > MSG_INBOX_CAP) {
+        // Delete oldest messages for this receiver, keeping only the newest MSG_INBOX_CAP
+        $limit = $count - MSG_INBOX_CAP;
         $stmt = $pdo->prepare("DELETE FROM messages WHERE receiver_id = ? ORDER BY id ASC LIMIT $limit");
         $stmt->execute([$receiver_id]);
     }
