@@ -74,7 +74,7 @@ function checkAnswer(type) {
     let isCorrect = (type === 'even' && isEven) || (type === 'odd' && !isEven);
 
     if (isCorrect) {
-		GameBridge.handleCorrect();
+        GameBridge.handleCorrect();
         score += 10;
         questionsAnswered++;
         GameBridge.updateScore(score);
@@ -94,13 +94,30 @@ function checkAnswer(type) {
             setTimeout(() => spawnNumber(false), 1500);
         }
     } else {
-        sessionMistakes++; // Track mistake
+        sessionMistakes++;
         GameBridge.handleWrong();
         message.innerText = window.LANG.try_again;
         message.style.color = "var(--danger-btn)";
         message.style.display = "block";
 
-        // Pause box
+        // --- NEW: LOGIC TO HIGHLIGHT THE LONELY DOT ---
+        // If the number is ODD (has a lonely dot) and they got it wrong (guessed Even)
+        if (!isEven) {
+            const lonelyDot = document.querySelector('.lonely');
+            if (lonelyDot) {
+                // Apply visual emphasis
+                lonelyDot.style.backgroundColor = "#FFD700"; // Gold color
+                lonelyDot.style.boxShadow = "0 0 20px #FFD700"; // Glow
+                lonelyDot.style.transform = "scale(1.5)";
+                lonelyDot.style.zIndex = "10";
+
+                // Optional: Update message to be more descriptive
+                message.innerText = "Look! One dot has no partner.";
+            }
+        }
+        // ----------------------------------------------
+
+        // Pause box animation
         let currentTop = getComputedStyle(box).top;
         box.style.transition = 'none';
         box.style.top = currentTop;
