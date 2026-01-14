@@ -65,12 +65,16 @@
 }
 
 #visual-hint {
-    position: absolute; 
-    top: 220px; /* Moved down to appear below the falling box */
+    position: absolute;
+    top: 20px; /* CHANGED: Moved up to the header area */
     left: 50%;
     transform: translateX(-50%);
-    width: 100px; display: flex; flex-wrap: wrap; justify-content: center;
+    width: 200px; /* CHANGED: Wider to fit dots nicely between Legend and Help */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     pointer-events: none;
+    z-index: 50; /* Ensure it stays visible */
 }
 .dot { width: 10px; height: 10px; background: cyan; border-radius: 50%; margin: 2px; box-shadow: 0 0 5px white; }
 .dot.lonely { background: var(--danger-btn); }
