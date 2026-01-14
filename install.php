@@ -228,7 +228,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (23, 'The Cat and Rat', 'games/cat-rat-reader', '🐱', 0, 1, 1, 'General'),
                 (24, 'Sight Word Adventures', 'games/sight-word-reader', '🦜', 1, 2, 1, 'Reading'),
                 (25, 'Cosmic Calc', 'games/cosmic-calc', '🚀', 3, 6, 1, 'Math'),
-                (26, 'Vocab Lab', 'games/vocab-lab', '📚', 3, 6, 1, 'Reading');";
+                (26, 'Vocab Lab', 'games/vocab-lab', '📚', 3, 6, 1, 'Reading'),
+                (27, 'Memory Match', 'games/memory-match', '🃏', 0, 6, 1, 'Logic');";
             $pdo->exec($sql_games);
 
             // 3. Badges
@@ -261,9 +262,9 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (26, 'Streak Master', 'Completed quests 3 days in a row!', '🔥', NULL, 0, 'streak_master'),
                 (27, 'Messenger', 'Unlocked the secret messenger box!', '📬', NULL, 0, 'messenger_unlock'),
                 (28, 'Blast Off', 'Scored 100% on Cosmic Calc', '🚀', 25, 100, NULL),
-                (29, 'Word Warrior', 'Scored 100% in Vocab Lab', '🏆', 26, 100, NULL);";
+                (29, 'Word Warrior', 'Scored 100% in Vocab Lab', '🏆', 26, 100, NULL),
+                (30, 'Memory Master', 'Scored 100% in Memory Match', '🧠', 27, 100, NULL);";
             $pdo->exec($sql_badges);
-
             // 4. Overrides
             $pdo->exec("TRUNCATE TABLE game_theme_overrides");
             $pdo->exec("INSERT INTO `game_theme_overrides` (`id`, `game_id`, `theme_id`, `display_name`, `display_icon`) VALUES
