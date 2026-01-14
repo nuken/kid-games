@@ -205,7 +205,7 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // 2. Games
             $pdo->exec("TRUNCATE TABLE games");
             $sql_games = "INSERT INTO `games` (`id`, `default_title`, `folder_path`, `default_icon`, `min_grade`, `max_grade`, `active`, `subject`) VALUES
-                (1, 'Robo-Sorter', 'games/robo-sorter', '🔁', 2, 3, 1, 'Math'),
+                (1, 'Robo-Sorter', 'games/robo-sorter', '🦾', 2, 3, 1, 'Math'),
                 (2, 'Rocket Shop', 'games/rocket-shop', '🚀', 2, 3, 1, 'Math'),
                 (3, 'Launch Time', 'games/launch-time', '⏰', 2, 3, 1, 'General'),
                 (4, 'Cosmic Signal', 'games/cosmic-signal', '📡', 0, 2, 1, 'Reading'),
