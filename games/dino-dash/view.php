@@ -1,4 +1,3 @@
-/* games/dino-dash/view.php */
 <div id="game-area">
     <button class="help-btn" onclick="explainRules()">🔊 Help</button>
 

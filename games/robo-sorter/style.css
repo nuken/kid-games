@@ -6,7 +6,7 @@
     width: 100%; 
     max-width: 800px;
     margin: 20px auto;
-    background: #2f4f4f;
+    background: #2b6c80;
     border: 5px solid var(--panel-border, #000);
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);

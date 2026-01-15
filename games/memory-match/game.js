@@ -95,7 +95,7 @@
         // Back Face (Visible Pattern)
         const back = document.createElement('div');
         back.classList.add('back-face');
-        back.innerText = '?';
+        back.innerText = '🎭';
 
         card.appendChild(front);
         card.appendChild(back);
