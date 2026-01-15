@@ -13,7 +13,7 @@
             <button id="btn-freeze" onclick="checkFreeze()">
                 ✋ FREEZE!
             </button>
-            <div id="freeze-label">Don't listen!</div>
+
         </div>
     </div>
 

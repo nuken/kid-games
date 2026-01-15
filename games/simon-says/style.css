@@ -110,7 +110,7 @@
 #btn-freeze:active { transform: translateY(5px); box-shadow: none; }
 
 #freeze-label {
-    margin-top: 5px; font-size: 12px; color: #bdc3c7;
+    margin-top: 5; font-size: 12px; color: #bdc3c7;
 }
 
 @media (max-width: 600px) {
