@@ -26,6 +26,7 @@
         { q: "What does a cow drink?", a: "Water", bad: ["Milk", "Juice"] },
         { q: "Which animal is the fastest?", a: "Cheetah", bad: ["Turtle", "Sloth"] },
         { q: "What do plants need?", a: "Sunlight", bad: ["Candy", "Pizza"] },
+		{ q: "What animal has a long neck?", a: "Giraffe", bad: ["Rabbit", "Frog"] },
         { q: "What is ice made of?", a: "Water", bad: ["Air", "Glass"] }
     ];
 
