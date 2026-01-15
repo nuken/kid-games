@@ -229,9 +229,9 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (24, 'Sight Word Adventures', 'games/sight-word-reader', '🦜', 1, 2, 1, 'Reading'),
                 (25, 'Cosmic Calc', 'games/cosmic-calc', '🚀', 3, 6, 1, 'Math'),
                 (26, 'Vocab Lab', 'games/vocab-lab', '📚', 3, 6, 1, 'Reading'),
-                (27, 'Memory Match', 'games/memory-match', '🃏', 0, 6, 1, 'Logic');";
+                (27, 'Memory Match', 'games/memory-match', '🃏', 0, 6, 1, 'Logic'),
+                (28, 'Dino Dash', 'games/dino-dash', '🦖', 0, 3, 1, 'General');";
             $pdo->exec($sql_games);
-
             // 3. Badges
             $pdo->exec("TRUNCATE TABLE badges");
             $sql_badges = "INSERT INTO `badges` (`id`, `name`, `description`, `icon`, `criteria_game_id`, `criteria_score`, `slug`) VALUES
@@ -263,7 +263,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (27, 'Messenger', 'Unlocked the secret messenger box!', '📬', NULL, 0, 'messenger_unlock'),
                 (28, 'Blast Off', 'Scored 100% on Cosmic Calc', '🚀', 25, 100, NULL),
                 (29, 'Word Warrior', 'Scored 100% in Vocab Lab', '🏆', 26, 100, NULL),
-                (30, 'Memory Master', 'Scored 100% in Memory Match', '🧠', 27, 100, NULL);";
+                (30, 'Memory Master', 'Scored 100% in Memory Match', '🧠', 27, 100, NULL),
+                (31, 'Dino Stomp', 'Beat the Dino in the race!', '🦕', 28, 100, NULL);";
             $pdo->exec($sql_badges);
             // 4. Overrides
             $pdo->exec("TRUNCATE TABLE game_theme_overrides");
