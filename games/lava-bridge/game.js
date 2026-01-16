@@ -9,6 +9,9 @@
     let sessionMistakes = 0;
     let startTime = Date.now();
 
+    // NEW: The deck to hold our shuffled questions
+    let questionDeck = [];
+
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
             instructions: "Answer correctly to build a bridge over the lava!",
@@ -23,14 +26,43 @@
                 currentStep = 0;
                 sessionMistakes = 0;
                 startTime = Date.now();
-                
+
                 // Reset Visuals
                 setupBridge();
                 movePlayerTo(0); // Start Bank
+
+                // NEW: Initialize and shuffle the deck for the new game
+                buildDeck();
+
                 nextQuestion();
             }
         });
     });
+
+    // NEW: Function to build and shuffle the deck based on difficulty
+    function buildDeck() {
+        questionDeck = [];
+
+        if (difficulty === 1) {
+            // Level 1: Numbers 1-10
+            for (let i = 1; i <= 10; i++) {
+                questionDeck.push(i);
+            }
+        } else {
+            // Level 2: Addition pairs (1-10 + 1-10)
+            for (let a = 1; a <= 10; a++) {
+                for (let b = 1; b <= 10; b++) {
+                    questionDeck.push({ a: a, b: b });
+                }
+            }
+        }
+
+        // Fisher-Yates Shuffle Algorithm
+        for (let i = questionDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questionDeck[i], questionDeck[j]] = [questionDeck[j], questionDeck[i]];
+        }
+    }
 
     function setupBridge() {
         const container = document.getElementById('bridge-span');
@@ -48,20 +80,30 @@
         const problemEl = document.getElementById('math-problem');
         const optsEl = document.getElementById('options-container');
         const msg = document.getElementById('message');
-        
+
         optsEl.innerHTML = '';
         msg.innerText = '';
 
+        // NEW: Check if deck is empty, refill if necessary (infinite play support)
+        if (questionDeck.length === 0) {
+            buildDeck();
+        }
+
+        // NEW: Draw the next question from the top of the deck
+        const card = questionDeck.pop();
+
         // --- Generate Question ---
         if (difficulty === 1) {
-            // Level 1: Number Recognition / Counting
-            currentAnswer = Math.floor(Math.random() * 10) + 1;
+            // Level 1: Number Recognition
+            // 'card' is just the number (e.g., 5)
+            currentAnswer = card;
             problemEl.innerText = "Find number " + currentAnswer;
             GameBridge.speakNow("Find number " + currentAnswer);
         } else {
             // Level 2: Addition
-            let a = Math.floor(Math.random() * 10) + 1;
-            let b = Math.floor(Math.random() * 10) + 1;
+            // 'card' is an object {a: 3, b: 5}
+            let a = card.a;
+            let b = card.b;
             currentAnswer = a + b;
             problemEl.innerText = `${a} + ${b} = ?`;
             GameBridge.speakNow(`${a} plus ${b}`);
@@ -70,8 +112,12 @@
         // --- Generate Choices ---
         let choices = [currentAnswer];
         while (choices.length < 3) {
+            // Generate fake answers close to real answer
             let fake = currentAnswer + Math.floor(Math.random() * 5) - 2;
-            if (fake > 0 && !choices.includes(fake)) choices.push(fake);
+            // Ensure fake is positive and unique
+            if (fake > 0 && !choices.includes(fake)) {
+                choices.push(fake);
+            }
         }
         choices.sort(() => Math.random() - 0.5);
 
@@ -91,7 +137,7 @@
             GameBridge.handleCorrect();
             btn.style.background = "#2ecc71";
             btn.style.color = "white";
-            
+
             // Build the next stone
             addStone();
         } else {
@@ -106,7 +152,7 @@
 
     function addStone() {
         currentStep++;
-        
+
         // 1. Visually add the stone
         const slot = document.getElementById('slot-' + currentStep);
         if (slot) {
@@ -157,7 +203,7 @@
             // Math: (Target's Left Edge - River's Left Edge) + (Half of Target's Width)
             // This gives us the exact center pixel relative to the river
             const centerPos = (targetRect.left - riverRect.left) + (targetRect.width / 2);
-            
+
             // Apply exact pixel position
             player.style.left = centerPos + 'px';
         }
@@ -166,14 +212,14 @@
         player.classList.remove('jump'); // Reset animation if it got stuck
         void player.offsetWidth;         // Trigger reflow (magic browser reset)
         player.classList.add('jump');
-        
+
         setTimeout(() => player.classList.remove('jump'), 300);
     }
 
     function finishGame() {
         GameBridge.celebrate("You crossed the lava!", "assets/videos/lava_win.mp4");
         document.getElementById('message').innerText = "SAFE!";
-        
+
         GameBridge.saveScore({
             score: score + 50, // Bonus for surviving
             duration: Math.floor((Date.now() - startTime) / 1000),
