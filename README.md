@@ -1,6 +1,6 @@
 # 🎓 Nuken LMS: Walled Garden Education
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![PHP](https://img.shields.io/badge/php-7.4%2B-purple) ![Docker](https://img.shields.io/badge/docker-ready-blue)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![PHP](https://img.shields.io/badge/php-7.4%2B-purple) ![Docker](https://img.shields.io/badge/docker-ready-blue) 
 
 **A self-hosted, "Walled Garden" Learning Management System (LMS) designed for safe, distraction-free home education.**
 
@@ -12,6 +12,7 @@ Nuken LMS allows parents and educators to host a private server where students c
 **🎯 Target Audience:**
 Currently pre-loaded with content optimized for **Preschool to 3rd Grade** (Literacy, Basic Math, Logic). However, the platform is **grade-agnostic**—it is built to grow with your students, allowing you to easily develop or install modules for older age groups (Coding, Advanced Math, Typing, etc.).
 
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/rcvaughn2)
 ---
 
 ## 📋 Table of Contents
