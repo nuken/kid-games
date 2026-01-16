@@ -103,30 +103,53 @@ try {
     // LOGIC 2: DAILY QUEST STAR
     // ======================================================
     $daily_game_id = getDailyGameId($pdo, $user_grade);
-    
-    if ($dailyStarId && $game_id == $daily_game_id) {
-        
-        $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) 
-                VALUES (?, ?, NOW(), 1) 
-                ON DUPLICATE KEY UPDATE 
-                count = count + 1, 
-                earned_at = NOW()";
-        
-        $pdo->prepare($sql)->execute([$user_id, $dailyStarId]);
-        $new_badges[] = ['name'=>'Daily Star', 'icon'=>'⭐'];
 
-        // Check Streak
-        if ($streakMasterId && getStreakCount($pdo, $user_id) >= 3) {
-            $sqlStreak = "INSERT INTO user_badges (user_id, badge_id, earned_at, count) 
-                          VALUES (?, ?, NOW(), 1) 
-                          ON DUPLICATE KEY UPDATE 
-                          count = count + 1, 
-                          earned_at = NOW()";
-            $pdo->prepare($sqlStreak)->execute([$user_id, $streakMasterId]);
-            $new_badges[] = ['name'=>'Streak Master', 'icon'=>'🔥'];
+    if ($dailyStarId && $game_id == $daily_game_id) {
+
+        // 1. CHECK: Did we already earn the Daily Star TODAY?
+        $checkStar = $pdo->prepare("
+            SELECT COUNT(*) FROM user_badges
+            WHERE user_id = ?
+            AND badge_id = ?
+            AND DATE(earned_at) = CURDATE()
+        ");
+        $checkStar->execute([$user_id, $dailyStarId]);
+        $alreadyEarnedToday = ($checkStar->fetchColumn() > 0);
+
+        // 2. Only award if NOT earned today
+        if (!$alreadyEarnedToday) {
+
+            // Insert (first time ever) or Update (played previous days, but not today)
+            $sql = "INSERT INTO user_badges (user_id, badge_id, earned_at, count)
+                    VALUES (?, ?, NOW(), 1)
+                    ON DUPLICATE KEY UPDATE
+                    count = count + 1,
+                    earned_at = NOW()";
+
+            $pdo->prepare($sql)->execute([$user_id, $dailyStarId]);
+            $new_badges[] = ['name'=>'Daily Star', 'icon'=>'⭐'];
+
+            // 3. Check Streak
+            // We nest this inside the 'if' block so the streak badge also only triggers
+            // the first time the daily star is completed for the day.
+            if ($streakMasterId && getStreakCount($pdo, $user_id) >= 3) {
+
+                // Optional: Double check streak wasn't already awarded (safety net)
+                $checkStreak = $pdo->prepare("SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ? AND DATE(earned_at) = CURDATE()");
+                $checkStreak->execute([$user_id, $streakMasterId]);
+
+                if ($checkStreak->fetchColumn() == 0) {
+                    $sqlStreak = "INSERT INTO user_badges (user_id, badge_id, earned_at, count)
+                                  VALUES (?, ?, NOW(), 1)
+                                  ON DUPLICATE KEY UPDATE
+                                  count = count + 1,
+                                  earned_at = NOW()";
+                    $pdo->prepare($sqlStreak)->execute([$user_id, $streakMasterId]);
+                    $new_badges[] = ['name'=>'Streak Master', 'icon'=>'🔥'];
+                }
+            }
         }
     }
-
     // ======================================================
     // LOGIC 3: FIRST GAME EVER (One time only)
     // ======================================================
