@@ -10,7 +10,7 @@ This guide covers how to deploy Nuken LMS using **Docker** and **Docker Compose*
 ### 1. Clone & Prepare
 Download the project code and enter the directory.
 ```bash
-git clone [https://github.com/nuken/kid-games.git](https://github.com/nuken/kid-games.git)
+git clone https://github.com/nuken/kid-games.git
 cd kid-games
 
 ```
