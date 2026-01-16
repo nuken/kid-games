@@ -16,7 +16,7 @@ services:
 
   # The Database (MariaDB)
   db:
-    image: mariadb:10.6
+    image: mariadb:latest
     container_name: kidgames-db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
