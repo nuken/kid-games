@@ -19,10 +19,11 @@ services:
     image: mariadb:latest
     container_name: kidgames-db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: kidgames
-      MYSQL_USER: kid_user
-      MYSQL_PASSWORD: kid_password
+      # Updated to MARIADB_ prefix for modern compatibility
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: kidgames
+      MARIADB_USER: kid_user
+      MARIADB_PASSWORD: kid_password
     volumes:
       - db_data:/var/lib/mysql
     networks:
