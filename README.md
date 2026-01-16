@@ -12,7 +12,7 @@ Nuken LMS allows parents and educators to host a private server where students c
 **🎯 Target Audience:**
 Currently pre-loaded with content optimized for **Preschool to 3rd Grade** (Literacy, Basic Math, Logic). However, the platform is **grade-agnostic**—it is built to grow with your students, allowing you to easily develop or install modules for older age groups (Coding, Advanced Math, Typing, etc.).
 
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/rcvaughn2)
+[![Buy Me A Coffee](https://cms.klhub.org/assets/images/bmac.png)](https://buymeacoffee.com/rcvaughn2)
 ---
 
 ## 📋 Table of Contents
