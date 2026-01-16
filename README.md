@@ -7,7 +7,7 @@
 Nuken LMS allows parents and educators to host a private server where students can learn, track progress, and socialize safely without exposure to the open internet.
 
 [![Nuken LMS Dashboard](Screenshots/Defaultthememain.jpeg)](Screenshots/)
-> *[Click here to view the full Screenshot Gallery](Screenshots/)*
+> *[Click here to view the full Screenshot Gallery](Screenshots#readme/)*
 
 **🎯 Target Audience:**
 Currently pre-loaded with content optimized for **Preschool to 3rd Grade** (Literacy, Basic Math, Logic). However, the platform is **grade-agnostic**—it is built to grow with your students, allowing you to easily develop or install modules for older age groups (Coding, Advanced Math, Typing, etc.).
