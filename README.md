@@ -6,7 +6,7 @@
 
 Nuken LMS allows parents and educators to host a private server where students can learn, track progress, and socialize safely without exposure to the open internet.
 
-[![Nuken LMS Dashboard](Screenshots/Defaultthememain.jpeg)](Screenshots/)
+[![Nuken LMS Dashboard](Screenshots/Defaultthememain.jpeg)](Screenshots#readme/)
 > *[Click here to view the full Screenshot Gallery](Screenshots#readme/)*
 
 **🎯 Target Audience:**
