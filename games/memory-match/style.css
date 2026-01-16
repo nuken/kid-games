@@ -1,3 +1,4 @@
+/* games/memory-match/style.css */
 #game-board {
     max-width: 800px;
     margin: 0 auto;
@@ -50,15 +51,16 @@
     width: 100%;
     height: 100%;
     position: absolute;
-    border-radius: 15px;
+    border-radius: 10px; /* Slightly tighter radius for realism */
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 3em;
     backface-visibility: hidden; /* Hides the back when flipped */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Softer shadow */
+    border: 1px solid #ddd; /* Subtle grey edge definition */
     user-select: none;
+    box-sizing: border-box; /* Ensures padding/border are inside width/height */
 }
 
 /* Front Face (The Content) */
@@ -69,9 +71,19 @@
 
 /* Back Face (The Pattern) */
 .back-face {
-    background: linear-gradient(135deg, var(--primary-btn), var(--secondary-btn));
-    color: white;
-    font-size: 2em;
+    background-color: white; /* The border color */
+
+    /* Classic Cross-Hatch Pattern */
+    background-image:
+        repeating-linear-gradient(45deg, #3498db 0, #3498db 2px, white 2px, white 6px),
+        repeating-linear-gradient(-45deg, #3498db 0, #3498db 2px, white 2px, white 6px);
+
+    /* This restricts the background to the content area, creating the white border via padding */
+    background-clip: content-box;
+    padding: 10px;
+
+    /* Remove old text styles */
+    color: transparent;
 }
 
 @media (max-width: 600px) {
