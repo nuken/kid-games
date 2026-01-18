@@ -15,7 +15,7 @@ Experience the student interface directly in your browser at **[https://kidhub.c
 | **Test2** | Princess | `1234` |
 | **Test3** | Space | `1234` |
 
-> **Note:** For security reasons, the public demo does not have access to parent dashboards or administrative functions.
+> **Note:** For security reasons, the public demo does not have access to parent dashboards or administrative functions. All games are visible to all users for the demo.
 
 * **[📚 Read the User Guide](UserGuide/README.md)**
 
