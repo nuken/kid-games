@@ -17,6 +17,8 @@ Experience the student interface directly in your browser at **[https://kidhub.c
 
 > **Note:** For security reasons, the public demo does not have access to parent dashboards or administrative functions.
 
+* **[📚 Read the User Guide](UserGuide/README.md)**
+
 [![Nuken LMS Dashboard](Screenshots/Defaultthememain.jpeg)](Screenshots/README.md)
 > *[Click here to view the full Screenshot Gallery](Screenshots/README.md)*
 
