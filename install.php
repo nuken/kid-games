@@ -230,7 +230,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (25, 'Cosmic Calc', 'games/cosmic-calc', '🚀', 3, 6, 1, 'Math'),
                 (26, 'Vocab Lab', 'games/vocab-lab', '📚', 3, 6, 1, 'Reading'),
                 (27, 'Memory Match', 'games/memory-match', '🃏', 0, 6, 1, 'Logic'),
-                (28, 'Dino Dash', 'games/dino-dash', '🦖', 0, 3, 1, 'General');";
+                (28, 'Dino Dash', 'games/dino-dash', '🦖', 0, 3, 1, 'General'),
+                (29, 'Music Keyboard', 'games/music-keyboard', '🎹', 0, 6, 1, 'Music');"; 
             $pdo->exec($sql_games);
             // 3. Badges
             $pdo->exec("TRUNCATE TABLE badges");
