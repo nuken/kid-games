@@ -265,7 +265,8 @@ if (!$is_locked && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 (28, 'Blast Off', 'Scored 100% on Cosmic Calc', '🚀', 25, 100, NULL),
                 (29, 'Word Warrior', 'Scored 100% in Vocab Lab', '🏆', 26, 100, NULL),
                 (30, 'Memory Master', 'Scored 100% in Memory Match', '🧠', 27, 100, NULL),
-                (31, 'Dino Stomp', 'Beat the Dino in the race!', '🦕', 28, 100, NULL);";
+                (31, 'Dino Stomp', 'Beat the Dino in the race!', '🦕', 28, 100, NULL),
+                (32, 'Melody Maker', 'Mastered a song on the piano!', '🎼', 29, 100, NULL);"; // Added Badge
             $pdo->exec($sql_badges);
             // 4. Overrides
             $pdo->exec("TRUNCATE TABLE game_theme_overrides");
