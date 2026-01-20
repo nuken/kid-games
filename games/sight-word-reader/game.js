@@ -3,155 +3,192 @@
     // --- VARIABLES ---
     let currentPage = 0;
     let currentStoryData = [];
-    let isReading = false; // Prevent double clicks while reading
-    let currentActiveLevel = 'level1'; // Tracks which story we are on (for the video ending)
-    
-    // --- SMART ENCOURAGEMENT SHUFFLE ---
-    // Phrases to say when the child clicks the main picture
-    const imagePhrases = [
-        "You are a great reader!", 
-        "Look at that picture!", 
-        "What is happening here?", 
-        "Keep going!",
-        "Sight words are fun!",
-        "Nice job!",
-        "Wow! Look at that!"
-    ];
-    
-    let phraseDeck = [];
+    let currentQuiz = null;
+    let currentSightWords = [];
+    let isReading = false;
+    let currentActiveLevel = 'level1';
 
-    // Helper: Shuffles the phrases so they don't repeat until used up
-    function shuffleDeck() {
-        phraseDeck = [...imagePhrases];
-        for (let i = phraseDeck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [phraseDeck[i], phraseDeck[j]] = [phraseDeck[j], phraseDeck[i]];
-        }
-    }
+    // Track Pre-Roll Progress
+    let wordsFoundCount = 0;
 
     // --- STORY LIBRARY ---
-    // Contains the text and image paths for each level
     const library = {
-        'level1': [
-            { image: "games/sight-word-reader/images/bird_1.png", text: "Once there was a little bird." },
-            { image: "games/sight-word-reader/images/bird_2.png", text: "She wanted to fly over the trees." },
-            { image: "games/sight-word-reader/images/bird_3.png", text: "She asked her mom,\nHow do I fly?" },
-            { image: "games/sight-word-reader/images/bird_4.png", text: "Just open your wings and go!" },
-            { image: "games/sight-word-reader/images/bird_5.png", text: "She flew over the garden.\nShe was happy." }
-        ],
-        'level2': [
-            { image: "games/sight-word-reader/images/box_1.png", text: "I found an old box in the dirt." },
-            { image: "games/sight-word-reader/images/box_2.png", text: "It was very cold and green." },
-            { image: "games/sight-word-reader/images/box_3.png", text: "I did not have the right key." },
-            { image: "games/sight-word-reader/images/box_4.png", text: "I made a wish upon a star." },
-            { image: "games/sight-word-reader/images/box_5.png", text: "Then I found the key under a rock!" }
-        ]
+        'level1': {
+            pages: [
+                { image: "games/sight-word-reader/images/bird_1.png", text: "Once there was a little bird." },
+                { image: "games/sight-word-reader/images/bird_2.png", text: "She wanted to fly over the trees." },
+                { image: "games/sight-word-reader/images/bird_3.png", text: "She asked her mom,\nHow do I fly?" },
+                { image: "games/sight-word-reader/images/bird_4.png", text: "Just open your wings and go!" },
+                { image: "games/sight-word-reader/images/bird_5.png", text: "She flew over the garden.\nShe was happy." }
+            ],
+            sightWords: ["Bird", "Fly", "Happy", "Wings"],
+            quiz: {
+                question: "Who wanted to fly?",
+                answers: ["The Bird", "A Cat", "The Dog"],
+                correct: "The Bird"
+            }
+        },
+        'level2': {
+            pages: [
+                { image: "games/sight-word-reader/images/box_1.png", text: "I found an old box in the dirt." },
+                { image: "games/sight-word-reader/images/box_2.png", text: "It was very cold and green." },
+                { image: "games/sight-word-reader/images/box_3.png", text: "I did not have the right key." },
+                { image: "games/sight-word-reader/images/box_4.png", text: "I made a wish upon a star." },
+                { image: "games/sight-word-reader/images/box_5.png", text: "Then I found the key under a rock!" }
+            ],
+            sightWords: ["Box", "Key", "Star", "Rock"],
+            quiz: {
+                question: "What was under the rock?",
+                answers: ["A Bug", "The Key", "An Egg"],
+                correct: "The Key"
+            }
+        }
     };
 
-    // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', () => {
-        const instructionsText = "Read the story! Tap words to hear them.";
-        shuffleDeck(); // Init the shuffle deck
-
         GameBridge.setupGame({
-            instructions: instructionsText,
-            speakInstruction: " ", // We manually speak below to time it better
+            instructions: "First, find the special words!",
             levels: [
                 { id: 'level1', label: 'The Little Bird 🐦 (Gr 1)' },
                 { id: 'level2', label: 'The Magic Box 📦 (Gr 2)' }
             ],
             onStart: (levelId) => {
-                // Save the level ID so we know which video to play at the end
                 currentActiveLevel = levelId;
-                
-                // Load the correct story data
-                currentStoryData = library[levelId] || library['level1'];
-                currentPage = 0;
-                renderPage();
+                const data = library[levelId] || library['level1'];
+
+                currentStoryData = data.pages;
+                currentSightWords = data.sightWords;
+                currentQuiz = data.quiz;
+
+                // Start with Word Hunt
+                startWordHunt();
             }
         });
-
-        // Delay the instruction speech slightly so it doesn't clash with the page load
-        setTimeout(() => GameBridge.speak(instructionsText), 500);
     });
 
-    // --- MAIN RENDER FUNCTION ---
+    // --- PHASE 1: WORD HUNT ---
+    function startWordHunt() {
+        // Show Overlay
+        const overlay = document.getElementById('word-hunt-overlay');
+        const quizOverlay = document.getElementById('quiz-overlay');
+
+        if (overlay) overlay.style.display = 'flex';
+        if (quizOverlay) quizOverlay.style.display = 'none';
+
+        const grid = document.getElementById('word-hunt-grid');
+        grid.innerHTML = '';
+        wordsFoundCount = 0;
+
+        GameBridge.speak("Tap the words to hear them!");
+
+        // Generate Buttons
+        currentSightWords.forEach(word => {
+            const btn = document.createElement('button');
+            btn.className = 'hunt-word-btn';
+            btn.innerText = word;
+
+            btn.onclick = () => {
+                // FIX 1: Prevent clicking already found words
+                if (btn.classList.contains('found')) return;
+
+                btn.classList.add('found');
+                btn.innerText = word + " ✅";
+                wordsFoundCount++;
+
+                const isWin = wordsFoundCount >= currentSightWords.length;
+
+                // FIX 2: Chain the audio using the callback
+                // Speak the word FIRST. When that finishes, check if we won.
+                GameBridge.speakNow(word, () => {
+                    if (isWin) {
+                        GameBridge.speak("Good job! Let's read.", () => {
+                            setTimeout(() => {
+                                if(overlay) overlay.style.display = 'none';
+                                startStory();
+                            }, 1000);
+                        });
+                    }
+                });
+            };
+            grid.appendChild(btn);
+        });
+    }
+
+    // --- PHASE 2: STORY READER ---
+    function startStory() {
+        currentPage = 0;
+        renderPage();
+        setTimeout(() => GameBridge.speak("Read the story! Tap words to hear them."), 500);
+    }
+
     window.renderPage = function() {
         const page = currentStoryData[currentPage];
-        isReading = false; // Reset reading state on page turn
+        isReading = false;
 
-        // 1. Update Progress Bar
+        // Update Progress Bar
         const progressPct = ((currentPage + 1) / currentStoryData.length) * 100;
         const pFill = document.getElementById('progress-fill');
-        if (pFill) pFill.style.width = `${progressPct}%`;
+        if(pFill) pFill.style.width = `${progressPct}%`;
 
-        // 2. Update Image with Animation
+        // Update Image
         const imgEl = document.getElementById('story-image');
-        if (imgEl) {
+        if(imgEl) {
             imgEl.src = page.image;
-            // Small "pop" animation
             imgEl.style.transform = "scale(0.9)";
             setTimeout(() => imgEl.style.transform = "scale(1)", 150);
         }
 
-        // 3. Process Text into Interactive Spans
+        // Render Text
         const textContainer = document.getElementById('story-text');
-        if (textContainer) {
+        if(textContainer) {
             textContainer.innerHTML = '';
-            
+
             let globalWordIndex = 0;
-            const lines = page.text.split('\n'); // Preserve line breaks
-            
+            const lines = page.text.split('\n');
+
             lines.forEach(lineText => {
                 const lineDiv = document.createElement('div');
                 const words = lineText.split(' ');
-                
+
                 words.forEach(word => {
                     const span = document.createElement('span');
-                    span.innerText = word + ' '; 
+                    span.innerText = word + ' ';
                     span.className = 'word-interactive';
-                    span.id = `word-${globalWordIndex}`; 
-                    
-                    // Clean punctuation for TTS (e.g., "fly?" -> "fly")
+                    span.id = `word-${globalWordIndex}`;
+
                     const cleanWord = word.replace(/[.,!?'"]/g, "");
-                    span.dataset.clean = cleanWord; 
-                    
-                    // Click to speak individual word
+                    span.dataset.clean = cleanWord;
+
                     span.onclick = () => {
                         span.style.transform = "scale(1.3)";
                         setTimeout(() => span.style.transform = "scale(1.1)", 200);
                         GameBridge.speakNow(cleanWord);
                     };
-                    
+
                     lineDiv.appendChild(span);
                     globalWordIndex++;
                 });
                 textContainer.appendChild(lineDiv);
             });
         }
-
         updateButtons();
     };
 
-    // --- BUTTON STATE UPDATE ---
     function updateButtons() {
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
-        
-        if (btnPrev) {
+
+        if(btnPrev) {
             btnPrev.disabled = (currentPage === 0);
             btnPrev.style.opacity = (currentPage === 0) ? 0.5 : 1;
         }
-        if (btnNext) {
-            // Change button text on the last page
+        if(btnNext) {
             btnNext.innerText = (currentPage === currentStoryData.length - 1) ? "Finish! 🏆" : "Next ➡";
         }
     }
 
-    // --- KARAOKE READING FEATURE ---
-    // Highlights words one by one as they are spoken
     window.readPageKaraoke = function() {
-        if (isReading) return; // Don't start if already reading
+        if (isReading) return;
         isReading = true;
 
         const page = currentStoryData[currentPage];
@@ -159,70 +196,29 @@
         let index = 0;
 
         function speakNextWord() {
-            // Stop if finished or if the user turned the page
             if (index >= wordSpans.length || currentPage !== currentStoryData.indexOf(page)) {
                 isReading = false;
                 return;
             }
-
             const span = wordSpans[index];
-            const textToSpeak = span.dataset.clean;
-
-            // Highlight word
             span.classList.add('word-reading');
-
-            // Speak word with callback to trigger next one
-            GameBridge.speak(textToSpeak, () => {
+            GameBridge.speak(span.dataset.clean, () => {
                 span.classList.remove('word-reading');
                 index++;
-                // Small delay for natural pacing
                 setTimeout(speakNextWord, 50);
             });
         }
         speakNextWord();
     };
 
-    // Compatibility Alias: Allows the button to call readPage() OR readPageKaraoke()
-    window.readPage = window.readPageKaraoke;
-
-    // --- INTERACTIVE IMAGE FEATURE ---
-    // Says a random encouragement phrase when image is clicked
-    window.interactWithImage = function() {
-        if (phraseDeck.length === 0) shuffleDeck(); // Refill deck if empty
-        const smartPhrase = phraseDeck.pop();
-        
-        GameBridge.speakNow(smartPhrase);
-        
-        // Visual bounce effect
-        const imgFrame = document.querySelector('.image-frame');
-        if(imgFrame) {
-            imgFrame.style.transform = "rotate(5deg) scale(1.05)";
-            setTimeout(() => imgFrame.style.transform = "rotate(-2deg) scale(1)", 300);
-        }
-    };
-
-    // --- NAVIGATION ---
     window.nextPage = function() {
-        isReading = false; // Stop reading if page changes
-        
+        isReading = false;
         if (currentPage < currentStoryData.length - 1) {
             currentPage++;
             renderPage();
             GameBridge.playAudio('correct');
         } else {
-            // --- END OF STORY LOGIC ---
-            // Choose the correct video based on the active level
-            let videoPath = '';
-            
-            if (currentActiveLevel === 'level1') {
-                videoPath = 'assets/videos/bird_end.mp4';
-            } else if (currentActiveLevel === 'level2') {
-                videoPath = 'assets/videos/box_end.mp4';
-            }
-
-            // Trigger celebration with the video
-            GameBridge.celebrate("Amazing! You red the whole story!", videoPath);
-            GameBridge.saveScore({ score: 100, duration: 0, mistakes: 0 });
+            startQuiz();
         }
     };
 
@@ -233,4 +229,51 @@
             renderPage();
         }
     };
+
+    // --- PHASE 3: COMPREHENSION CHECK ---
+    function startQuiz() {
+        const quizOverlay = document.getElementById('quiz-overlay');
+        const qText = document.getElementById('quiz-question');
+        const qOpts = document.getElementById('quiz-options');
+
+        if(qText) qText.innerText = currentQuiz.question;
+        if(qOpts) qOpts.innerHTML = '';
+
+        if(quizOverlay) {
+            quizOverlay.style.display = 'flex';
+            GameBridge.speak(currentQuiz.question);
+        }
+
+        let opts = [...currentQuiz.answers].sort(() => Math.random() - 0.5);
+
+        opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-btn';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if (opt === currentQuiz.correct) {
+                    GameBridge.celebrate("You got it!", getEndVideo());
+                    GameBridge.saveScore({ score: 100, duration: 0, mistakes: 0 });
+                    if(quizOverlay) quizOverlay.style.display = 'none';
+                } else {
+                    GameBridge.speakNow("Try again.");
+                    btn.style.opacity = 0.5;
+                }
+            };
+            qOpts.appendChild(btn);
+        });
+    }
+
+    function getEndVideo() {
+        if (currentActiveLevel === 'level1') return 'assets/videos/bird_end.mp4';
+        if (currentActiveLevel === 'level2') return 'assets/videos/box_end.mp4';
+        return '';
+    }
+
+    window.interactWithImage = function() {
+        const phrases = ["Great reading!", "Look at that!", "Wow!"];
+        const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        GameBridge.speakNow(phrase);
+    };
+
 })();
