@@ -12,11 +12,68 @@
     font-family: 'Comic Neue', sans-serif;
 }
 
+/* --- NEW: Visual Hint Container --- */
+#visual-hint-container {
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column; /* Default: Stack rows vertically */
+    align-items: center;
+    gap: 5px;
+    min-height: 50px;
+    transition: all 0.3s ease;
+}
+
+.calc-row {
+    display: flex;
+    gap: 8px; /* Space between stars */
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.calc-star {
+    font-size: 1.5rem;
+    color: #f1c40f; /* Gold color */
+    text-shadow: 0 2px 0 #d35400;
+    cursor: default;
+    line-height: 1;
+}
+
+/* --- TABLET OPTIMIZATION (Condensed Mode) --- */
+@media (max-width: 1024px) {
+    #visual-hint-container {
+        /* Change direction to allow rows to sit side-by-side */
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        max-width: 95%; /* Ensure it fits on screen */
+    }
+
+    .calc-row {
+        /* Keep rows distinct when wrapped */
+        background-color: rgba(255, 255, 255, 0.4);
+        gap: 4px; /* Tighter stars */
+        padding: 4px 8px;
+    }
+
+    .calc-star {
+        font-size: 1.0rem; /* Smaller stars */
+    }
+
+    .question-text {
+        font-size: 3rem; /* Slightly smaller text */
+        margin: 10px 0;
+    }
+}
+
+/* --- EXISTING STYLES --- */
 .options-container {
     display: flex;
     justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
+    margin-top: 20px;
 }
 
 .math-btn {
@@ -41,6 +98,16 @@
 body.theme-space .question-text {
     color: #fff;
     text-shadow: 0 0 10px #3498db;
+}
+
+body.theme-space .calc-star {
+    color: #ffeaa7;
+    text-shadow: 0 0 5px #fff;
+}
+
+body.theme-space .calc-row {
+    /* Slightly visible background for groups in space mode */
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Rocket Animation */

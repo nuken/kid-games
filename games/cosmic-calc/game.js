@@ -36,12 +36,12 @@
     function buildMathDeck() {
         problemDeck = [];
         const factors = LEVELS[currentLevel];
-        
+
         // Generate every combination of (Factor x 2..10)
         factors.forEach(numA => {
             // We multiply by 2 through 10 (or 12 for masters)
             let maxMult = (currentLevel === 3) ? 12 : 10;
-            
+
             for(let i=2; i<=maxMult; i++) {
                 problemDeck.push({ a: numA, b: i });
             }
@@ -86,7 +86,11 @@
         // 3. Display
         const qText = `${numA} x ${numB} = ?`;
         document.getElementById('question-display').innerText = qText;
-        
+
+        // --- NEW: Visual Hint ---
+        drawVisualHint(numA, numB);
+        // ------------------------
+
         // Speak using API
         GameBridge.speakNow(`What is ${numA} times ${numB}?`);
 
@@ -97,7 +101,7 @@
             // Or completely random close number
             let coinFlip = Math.random() > 0.5;
             let fake;
-            
+
             if (coinFlip) {
                 // Off by one multiple (e.g. 5x4 or 5x6)
                 fake = answer + (Math.random() > 0.5 ? numA : -numA);
@@ -110,7 +114,7 @@
                 options.push(fake);
             }
         }
-        
+
         // Shuffle Options
         options.sort(() => Math.random() - 0.5);
 
@@ -128,12 +132,12 @@
 
     function handleAnswer(selected, correct) {
         if (selected === correct) {
-            GameBridge.handleCorrect(); 
+            GameBridge.handleCorrect();
             score += 10;
             questionCount++;
             nextQuestion();
         } else {
-            GameBridge.handleWrong(); 
+            GameBridge.handleWrong();
             mistakes++;
         }
     }
@@ -141,15 +145,43 @@
     function finishGame() {
         const rocket = document.getElementById('rocket');
         if(rocket) rocket.classList.add('blasting-off');
-        
+
         GameBridge.celebrate("Mission Accomplished! Blast off!");
 
         setTimeout(() => {
             GameBridge.saveScore({
-                score: 100, 
+                score: 100,
                 duration: Math.floor((Date.now() - startTime) / 1000),
                 mistakes: mistakes
             });
         }, 1500);
     }
+
+    // --- NEW HELPER FUNCTION: Draws the visual star array ---
+    function drawVisualHint(rows, cols) {
+        const container = document.getElementById('visual-hint-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        // We want 'rows' number of rows
+        for(let r = 0; r < rows; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'calc-row';
+
+            // We want 'cols' number of items in each row
+            for(let c = 0; c < cols; c++) {
+                const star = document.createElement('span');
+                star.className = 'calc-star';
+                star.innerText = '⭐';
+
+                // Add staggered animation
+                star.style.animation = `popIn 0.3s ease-out ${ (r*cols + c) * 0.05 }s backwards`;
+
+                rowDiv.appendChild(star);
+            }
+            container.appendChild(rowDiv);
+        }
+    }
+
 })();
