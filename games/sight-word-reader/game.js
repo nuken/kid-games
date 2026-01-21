@@ -3,10 +3,14 @@
     // --- VARIABLES ---
     let currentPage = 0;
     let currentStoryData = [];
-    let currentQuiz = null;
+    let currentQuiz = []; // Changed to Array
     let currentSightWords = [];
     let isReading = false;
     let currentActiveLevel = 'level1';
+    
+    // Quiz State
+    let currentQuizIndex = 0;
+    let quizMistakes = 0;
 
     // Track Pre-Roll Progress
     let wordsFoundCount = 0;
@@ -22,11 +26,19 @@
                 { image: "games/sight-word-reader/images/bird_5.png", text: "She flew over the garden.\nShe was happy." }
             ],
             sightWords: ["Bird", "Fly", "Happy", "Wings"],
-            quiz: {
-                question: "Who wanted to fly?",
-                answers: ["The Bird", "A Cat", "The Dog"],
-                correct: "The Bird"
-            }
+            // NEW: Array of questions
+            quiz: [
+                {
+                    q: "Who wanted to fly?",
+                    a: ["The Bird", "A Cat", "The Dog"],
+                    correct: "The Bird"
+                },
+                {
+                    q: "Where did she fly?",
+                    a: ["Under a rock", "Over the garden", "Into a box"],
+                    correct: "Over the garden"
+                }
+            ]
         },
         'level2': {
             pages: [
@@ -37,11 +49,18 @@
                 { image: "games/sight-word-reader/images/box_5.png", text: "Then I found the key under a rock!" }
             ],
             sightWords: ["Box", "Key", "Star", "Rock"],
-            quiz: {
-                question: "What was under the rock?",
-                answers: ["A Bug", "The Key", "An Egg"],
-                correct: "The Key"
-            }
+            quiz: [
+                {
+                    q: "What color was the box?",
+                    a: ["Red", "Green", "Blue"],
+                    correct: "Green"
+                },
+                {
+                    q: "What was under the rock?",
+                    a: ["A Bug", "The Key", "An Egg"],
+                    correct: "The Key"
+                }
+            ]
         }
     };
 
@@ -58,7 +77,11 @@
 
                 currentStoryData = data.pages;
                 currentSightWords = data.sightWords;
-                currentQuiz = data.quiz;
+                currentQuiz = data.quiz; 
+
+                // Reset States
+                quizMistakes = 0;
+                currentQuizIndex = 0;
 
                 // Start with Word Hunt
                 startWordHunt();
@@ -88,7 +111,6 @@
             btn.innerText = word;
 
             btn.onclick = () => {
-                // FIX 1: Prevent clicking already found words
                 if (btn.classList.contains('found')) return;
 
                 btn.classList.add('found');
@@ -97,8 +119,6 @@
 
                 const isWin = wordsFoundCount >= currentSightWords.length;
 
-                // FIX 2: Chain the audio using the callback
-                // Speak the word FIRST. When that finishes, check if we won.
                 GameBridge.speakNow(word, () => {
                     if (isWin) {
                         GameBridge.speak("Good job! Let's read.", () => {
@@ -230,37 +250,87 @@
         }
     };
 
-    // --- PHASE 3: COMPREHENSION CHECK ---
+    // --- PHASE 3: MULTI-QUESTION QUIZ ---
     function startQuiz() {
         const quizOverlay = document.getElementById('quiz-overlay');
+        if(quizOverlay) quizOverlay.style.display = 'flex';
+        
+        currentQuizIndex = 0;
+        quizMistakes = 0;
+        
+        renderQuizQuestion();
+    }
+    
+    function renderQuizQuestion() {
+        const qData = currentQuiz[currentQuizIndex];
+        
+        // 1. Text
         const qText = document.getElementById('quiz-question');
         const qOpts = document.getElementById('quiz-options');
-
-        if(qText) qText.innerText = currentQuiz.question;
+        
+        if(qText) qText.innerText = qData.q;
         if(qOpts) qOpts.innerHTML = '';
-
-        if(quizOverlay) {
-            quizOverlay.style.display = 'flex';
-            GameBridge.speak(currentQuiz.question);
-        }
-
-        let opts = [...currentQuiz.answers].sort(() => Math.random() - 0.5);
+        
+        // 2. Speak
+        GameBridge.speak(qData.q);
+        
+        // 3. Render Buttons
+        let opts = [...qData.a].sort(() => Math.random() - 0.5);
 
         opts.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'quiz-btn';
             btn.innerText = opt;
+            
             btn.onclick = () => {
-                if (opt === currentQuiz.correct) {
-                    GameBridge.celebrate("You got it!", getEndVideo());
-                    GameBridge.saveScore({ score: 100, duration: 0, mistakes: 0 });
-                    if(quizOverlay) quizOverlay.style.display = 'none';
+                if (opt === qData.correct) {
+                    // Correct!
+                    GameBridge.playAudio('correct');
+                    btn.style.background = '#2ecc71'; // Green
+                    btn.innerText = opt + " ✅";
+                    
+                    setTimeout(() => {
+                        nextQuizQuestion();
+                    }, 1000);
+                    
                 } else {
+                    // Wrong!
                     GameBridge.speakNow("Try again.");
+                    quizMistakes++;
                     btn.style.opacity = 0.5;
+                    btn.disabled = true; 
                 }
             };
             qOpts.appendChild(btn);
+        });
+    }
+
+    function nextQuizQuestion() {
+        currentQuizIndex++;
+        
+        // Are there more questions?
+        if (currentQuizIndex < currentQuiz.length) {
+            renderQuizQuestion();
+        } else {
+            // All done!
+            finishGame();
+        }
+    }
+
+    function finishGame() {
+        const quizOverlay = document.getElementById('quiz-overlay');
+        if(quizOverlay) quizOverlay.style.display = 'none';
+
+        GameBridge.celebrate("You red the whole story!", getEndVideo());
+        
+        // Calculate score based on mistakes
+        // 100pts base, minus 10 per mistake, min 10pts
+        let finalScore = Math.max(10, 100 - (quizMistakes * 10));
+
+        GameBridge.saveScore({ 
+            score: finalScore, 
+            duration: 0, 
+            mistakes: quizMistakes 
         });
     }
 

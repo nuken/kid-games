@@ -5,7 +5,7 @@
     let cpuPos = 0;
     const GOAL = 90; // Finish line percentage
     const PLAYER_STEP = 10;
-    const CPU_STEP = 4; // Dino is slower but steady
+    const CPU_STEP = 3; // Dino is slower but steady
     
     let currentLevel = 1; // 1=Math, 2=Reading, 3=Science
     let cpuTimer = null;
@@ -34,7 +34,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         GameBridge.setupGame({
-            instructions: "Answer fast to win the race! Don't let the Dino catch you!",
+            instructions: "Answer fast to win the race! Don't let the Dinosaur catch you!",
             levels: [
                 { id: 1, label: "Math Race" },
                 { id: 2, label: "Reading Dash" },
@@ -175,7 +175,7 @@
         } else {
             // WRONG: Penalty!
             GameBridge.handleWrong();
-            GameBridge.speak("Oh no! The Dino is gaining!");
+            GameBridge.speak("Oh no! The Dinosaur is gaining!");
             
             // DINO MOVES ON MISTAKE
             moveCPU(); 
@@ -224,7 +224,7 @@
         if (playerWon) {
             msg.innerText = "🏆 YOU WON! 🏆";
             msg.style.color = "gold";
-            GameBridge.celebrate("Amazing! You beat the Dino!");
+            GameBridge.celebrate("Amazing! You beat the Dinosaur!");
             
             // Save Score
             GameBridge.saveScore({
@@ -235,11 +235,11 @@
         } else {
             msg.innerText = "🦖 DINO WINS!";
             msg.style.color = "#e74c3c";
-            GameBridge.speak("The Dino was too fast! Try again.");
+            GameBridge.speak("The Dinosaur was too fast! Try again.");
         }
     }
 
     window.explainRules = function() {
-        GameBridge.speak("Answer questions correctly to drive your car. If you miss one, the Dino moves faster!");
+        GameBridge.speak("Answer questions correctly to drive your car. If you miss one, the Dinosaur moves faster!");
     };
 })();
