@@ -7,7 +7,7 @@
 Nuken LMS allows parents and educators to host a private server where students can learn, track progress, and socialize safely without exposure to the open internet.
 
 ## 🎮 Live Demo
-Experience the student interface directly in your browser at **[https://kidhub.ct.ws](https://kidhub.ct.ws)**.
+Experience the student interface directly in your browser at **[https://nukenlms.com](https://nukenlms.com)**.
 
 | Student Name | Active Theme | PIN Code |
 | :--- | :--- | :--- |
